@@ -12,9 +12,9 @@
 
 ## Կուտակման կետ 
 
-**Սահմանում:** Դիցուք $E \subseteq \mathbb{R}^m$։ $x_0 \in \mathbb{R}^m$ կետը կոչվում է $E$ բազմության **կուտակման կետ**, եթե $x_0$-ի ցանկացած շրջակայքում $E$-ի անվերջ թվով կետեր կան առկա։
+**Սահմանում:** Դիցուք $E \subseteq \mathbb{R}^m$։ $x_0 \in \mathbb{R}^m$ կետը կոչվում է $E$ բազմության **կուտակման կետ**, եթե $x_0$-ի ցանկացած $B(a, \varepsilon)$ շրջակայքում $E$-ի անվերջ թվով կետեր կան առկա։ 
+$E$ բազմության կուտակման կետերի բազմությունը նշանակենք $E'$-ով:
 
-**Սահմանում:** $x_0$-ն կոչվում է $E$-ի կուտակման կետ, եթե $x_0$-ի կամայական շրջակայքում առկա է $E$-ից գոնե մեկ կետ։
 
 **Լեմմա:** Եթե $x_0$-ն $E$-ի կուտակման կետ է, ապա $\exists \{x_n\} \subset E, x_n \neq x_0$, այնպես որ $x_n \overset{n \to \infty}{\longrightarrow} x_0$։ Ճիշտ է նաև հակառակ պնդումը։
 
@@ -44,11 +44,13 @@ $\varepsilon$-ը նշանակենք $\frac{1}{n} \implies \exists x_n \in E \tex
 - $V(a, b, c) = a \cdot b \cdot c$
     
 
-**Սահմանում 2:** Կասենք, որ $A \in \mathbb{R}$ թիվը հանդիսանում է $f: E \to \mathbb{R}$ ֆունկցիայի սահման $x_0 \in E'$ կետում, եթե $\forall \varepsilon > 0 \ \exists \delta = \delta(\varepsilon) > 0 \text{ s.t. } 0 < \|x - x_0\| < \delta, x \in E \implies |f(x) - A| < \varepsilon$։
+**Սահմանում 2: (Էվկլիդեսյան նորմ)** Կասենք, որ $A \in \mathbb{R}$ թիվը հանդիսանում է $f: E \to \mathbb{R}$ ֆունկցիայի սահման $x_0 \in E'$ կետում, եթե $\forall \varepsilon > 0 \ \exists \delta = \delta(\varepsilon) > 0 \text{ s.t. } 0 < \|x - x_0\| < \delta, x \in E \implies |f(x) - A| < \varepsilon$։ 
+*Հարթության վրա սա δ շառավղով շրջան է (բաց գունդ):*
 
-**Սահմանում 3:** Դիցուք $x \in E, x = (x^1, x^2, \dots, x^m)$ և $x_0 \in E', x_0 = (x_0^1, x_0^2, \dots, x_0^m)$։
+**Սահմանում 3: (Կոորդինատային)** Դիցուք $x \in E, x = (x^1, x^2, \dots, x^m)$ և $x_0 \in E', x_0 = (x_0^1, x_0^2, \dots, x_0^m)$։ 
 
-Կասենք, որ $A \in \mathbb{R}$ թիվը հանդիսանում է $f: E \to \mathbb{R}$ ֆունկցիայի սահման $x_0$ կետում, եթե $\forall \varepsilon > 0 \ \exists \delta' = \delta'(\varepsilon) > 0 \text{ s.t. } |x^i - x_0^i| < \delta', x \in E, x \neq x_0 \implies |f(x^1, x^2, \dots, x^m) - A| < \varepsilon$։
+Կասենք, որ $A \in \mathbb{R}$ թիվը հանդիսանում է $f: E \to \mathbb{R}$ ֆունկցիայի սահման $x_0$ կետում, եթե $\forall \varepsilon > 0 \ \exists \delta' = \delta'(\varepsilon) > 0 \text{ s.t. } |x^i - x_0^i| < \delta', x \in E, x \neq x_0 \implies |f(x^1, x^2, \dots, x^m) - A| < \varepsilon$։ 
+*Սա 2δ′ կողմով քառակուսի է (բաց խորանարդ):*
 
 **Ցույց տանք, որ (3) $\implies$ (2)**
 
@@ -151,4 +153,4 @@ $z_{2n} \to x_0, f(z_{2n}) \to B$
 
 $z_{2n-1} \to x_0, f(z_{2n-1}) \to A$
 
-Քանի որ $f(z_n) \overset{n \to \infty}{\longrightarrow} A'$, ապա $\implies B = A$։
+Քանի որ $f(z_n) \overset{n \to \infty}{\longrightarrow} A'$, ($f(z_{2n}), f(z_{2n-1})$-ը $f({z_n})$-ի մասնակի ենթահաջորդականություններ են) ապա $B=A', A = A'$ $\implies B = A$։ $\blacksquare$
