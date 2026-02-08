@@ -61,7 +61,7 @@ $$\bar{B}(a, r) = \{x \in \mathbb{R}^m \mid d(a, x) \le r\} \lor \{x \in \mathbb
 
 ### Կոորդինատային զուգամիտության սկզբունքը
 
-**Թեորեմ:** Որպեսզի $x_n \in \mathbb{R}^m$ հաջորդականությունը ձգտի $a \in \mathbb{R}^m$ տարրին $\iff x_n^i \xrightarrow{n \to \infty} a^i$ ($i = \overline{1, m}$):
+**Թեորեմ:** Որպեսզի $x_n \in \mathbb{R}^m$ հաջորդականությունը ձգտի $a \in \mathbb{R}^m$ տարրին $\iff x_n^i \overset{n \to \infty}{\longrightarrow} a^i$ ($i = \overline{1, m}$):
 
 Ապացույց:
 
@@ -79,13 +79,13 @@ $$\left(\sum |x^i|\right)^2 \ge \sum |x^i|^2 = \|x\|^2$$
 Արմատ հանելով՝ կստանանք պահանջվող անհավասարությունը՝
 
 $$|x^1| + \dots + |x^m| \ge \|x\|$$
-$(\Rightarrow)$ Դիցուք $x_n \xrightarrow{n \to \infty} a$: Հետևաբար $\forall \varepsilon > 0$-ի համար $\exists n_0(\varepsilon) \in \mathbb{N}$ s.t. $n > n_0(\varepsilon) \implies \|x_n - a\| < \varepsilon$:
+$(\Rightarrow)$ Դիցուք $x_n \overset{n \to \infty}{\longrightarrow} a$: Հետևաբար $\forall \varepsilon > 0$-ի համար $\exists n_0(\varepsilon) \in \mathbb{N}$ s.t. $n > n_0(\varepsilon) \implies \|x_n - a\| < \varepsilon$:
 
 Օգտվելով (1)-ից կարող ենք ասել, որ $|x_n^i - a^i| < \|x_n - a\| < \varepsilon$:
 
-$\implies \forall i, \forall \varepsilon > 0, \exists n_0(\varepsilon) \in \mathbb{N}$ s.t. $n > n_0(\varepsilon) \implies |x_n^i - a^i| < \varepsilon$ ($i = \overline{1, m}$): Ուստի $x_n^i \xrightarrow{n \to \infty} a^i$:
+$\implies \forall i, \forall \varepsilon > 0, \exists n_0(\varepsilon) \in \mathbb{N}$ s.t. $n > n_0(\varepsilon) \implies |x_n^i - a^i| < \varepsilon$ ($i = \overline{1, m}$): Ուստի $x_n^i \overset{n \to \infty}{\longrightarrow} a^i$:
 
-$(\Leftarrow)$ Դիցուք $x_n^i \xrightarrow{n \to \infty} a^i$ ($i = \overline{1, m}$): Ցույց տանք, որ $x_n \xrightarrow{n \to \infty} a$:
+$(\Leftarrow)$ Դիցուք $x_n^i \overset{n \to \infty}{\longrightarrow} a^i$ ($i = \overline{1, m}$): Ցույց տանք, որ $x_n \overset{n \to \infty}{\longrightarrow} a$:
 
 Օգտվելով $\|x_n - a\| \le |x_n^1 - a^1| + |x_n^2 - a^2| + \dots + |x_n^m - a^m|$ անհավասարությունից և $x_n^i \to a^i$ ($i=\overline{1, m}$)-ից կունենանք, որ $\forall \varepsilon > 0$-ի համար $\|x_n - a\| < m \varepsilon_1$:
 
@@ -122,7 +122,7 @@ $(\Leftarrow)$ Դիցուք $x_n^i \xrightarrow{n \to \infty} a^i$ ($i = \overli
 
 - Ընտրում ենք ենթահաջորդականություն՝ $\{x_{n_m}\}$:
     
-- Այս ենթահաջորդականության համար՝ $x_{n_m}^1 \xrightarrow{m \to \infty} a^1$:
+- Այս ենթահաջորդականության համար՝ $x_{n_m}^1 \overset{m \to \infty}{\longrightarrow} a^1$:
     
 
 > **Իմաստը.** Մենք բոլոր վեկտորներից ընտրեցինք (զտեցինք) միայն նրանք, որոնց առաջին կոորդինատները «կարգին պահվածք» ունեն (զուգամիտում են):
@@ -135,7 +135,7 @@ $(\Leftarrow)$ Դիցուք $x_n^i \xrightarrow{n \to \infty} a^i$ ($i = \overli
 
 Նորից կիրառում ենք Բոլցանո-Վայերշտրասի թեորեմը, բայց այս անգամ միայն այս ընտրվածների վրա: Կարող ենք դրանցից էլ ընտրել ավելի նեղ ենթահաջորդականություն (ենթա-ենթահաջորդականություն)՝ նշանակենք ինդեքսները $n_{m_k}$:
 
-- Այս նոր ընտրության համար՝ $x_{n_{m_k}}^2 \xrightarrow{k \to \infty} a^2$:
+- Այս նոր ընտրության համար՝ $x_{n_{m_k}}^2 \overset{k \to \infty}{\longrightarrow} a^2$:
     
 
 > Կարևոր պահ. Քանի որ մենք ընտրություն կատարեցինք արդեն ընտրվածների միջից, ապա առաջին կոորդինատի զուգամիտությունը չի խախտվել:
@@ -153,7 +153,7 @@ $(\Leftarrow)$ Դիցուք $x_n^i \xrightarrow{n \to \infty} a^i$ ($i = \overli
 
 Օգտվելով Կոորդինատային զուգամիտության սկզբունքից (եթե վեկտորի բոլոր կոորդինատները զուգամիտում են, ապա վեկտորը զուգամիտում է)՝ պնդում ենք.
 
-$$x_{n_{m_k}} \xrightarrow{k \to \infty} a, \quad \text{որտեղ } a=(a^1, a^2)$$
+$$x_{n_{m_k}} \overset{k \to \infty}{\longrightarrow} a, \quad \text{որտեղ } a=(a^1, a^2)$$
 
 **Ապացուցված է:** Մենք գտանք զուգամետ ենթահաջորդականություն:
 
@@ -181,9 +181,9 @@ $(\Leftarrow)$ Դիցուք $\forall \varepsilon > 0$-ի համար $\exists n_0
 
 $|x_n^i - x_m^i| \le \|x_n - x_m\| < \varepsilon \implies \forall \varepsilon > 0$-ի համար $\exists n_0(\varepsilon)$ s.t. $m, n > n_0(\varepsilon) \implies |x_n^i - x_m^i| < \varepsilon$ ($i = \overline{1, m}$):
 
-Ինչը նշանակում է, որ $x_n^i$ թվային հաջորդականությունը ֆունդամենտալ է: Հետևաբար, ըստ Կոշու զուգամիտության սկզբունքի, թվային հաջորդականությունների համար $\exists a^i \in \mathbb{R}$ s.t. $x_n^i \xrightarrow{n \to \infty} a^i$ ($i = \overline{1, m}$):
+Ինչը նշանակում է, որ $x_n^i$ թվային հաջորդականությունը ֆունդամենտալ է: Հետևաբար, ըստ Կոշու զուգամիտության սկզբունքի, թվային հաջորդականությունների համար $\exists a^i \in \mathbb{R}$ s.t. $x_n^i \overset{n \to \infty}{\longrightarrow} a^i$ ($i = \overline{1, m}$):
 
-Օգտվելով կոորդինատային զուգամիտության սկզբունքից, կարելի է պնդել, որ $x_n \xrightarrow{n \to \infty} a$, որտեղ $a=(a^1, a^2, \dots, a^m)$:
+Օգտվելով կոորդինատային զուգամիտության սկզբունքից, կարելի է պնդել, որ $x_n \overset{n \to \infty}{\longrightarrow} a$, որտեղ $a=(a^1, a^2, \dots, a^m)$:
 
 ---
 

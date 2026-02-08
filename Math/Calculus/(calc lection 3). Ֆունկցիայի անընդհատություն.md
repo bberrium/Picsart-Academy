@@ -133,7 +133,7 @@ $\implies$ ըստ նախորդ թեորեմի $\exists c \in E$ այնպես, ո
 
 **Ապացույց:** Ենթադրենք հակառակը՝ $f$-ը սահմանափակ չէ վերևից:
 
-Այդ դեպքում $\forall n \in \mathbb{N}$ $\exists x_n \in E$ այնպես, որ $f(x_n) > n$ (_): Քանի որ $x_n \in E$ և $E$-ն սահմանափակ է, ապա ըստ Բոլցանո-Վեյերշտրասի սկզբունքի $\exists \{x_{n_k}\}_{k=1}^\infty \subset \{x_n\}_{n=1}^\infty$ այնպես որ $x_{n_k} \xrightarrow{k \to \infty} x_0$: Այսինքն $x_{n_k} \to x_0$, $x_0 \in E' \implies x_0 \in E$ (քանի որ $E$-ն փակ է): Ըստ անընդհատության սահմանման կունենանք՝ $f(x_{n_k}) \to f(x_0)$, ինչը հակասում է (_)-ին, քանի որ $f(x_{n_k}) > n_k \to \infty$:
+Այդ դեպքում $\forall n \in \mathbb{N}$ $\exists x_n \in E$ այնպես, որ $f(x_n) > n$ (_): Քանի որ $x_n \in E$ և $E$-ն սահմանափակ է, ապա ըստ Բոլցանո-Վեյերշտրասի սկզբունքի $\exists \{x_{n_k}\}_{k=1}^\infty \subset \{x_n\}_{n=1}^\infty$ այնպես որ $x_{n_k} \overset{k \to \infty}{\longrightarrow} x_0$: Այսինքն $x_{n_k} \to x_0$, $x_0 \in E' \implies x_0 \in E$ (քանի որ $E$-ն փակ է): Ըստ անընդհատության սահմանման կունենանք՝ $f(x_{n_k}) \to f(x_0)$, ինչը հակասում է (_)-ին, քանի որ $f(x_{n_k}) > n_k \to \infty$:
 
 **Վեյերշտրասի II թեորեմ:** Կոմպակտի վրա անընդհատ ֆունկցիան հասնում է իր ճշգրիտ վերին և ստորին եզրերին:
 
@@ -159,11 +159,11 @@ $\implies \frac{1}{M - f(x)} \le M' \implies f(x) \le M - \frac{1}{M'} \implies 
 
 Նշանակելով $\delta = \frac{1}{n}$, կունենանք $\|x_n' - x_n''\| < \frac{1}{n}$, բայց $|f(x_n') - f(x_n'')| \ge \varepsilon_0$:
 
-Դիտարկենք $x_n' \in E$ հաջորդականությունը: Քանի որ $E$-ն կոմպակտ է, կարող ենք ասել, որ $\exists x_{n_k}' \xrightarrow{k \to \infty} x_0 \in E$:
+Դիտարկենք $x_n' \in E$ հաջորդականությունը: Քանի որ $E$-ն կոմպակտ է, կարող ենք ասել, որ $\exists x_{n_k}' \overset{k \to \infty}{\longrightarrow} x_0 \in E$:
 
 $\|x_{n_k}'' - x_0\| = \|x_{n_k}'' - x_{n_k}' + x_{n_k}' - x_0\| \le \|x_{n_k}'' - x_{n_k}'\| + \|x_{n_k}' - x_0\| \to 0 \implies x_{n_k}'' \to x_0$:
 
-Ստացվեց, որ ունենք $x_{n_k}' \xrightarrow{k \to \infty} x_0$ և $x_{n_k}'' \xrightarrow{k \to \infty} x_0$:
+Ստացվեց, որ ունենք $x_{n_k}' \overset{k \to \infty}{\longrightarrow} x_0$ և $x_{n_k}'' \overset{k \to \infty}{\longrightarrow} x_0$:
 
 Օգտվելով $f$-ի անընդհատությունից՝ կունենանք, որ $f(x_{n_k}') \to f(x_0)$ և $f(x_{n_k}'') \to f(x_0)$:
 

@@ -16,7 +16,7 @@
 
 **Սահմանում:** $x_0$-ն կոչվում է $E$-ի կուտակման կետ, եթե $x_0$-ի կամայական շրջակայքում առկա է $E$-ից գոնե մեկ կետ։
 
-**Լեմմա:** Եթե $x_0$-ն $E$-ի կուտակման կետ է, ապա $\exists \{x_n\} \subset E, x_n \neq x_0$, այնպես որ $x_n \xrightarrow{n \to \infty} x_0$։ Ճիշտ է նաև հակառակ պնդումը։
+**Լեմմա:** Եթե $x_0$-ն $E$-ի կուտակման կետ է, ապա $\exists \{x_n\} \subset E, x_n \neq x_0$, այնպես որ $x_n \overset{n \to \infty}{\longrightarrow} x_0$։ Ճիշտ է նաև հակառակ պնդումը։
 
 **Ապացույց:** $E$ բազմության կուտակման կետերի բազմությունը նշանակենք $E'$-ով։ Ունենք, որ $x_0 \in E' \implies \forall \varepsilon > 0 \ \exists x_{\varepsilon} \in E \text{ s.t. } x \in B(x_0, \varepsilon)$։
 
@@ -84,7 +84,7 @@ $\forall \varepsilon_0 > 0 \ \exists n_0(\varepsilon_0) \in \mathbb{N} \text{ s.
 
 Նշանակենք $\varepsilon_0 := \delta = \delta(\varepsilon)$։ Կունենանք, որ $\exists n_0(\varepsilon) \in \mathbb{N} \text{ s.t. } \|x_n - x_0\| < \delta$։
 
-Օգտվելով $(*)$-ից՝ կունենանք, որ $\|x_n - x_0\| < \delta \implies |f(x_n) - A| < \varepsilon \implies f(x_n) \xrightarrow{n \to \infty} A$։
+Օգտվելով $(*)$-ից՝ կունենանք, որ $\|x_n - x_0\| < \delta \implies |f(x_n) - A| < \varepsilon \implies f(x_n) \overset{n \to \infty}{\longrightarrow} A$։
 
 ### Ապացույց: Բավարարություն
 
@@ -135,7 +135,7 @@ $\implies |f(x') - f(x'')| < \varepsilon$։
 
 $0 < \|x_m - x_0\| < \delta, x_m, x_n \in E \implies |f(x_m) - f(x_n)| < \varepsilon$։
 
-Օգտվելով Կոշիի հաջորդականության սկզբունքից թվային հաջորդականությունների համար, կարող ենք պնդել, որ $f(x_n)$-ը զուգամետ է, քանի որ այն ֆունդամենտալ է։ Այսինքն՝ $\exists A \in \mathbb{R} \text{ s.t. } f(x_n) \xrightarrow{n \to \infty} A$։
+Օգտվելով Կոշիի հաջորդականության սկզբունքից թվային հաջորդականությունների համար, կարող ենք պնդել, որ $f(x_n)$-ը զուգամետ է, քանի որ այն ֆունդամենտալ է։ Այսինքն՝ $\exists A \in \mathbb{R} \text{ s.t. } f(x_n) \overset{n \to \infty}{\longrightarrow} A$։
 
 Այժմ ցույց տանք, որ $A \in \mathbb{R}$ թիվը կախված չէ $\{x_n\}$ հաջորդականության ընտրությունից։ Կատարենք հետևյալ ենթադրությունը՝
 
@@ -151,4 +151,4 @@ $z_{2n} \to x_0, f(z_{2n}) \to B$
 
 $z_{2n-1} \to x_0, f(z_{2n-1}) \to A$
 
-Քանի որ $f(z_n) \xrightarrow{n \to \infty} A'$, ապա $\implies B = A$։
+Քանի որ $f(z_n) \overset{n \to \infty}{\longrightarrow} A'$, ապա $\implies B = A$։
