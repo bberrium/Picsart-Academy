@@ -111,7 +111,3 @@
 - Encoding transforms categorical/text data into numeric form.
 - Choose encoding based on: number of categories, whether order matters, and risk of leakage.
 - Correct encoding can notably improve model performance — always validate with proper CV and preprocessing.
-
----
-
-_If you want, I can generate a PDF or a slide deck from these notes._
