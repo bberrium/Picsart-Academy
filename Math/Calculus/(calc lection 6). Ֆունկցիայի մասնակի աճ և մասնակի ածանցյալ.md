@@ -21,7 +21,7 @@ $\Delta f_y = f(x_0, y_0 + \Delta y) - f(x_0, y_0)$
 
 $$\Delta f = f(x_0 + \Delta x, y_0 + \Delta y) - f(x_0, y_0)$$
 
-![alt text](11_partial_differentiation-219.gif){width=400px}
+![alt text](11_partial_differentiation-219.gif)
 
 **Սահմանում:** $f$-ի **մասնակի ածանցյալ** ըստ $x$-ի $(x_0, y_0)$ կետում կոչվում է հետևյալ սահմանը (վերջավոր կամ անվերջ).
 
@@ -103,13 +103,17 @@ $f''_{xy} = -yx \sin(xy) + \cos(xy)$
 
 $f''_{yx} = -xy \sin(xy) + \cos(xy)$
 
+$$
+f(x, y) = \begin{cases} 1, & xy=0 \\ 0, & xy \neq 0 \end{cases}
+$$
 
-$f(x, y) = \begin{cases} 1, & xy=0 \\ 0, & xy \neq 0 \end{cases}$
+$$
+f'_x(0,0) = \lim_{\Delta x \to 0} \frac{f(0 + \Delta x, 0) - f(0, 0)}{\Delta x} = \frac{1-1}{\Delta x} = 0
+$$
 
-$f'_x(0,0) = \lim_{\Delta x \to 0} \frac{f(0 + \Delta x, 0) - f(0, 0)}{\Delta x} = \frac{1-1}{\Delta x} = 0$
-
-$f'_y(0,0) = \lim_{\Delta y \to 0} \frac{f(0, 0 + \Delta y) - f(0, 0)}{\Delta y} = 0$
-
+$$
+f'_y(0,0) = \lim_{\Delta y \to 0} \frac{f(0, 0 + \Delta y) - f(0, 0)}{\Delta y} = 0
+$$
 $\lim_{(x,y) \to (0,0)} f(x, y) \neq f(0, 0)$, քանի որ $\lim_{x \to 0} f(x, x) = 0$, իսկ $f(0, 0) = 1$:
 
 Այսինքն, շատ փոփոխականների ֆունկցիաների դեպքում, նույնիսկ եթե բոլոր մասնակի ածանցյալները գոյություն ունեն, չենք կարող ասել, որ ֆունկցիան անընդհատ է։ Մինչդեռ մի փոփոխականի ֆունկցիայի համար կարող էինք։

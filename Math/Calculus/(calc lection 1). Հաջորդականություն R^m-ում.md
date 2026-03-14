@@ -97,7 +97,19 @@ B(a, r) = \{x \in \mathbb{R}^m \mid d(a, x) < r\} = \{x \in \mathbb{R}^m \mid \|
 
 **Թեորեմ (Կոորդինատային զուգամիտության թեորեմը)**։ Դիցուք $a = (a^1, \dots, a^m) \in R^m$: Որպեսզի $x_n \to a$, անհրաժեշտ է և բավարար, որ
 
-$$\left. \begin{aligned} x_n^1 &\to a^1 \\ x_n^2 &\to a^2 \\ \cdot \ &\cdot \ \cdot \\ x_n^m &\to a^m \end{aligned} \right\} : \tag{1.3}$$
+$$
+\begin{equation}
+\left. 
+\begin{aligned} 
+x_n^1 &\to a^1 \\ 
+x_n^2 &\to a^2 \\ 
+&\vdots \\ 
+x_n^m &\to a^m 
+\end{aligned} 
+\right\} 
+\tag{1.3}
+\end{equation}
+$$
 
 **Ապացույց:**
 
