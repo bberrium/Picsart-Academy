@@ -61,20 +61,20 @@ $m$-ի և $n-m$-ի $t$-ով արտահայտված արժեքները տեղադ
 
 $$\frac{1}{H} = \left( \frac{np + t\sqrt{npq}}{np} \right)^{np + t\sqrt{npq}} \cdot \left( \frac{nq - t\sqrt{npq}}{nq} \right)^{nq - t\sqrt{npq}}$$
 
-$$= \left( 1 + t\sqrt{\frac{q}{np}} \right)^{np + t\sqrt{npq}} \cdot \left( 1 - t\sqrt{\frac{p}{nq}} \right)^{nq - t\sqrt{npq}} \quad (\#)$$
+$$= \left( 1 + t\sqrt{\frac{q}{np}} \right)^{np + t\sqrt{npq}} \cdot \left( 1 - t\sqrt{\frac{p}{nq}} \right)^{nq - t\sqrt{npq}} \quad (1)$$
 
-Լոգարիթմելով $(\#)$-ի երկու կողմերը՝ կունենանք.
+Լոգարիթմելով $(1)$-ի երկու կողմերը՝ կունենանք.
 
 
 $$\ln \frac{1}{H} = \ln \left( 1 + t\sqrt{\frac{q}{np}} \right)^{np + t\sqrt{npq}} + \ln \left( 1 - t\sqrt{\frac{p}{nq}} \right)^{nq - t\sqrt{npq}} = $$
 
-$$= (np + t\sqrt{npq}) \ln \left( 1 + t\sqrt{\frac{q}{np}} \right) + (nq - t\sqrt{npq}) \ln \left( 1 - t\sqrt{\frac{p}{nq}} \right) \quad (\#\#)$$
+$$= (np + t\sqrt{npq}) \ln \left( 1 + t\sqrt{\frac{q}{np}} \right) + (nq - t\sqrt{npq}) \ln \left( 1 - t\sqrt{\frac{p}{nq}} \right) \quad (2)$$
 
 Օգտվելով $\ln(1+x)$ ֆունկցիայի Թեյլորի շարքից.
 $\ln(1+x) = x - \frac{x^2}{2} + \alpha_x \cdot x$
 $\ln(1-x) = -x - \frac{x^2}{2} + \beta_x \cdot x$
 
-$(\#\#)$-ում լոգարիթմները փոխարինելով իրենց բացվածքներով՝ կունենանք.
+$(2)$-ում լոգարիթմները փոխարինելով իրենց բացվածքներով՝ կունենանք.
 
 
 $$-\ln H = (np + t\sqrt{npq}) \cdot \left( t\sqrt{\frac{q}{np}} - \frac{1}{2} t^2 \frac{q}{np} \right) + (nq - t\sqrt{npq}) \cdot \left( -t\sqrt{\frac{p}{nq}} - \frac{1}{2} t^2 \frac{p}{nq} \right) = $$
@@ -83,9 +83,9 @@ $$= t\sqrt{npq} - \frac{1}{2} t^2 q + t^2 q - \frac{1}{2} t^3 q \sqrt{\frac{q}{n
 
 $$= \frac{1}{2} t^2 q - \frac{1}{2} t^3 q \sqrt{\frac{q}{np}} + \frac{1}{2} t^2 p + \frac{1}{2} t^3 p \sqrt{\frac{p}{nq}} = $$
 
-$$= \frac{1}{2} t^2 (p+q) - \frac{1}{2} t^3 q \sqrt{\frac{q}{np}} + \frac{1}{2} t^3 p \sqrt{\frac{p}{nq}} = \frac{1}{2} t^2 - \frac{1}{2} t^3 q \sqrt{\frac{q}{np}} + \frac{1}{2} t^3 p \sqrt{\frac{p}{nq}} \quad (\#\#\#)$$
+$$= \frac{1}{2} t^2 (p+q) - \frac{1}{2} t^3 q \sqrt{\frac{q}{np}} + \frac{1}{2} t^3 p \sqrt{\frac{p}{nq}} = \frac{1}{2} t^2 - \frac{1}{2} t^3 q \sqrt{\frac{q}{np}} + \frac{1}{2} t^3 p \sqrt{\frac{p}{nq}} \quad (3)$$
 
-$m$-ի բոլոր այն արժեքների համար, որտեղ $t = \frac{m-np}{\sqrt{npq}}$ մեծությունը սահմանափակ է, $(\#\#\#)$-ում անցնելով սահմանի՝ կունենանք.
+$m$-ի բոլոր այն արժեքների համար, որտեղ $t = \frac{m-np}{\sqrt{npq}}$ մեծությունը սահմանափակ է, $(3)$-ում անցնելով սահմանի՝ կունենանք.
 $\lim_{n \to \infty} \left[ \frac{1}{2} t^2 - \frac{1}{2} t^3 q \sqrt{\frac{q}{np}} + \frac{1}{2} t^3 p \sqrt{\frac{p}{nq}} \right] = \frac{1}{2} t^2$
 
 Ստացվեց որ՝ $-\ln H = \frac{1}{2} t^2 \implies \ln H = -\frac{1}{2} t^2 \implies H = e^{-\frac{1}{2} t^2}$
