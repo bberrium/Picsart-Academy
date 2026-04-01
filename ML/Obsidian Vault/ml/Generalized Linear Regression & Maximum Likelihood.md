@@ -49,8 +49,9 @@ In our multi-dimensional feature space ($Z$-space), the equation $y = w_0 + w_1z
 When we project that intersection back down to our standard 2D graph ($x$ vs $y$), the "flat" plane appears to us as a bending, twisting curve!
 Let's break down the polynomial regression model:
 $$y = w_0 + w_1x + w_2x^2 + w_3x^3$$
-<iframe src="file:///home/blueberry/Documents/Obsidian Vault/polynomial_viz.html" width="100%" height="600" frameborder="0"></iframe>
-<iframe src="file:///home/blueberry/Documents/Obsidian Vault/zspace_viz.html" width="100%" height="750" frameborder="0"></iframe>
+<iframe src="file:///home/blueberry/Picsart-Academy/ML/Obsidian Vault/polynomial_viz.html" width="100%" height="600" frameborder="0"></iframe>
+<iframe src="file:///home/blueberry/Picsart-Academy/ML/Obsidian Vault/zspace_viz.html" width="100%" height="750" frameborder="0"></iframe>
+
 Instead of $y(\mathbf{x}, \mathbf{w}) = w_0 + w_1x_1 + \dots + w_Dx_D$, we apply fixed non-linear basis functions $\phi_j(\mathbf{x})$:
 $$y(\mathbf{x}, \mathbf{w}) = \sum_{j=0}^{M-1} w_j\phi_j(\mathbf{x}) = \mathbf{w}^T \boldsymbol{\phi}(\mathbf{x})$$
 
@@ -96,7 +97,7 @@ Here is how to break down the visual components of that equation:
 
 Imagine slicing the 2D graph vertically at a specific $x$-coordinate. Instead of finding a single dot on the line, you find a **vertical Gaussian bell curve** sitting exactly on top of the line. The highest probability (the peak of the bell) is directly on the regression line, and the probability fades away as you move vertically up or down.
 
-<iframe src="file:///home/blueberry/Documents/Obsidian Vault/probability_viz.html" width="100%" height="750" frameborder="0"></iframe>
+<iframe src="file:///home/blueberry/Picsart-Academy/ML/Obsidian Vault/probability_viz.html" width="100%" height="750" frameborder="0"></iframe>
 
 
 ### Why is this view so powerful?
@@ -321,12 +322,12 @@ The condition number is the ratio between these two. If the condition number is 
 
 This visualization dynamically builds a Vandermonde matrix, calculates the inverse, and shows exactly how the weights explode into massive numbers as you increase the polynomial degree and introduce a tiny bit of noise.
 
-<iframe src="file:///home/blueberry/Documents/Obsidian Vault/polynomial_crash_viz.html" width="100%" height="750" frameborder="0"></iframe>
+<iframe src="file:///home/blueberry/Picsart-Academy/ML/Obsidian Vault/polynomial_crash_viz.html" width="100%" height="750" frameborder="0"></iframe>
 
 **Geometric Interpretation of Condition Number**
 This visualization shows how a matrix physically stretches and squashes space, and calculates the exact Singular Values ($\sigma$) and Condition Number ($\kappa$).
 
-<iframe src="file:///home/blueberry/Documents/Obsidian Vault/condition_number_viz.html" width="100%" height="750" frameborder="0"></iframe>
+<iframe src="file:///home/blueberry/Picsart-Academy/ML/Obsidian Vault/condition_number_viz.html" width="100%" height="750" frameborder="0"></iframe>
 
 ---
 
@@ -439,7 +440,7 @@ We tested four models and evaluated them using $R^2$:
 If we were to add a 4th, 5th, or 10th-degree polynomial, the $R^2$ on this training set would technically keep getting closer to 1.0. But visually, the curve would start vibrating wildly to hit every single dot.
 
 _Try this interactive widget to see exactly what happens when you push the polynomial degree too high on a similar dataset. Notice how the training error drops, but the curve becomes entirely useless for predicting anything between the dots!_
-<iframe src="file:///home/blueberry/Documents/Obsidian Vault/polynomial_overfitting_viz.html" width="100%" height="750" frameborder="0"></iframe>
+<iframe src="file:///home/blueberry/Picsart-Academy/ML/Obsidian Vault/polynomial_overfitting_viz.html" width="100%" height="750" frameborder="0"></iframe>
 
 Cross-referencing internal data
 
@@ -550,7 +551,7 @@ Even though the orange line successfully hits every single blue dot, it fails mi
 
 _Use this interactive widget to physically experience Runge's Phenomenon. Notice how increasing the polynomial degree initially helps fit the center, but quickly causes the edges (boundaries) to whip out of control!_
 
-<iframe src="file:///home/blueberry/Documents/Obsidian Vault/runge_phenomenon_viz.html" width="100%" height="750" frameborder="0"></iframe>
+<iframe src="file:///home/blueberry/Picsart-Academy/ML/Obsidian Vault/runge_phenomenon_viz.html" width="100%" height="750" frameborder="0"></iframe>
 
 ---
 
@@ -650,4 +651,4 @@ This tiny addition of $\lambda \mathbf{I}$ to our design matrix is incredibly po
 
 _Use this interactive widget to physically see how L2 Regularization tames an overfitted curve. Watch the "Calculated Weights" panel—as you increase the Lambda ($\lambda$) penalty, the massive weights will shrink down, and the wild oscillations will flatten out into a smooth, generalized curve._
 
-<iframe src="file:///home/blueberry/Documents/Obsidian Vault/regularization_viz.html" width="100%" height="750" frameborder="0"></iframe>
+<iframe src="file:///home/blueberry/Picsart-Academy/ML/Obsidian Vault/regularization_viz.html" width="100%" height="750" frameborder="0"></iframe>
