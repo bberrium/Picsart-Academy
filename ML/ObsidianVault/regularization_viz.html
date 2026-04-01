@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L2 Regularization (Ridge Regression) Visualizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #f4f6f7; color: #333; }
+        .dashboard { display: flex; gap: 20px; width: 100%; max-width: 1000px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .control-panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex: 2; min-width: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .weights-panel { background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); flex: 1; min-width: 250px; max-height: 350px; overflow-y: auto; }
+        .chart-container { width: 100%; max-width: 1000px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h3 { margin: 0 0 10px 0; }
+        .weights-panel h3 { color: #f1c40f; border-bottom: 1px solid #7f8c8d; padding-bottom: 10px; text-align: center;}
+        .weight-item { margin: 8px 0; font-family: monospace; font-size: 1.1em; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;}
+        input[type=range] { width: 100%; max-width: 400px; margin-top: 10px; cursor: pointer;}
+        .desc { font-size: 0.9em; color: #7f8c8d; margin-top: 15px; text-align: center; max-width: 600px;}
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <div class="control-panel">
+            <h3>Regularization Penalty (Lambda $\lambda$)</h3>
+            <div style="font-size: 1.5em; font-weight: bold; color: #9b59b6; margin: 10px 0;" id="lambda-display">0.000</div>
+            <input type="range" id="lambdaSlider" min="0" max="100" step="1" value="0">
+            <p class="desc">
+                <b>At λ = 0:</b> The 7th-degree polynomial perfectly overfits the 8 data points. Notice the massive, oscillating weights in the panel.<br><br>
+                <b>Increase λ:</b> The math applies a penalty to large weights. Watch the weights strictly decay toward zero, flattening the curve into a stable trend!
+            </p>
+        </div>
+        
+        <div class="weights-panel">
+            <h3>Calculated Weights</h3>
+            <div id="weights-list"></div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="regChart" height="400"></canvas>
+    </div>
+
+    <script>
+        // 1. Define Noisy Training Data
+        // 8 points following a rough quadratic trend with noise
+        const rawData = [
+            {x: 0.05, y: 0.1},
+            {x: 0.20, y: -0.2},
+            {x: 0.35, y: 0.3},
+            {x: 0.50, y: 0.1},
+            {x: 0.65, y: 0.9},
+            {x: 0.80, y: 0.6},
+            {x: 0.95, y: 1.4},
+            {x: 1.00, y: 1.0}
+        ];
+
+        const x_vals = rawData.map(p => p.x);
+        const y_vals = rawData.map(p => [p.y]); // Column vector for Math.js
+
+        const degree = 7; // 7th degree polynomial perfectly fits 8 points
+
+        // 2. Setup Chart.js
+        const ctx = document.getElementById('regChart').getContext('2d');
+        let chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Ridge Regression Curve',
+                        type: 'line',
+                        borderColor: '#9b59b6',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        tension: 0.4,
+                        data: []
+                    },
+                    {
+                        label: 'Training Data',
+                        type: 'scatter',
+                        backgroundColor: '#2c3e50',
+                        pointRadius: 7,
+                        data: rawData
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { min: 0, max: 1.05 },
+                    y: { min: -1.0, max: 2.0 }
+                },
+                animation: false 
+            }
+        });
+
+        // Pre-compute the Design Matrix (Phi) and Y since data doesn't change
+        let X_matrix = x_vals.map(x => {
+            let row = [];
+            for(let j = 0; j <= degree; j++) { row.push(Math.pow(x, j)); }
+            return row;
+        });
+        const Xt = math.transpose(X_matrix);
+        const XtX = math.multiply(Xt, X_matrix);
+        const XtY = math.multiply(Xt, y_vals);
+
+        // Identity Matrix for Regularization Penalty
+        // Standard practice: We do NOT regularize the bias term (w0).
+        let I_reg = math.identity(degree + 1).toArray();
+        I_reg[0][0] = 0; 
+
+        // 3. Calculation and Update Function
+        function updateModel() {
+            const sliderVal = parseInt(document.getElementById('lambdaSlider').value);
+            
+            // Map 0-100 linear slider to an exponential lambda scale 
+            let lambda = 0;
+            let displayString = "0 (No Regularization)";
+            
+            if (sliderVal > 0) {
+                // Map slider to 10^-6 to 10^2
+                let exp = -6 + (sliderVal * (8 / 100)); 
+                lambda = Math.pow(10, exp);
+                displayString = lambda >= 0.01 ? lambda.toFixed(3) : lambda.toExponential(2);
+            }
+
+            document.getElementById('lambda-display').innerText = displayString;
+
+            // --- THE RIDGE REGRESSION MATH ---
+            // w = inv(X^T*X + lambda*I) * X^T*y
+            let lambda_I = math.multiply(lambda, I_reg);
+            
+            // To prevent total math.js crash when lambda=0 due to perfect singularity,
+            // we add a microscopic baseline epsilon if lambda is exactly 0.
+            if (lambda === 0) {
+                lambda_I = math.multiply(1e-11, math.identity(degree + 1).toArray());
+            }
+
+            let XtX_reg = math.add(XtX, lambda_I);
+            let weights = [];
+            
+            try {
+                let XtX_inv = math.inv(XtX_reg);
+                let w_matrix = math.multiply(XtX_inv, XtY);
+                weights = w_matrix.map(row => row[0]);
+            } catch (err) {
+                console.error("Matrix inversion failed:", err);
+                return;
+            }
+
+            // Update Weights Panel
+            const weightsDiv = document.getElementById('weights-list');
+            weightsDiv.innerHTML = "";
+            weights.forEach((w, idx) => {
+                let displayW = Math.abs(w) > 999 || (Math.abs(w) < 0.01 && w !== 0) ? w.toExponential(2) : w.toFixed(2);
+                let color = Math.abs(w) > 50 ? '#e74c3c' : (Math.abs(w) < 1 ? '#2ecc71' : '#ecf0f1');
+                weightsDiv.innerHTML += `<div class="weight-item" style="color: ${color}">w<sub>${idx}</sub> = ${displayW}</div>`;
+            });
+
+            // Calculate high-resolution curve points for drawing
+            const curveData = [];
+            for(let x = 0; x <= 1.05; x += 0.01) {
+                let y_pred = 0;
+                for(let j = 0; j <= degree; j++) { y_pred += weights[j] * Math.pow(x, j); }
+                
+                // Cap extreme visual blowouts
+                if (y_pred > 5) y_pred = null; 
+                if (y_pred < -3) y_pred = null;
+
+                if (y_pred !== null) {
+                    curveData.push({x: x, y: y_pred});
+                }
+            }
+
+            // Update Chart
+            chart.data.datasets[0].data = curveData;
+            chart.update();
+        }
+
+        // Attach event listener
+        document.getElementById('lambdaSlider').addEventListener('input', updateModel);
+        
+        // Initial render
+        updateModel();
+    </script>
+</body>
+</html>

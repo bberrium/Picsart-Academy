@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polynomial Regression Visualizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #f9f9f9; }
+        .controls { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .slider-group { display: flex; flex-direction: column; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .chart-container { width: 100%; max-width: 800px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h3 { margin-top: 0; }
+    </style>
+</head>
+<body>
+
+    <h3 id="equationDisplay">y = (0) + (1)x + (1)x² + (0)x³</h3>
+
+    <div class="controls">
+        <div class="slider-group">
+            <label for="w0">w0 (Bias): <span id="w0-val">0</span></label>
+            <input type="range" id="w0" min="-5" max="5" step="0.1" value="0">
+        </div>
+        <div class="slider-group">
+            <label for="w1">w1 (Linear): <span id="w1-val">1</span></label>
+            <input type="range" id="w1" min="-5" max="5" step="0.1" value="1">
+        </div>
+        <div class="slider-group">
+            <label for="w2">w2 (Quadratic): <span id="w2-val">1</span></label>
+            <input type="range" id="w2" min="-5" max="5" step="0.1" value="1">
+        </div>
+        <div class="slider-group">
+            <label for="w3">w3 (Cubic): <span id="w3-val">0</span></label>
+            <input type="range" id="w3" min="-5" max="5" step="0.1" value="0">
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="polyChart"></canvas>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('polyChart').getContext('2d');
+        const xValues = Array.from({length: 100}, (_, i) => -3 + (i * 6 / 99));
+
+        let chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: xValues.map(x => x.toFixed(1)),
+                datasets: [
+                    { label: 'w0 (Constant)', borderColor: '#FF9F40', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, data: [] },
+                    { label: 'w1*x (Linear)', borderColor: '#4BC0C0', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, data: [] },
+                    { label: 'w2*x² (Quadratic)', borderColor: '#36A2EB', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, data: [] },
+                    { label: 'w3*x³ (Cubic)', borderColor: '#9966FF', borderDash: [5, 5], borderWidth: 2, pointRadius: 0, data: [] },
+                    { label: 'Sum (Final Curve)', borderColor: '#FF6384', borderWidth: 4, pointRadius: 0, data: [] }
+                ]
+            },
+            options: { responsive: true, scales: { y: { min: -10, max: 10 }, x: { title: { display: true, text: 'X' } } }, animation: false }
+        });
+
+        function updateChart() {
+            const w0 = parseFloat(document.getElementById('w0').value);
+            const w1 = parseFloat(document.getElementById('w1').value);
+            const w2 = parseFloat(document.getElementById('w2').value);
+            const w3 = parseFloat(document.getElementById('w3').value);
+
+            document.getElementById('w0-val').innerText = w0;
+            document.getElementById('w1-val').innerText = w1;
+            document.getElementById('w2-val').innerText = w2;
+            document.getElementById('w3-val').innerText = w3;
+            document.getElementById('equationDisplay').innerText = `y = (${w0}) + (${w1})x + (${w2})x² + (${w3})x³`;
+
+            chart.data.datasets[0].data = xValues.map(() => w0);
+            chart.data.datasets[1].data = xValues.map(x => w1 * x);
+            chart.data.datasets[2].data = xValues.map(x => w2 * Math.pow(x, 2));
+            chart.data.datasets[3].data = xValues.map(x => w3 * Math.pow(x, 3));
+            chart.data.datasets[4].data = xValues.map(x => w0 + (w1 * x) + (w2 * Math.pow(x, 2)) + (w3 * Math.pow(x, 3)));
+            
+            chart.update();
+        }
+
+        ['w0', 'w1', 'w2', 'w3'].forEach(id => document.getElementById(id).addEventListener('input', updateChart));
+        updateChart();
+    </script>
+</body>
+</html>

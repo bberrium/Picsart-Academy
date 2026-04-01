@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polynomial Ill-Conditioning & Runge's Phenomenon</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <style>
+        body { font-family: monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #f4f6f7; }
+        .controls { display: flex; gap: 30px; margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 800px; justify-content: center;}
+        .slider-group { display: flex; flex-direction: column; align-items: center; width: 250px;}
+        .main-content { display: flex; gap: 20px; width: 100%; max-width: 1000px; flex-wrap: wrap; justify-content: center;}
+        .chart-container { flex: 2; min-width: 400px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .weights-panel { flex: 1; min-width: 250px; background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); overflow-y: auto; max-height: 400px;}
+        h3 { margin-top: 0; color: #f1c40f; border-bottom: 1px solid #7f8c8d; padding-bottom: 10px;}
+        .weight-item { margin: 8px 0; font-size: 1.1em; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;}
+        .error-msg { color: #e74c3c; font-weight: bold; margin-top: 20px; font-size: 1.2em;}
+        input[type=range] { width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <div class="slider-group">
+            <label><strong>Polynomial Degree: <span id="deg-val">2</span></strong></label>
+            <input type="range" id="degree" min="1" max="8" step="1" value="2">
+            <small style="text-align:center; color:#7f8c8d; margin-top:5px;">Increase to see the curve wiggle and weights explode.</small>
+        </div>
+        <div class="slider-group">
+            <label><strong>Introduce Noise: <span id="noise-val">0.00</span></strong></label>
+            <input type="range" id="noise" min="-0.5" max="0.5" step="0.01" value="0">
+            <small style="text-align:center; color:#7f8c8d; margin-top:5px;">Moves just ONE point. Watch the amplified chaos at high degrees.</small>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="chart-container">
+            <canvas id="polyChart"></canvas>
+        </div>
+        <div class="weights-panel">
+            <h3>Calculated Weights</h3>
+            <div id="weights-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('polyChart').getContext('2d');
+        
+        // Fixed X points from 0 to 1
+        const x_data = [0.0, 0.15, 0.35, 0.5, 0.65, 0.85, 1.0];
+        // Clean Y points following a gentle curve (y = sin(x * pi))
+        const y_base = x_data.map(x => Math.sin(x * Math.PI));
+
+        let chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    { label: 'Fitted Curve', borderColor: '#e74c3c', borderWidth: 2, pointRadius: 0, showLine: true, data: [] },
+                    { label: 'Data Points', backgroundColor: '#2c3e50', pointRadius: 6, data: [] }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { min: 0, max: 1 },
+                    y: { min: -1.5, max: 2.5 }
+                },
+                animation: false
+            }
+        });
+
+        function calculateAndPlot() {
+            const degree = parseInt(document.getElementById('degree').value);
+            const noise = parseFloat(document.getElementById('noise').value);
+
+            document.getElementById('deg-val').innerText = degree;
+            document.getElementById('noise-val').innerText = noise.toFixed(2);
+
+            // Apply noise to the middle point (index 3, where x=0.5)
+            let y_data = [...y_base];
+            y_data[3] += noise;
+
+            // Update chart points
+            chart.data.datasets[1].data = x_data.map((x, i) => ({x: x, y: y_data[i]}));
+
+            // Build Design Matrix (Vandermonde) X
+            let X = x_data.map(xi => {
+                let row = [];
+                for(let j=0; j<=degree; j++) { row.push(Math.pow(xi, j)); }
+                return row;
+            });
+            let Y = y_data.map(yi => [yi]); // Column vector
+
+            let weights = [];
+            const weightsDiv = document.getElementById('weights-list');
+
+            try {
+                // NORMAL EQUATION: w = inv(X^T * X) * X^T * Y
+                const Xt = math.transpose(X);
+                const XtX = math.multiply(Xt, X);
+                const XtX_inv = math.inv(XtX); // This will crash if matrix is perfectly singular
+                const XtY = math.multiply(Xt, Y);
+                const w_matrix = math.multiply(XtX_inv, XtY);
+                
+                weights = w_matrix.map(row => row[0]);
+
+                // Display Weights
+                weightsDiv.innerHTML = "";
+                weights.forEach((w, idx) => {
+                    // Use toExponential for massive numbers so it fits on screen
+                    let displayW = Math.abs(w) > 1000 ? w.toExponential(2) : w.toFixed(2);
+                    let color = Math.abs(w) > 500 ? '#e74c3c' : '#ecf0f1'; // Turn red if exploding
+                    weightsDiv.innerHTML += `<div class="weight-item" style="color: ${color}">w<sub>${idx}</sub> = ${displayW}</div>`;
+                });
+
+            } catch (error) {
+                // Math.js throws an error when trying to invert a singular matrix
+                weightsDiv.innerHTML = `<div class="error-msg">CRASH!<br><br>Matrix is computationally singular.<br>Inverse failed.</div>`;
+                chart.data.datasets[0].data = []; // Clear curve
+                chart.update();
+                return;
+            }
+
+            // Generate Curve Points to plot
+            const curveData = [];
+            for(let x=0; x<=1.01; x+=0.01) {
+                let y_pred = 0;
+                for(let j=0; j<=degree; j++) {
+                    y_pred += weights[j] * Math.pow(x, j);
+                }
+                curveData.push({x: x, y: y_pred});
+            }
+
+            chart.data.datasets[0].data = curveData;
+            chart.update();
+        }
+
+        document.getElementById('degree').addEventListener('input', calculateAndPlot);
+        document.getElementById('noise').addEventListener('input', calculateAndPlot);
+        
+        calculateAndPlot();
+    </script>
+</body>
+</html>

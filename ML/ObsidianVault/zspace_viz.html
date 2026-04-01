@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Space Linear Plane Visualizer</title>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #f9f9f9; }
+        .controls { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .slider-group { display: flex; flex-direction: column; align-items: center; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 150px;}
+        .chart-container { width: 100%; max-width: 900px; height: 600px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h3 { margin-top: 0; color: #333;}
+        p.desc { max-width: 800px; text-align: center; color: #555; margin-bottom: 20px; font-size: 14px;}
+    </style>
+</head>
+<body>
+
+    <h3 id="equationDisplay">y = (0) + (1)z₁ + (1)z₂</h3>
+    <p class="desc">Rotate the 3D graph! The blue surface is the <b>linear model</b> in Z-space (a flat plane). The thick red line is the <b>data path</b> (where z₂ = z₁²). Notice how a curved path lies perfectly on a flat linear plane!</p>
+
+    <div class="controls">
+        <div class="slider-group">
+            <label for="w0">w0 (Bias): <span id="w0-val">0</span></label>
+            <input type="range" id="w0" min="-5" max="5" step="0.5" value="0">
+        </div>
+        <div class="slider-group">
+            <label for="w1">w1 (Linear): <span id="w1-val">1</span></label>
+            <input type="range" id="w1" min="-5" max="5" step="0.5" value="1">
+        </div>
+        <div class="slider-group">
+            <label for="w2">w2 (Quadratic): <span id="w2-val">1</span></label>
+            <input type="range" id="w2" min="-5" max="5" step="0.5" value="1">
+        </div>
+    </div>
+
+    <div id="plot3d" class="chart-container"></div>
+
+    <script>
+        // Setup axes ranges
+        const z1_range = []; for(let i=-3; i<=3; i+=0.2) z1_range.push(i);
+        const z2_range = []; for(let i=0; i<=9; i+=0.5) z2_range.push(i);
+
+        function updatePlot() {
+            const w0 = parseFloat(document.getElementById('w0').value);
+            const w1 = parseFloat(document.getElementById('w1').value);
+            const w2 = parseFloat(document.getElementById('w2').value);
+
+            document.getElementById('w0-val').innerText = w0;
+            document.getElementById('w1-val').innerText = w1;
+            document.getElementById('w2-val').innerText = w2;
+            document.getElementById('equationDisplay').innerText = `y = (${w0}) + (${w1})z₁ + (${w2})z₂`;
+
+            // 1. Calculate the flat plane (The Linear Model in Z-space)
+            let surface_y = [];
+            for(let j=0; j<z2_range.length; j++) {
+                let row = [];
+                for(let i=0; i<z1_range.length; i++) {
+                    row.push(w0 + w1 * z1_range[i] + w2 * z2_range[j]);
+                }
+                surface_y.push(row);
+            }
+
+            // 2. Calculate the curved data path (Where z2 exactly equals z1^2)
+            let path_z1 = [];
+            let path_z2 = [];
+            let path_y = [];
+            for(let x=-3; x<=3; x+=0.1) {
+                path_z1.push(x);
+                path_z2.push(x*x);
+                path_y.push(w0 + w1*x + w2*(x*x));
+            }
+
+            const data = [
+                // Trace 0: The Flat Plane
+                {
+                    z: surface_y,
+                    x: z1_range,
+                    y: z2_range,
+                    type: 'surface',
+                    opacity: 0.8,
+                    colorscale: 'Blues',
+                    showscale: false,
+                    name: 'Linear Plane'
+                },
+                // Trace 1: The Curved Data Path
+                {
+                    x: path_z1,
+                    y: path_z2,
+                    z: path_y,
+                    type: 'scatter3d',
+                    mode: 'lines',
+                    line: { color: 'red', width: 8 },
+                    name: 'Data Path (Curve)'
+                }
+            ];
+
+            const layout = {
+                margin: { l: 0, r: 0, b: 0, t: 0 },
+                scene: {
+                    xaxis: { title: 'z₁ (x)' },
+                    yaxis: { title: 'z₂ (x²)' },
+                    zaxis: { title: 'y (Prediction)' },
+                    camera: { eye: {x: 1.5, y: -1.5, z: 1.2} }
+                }
+            };
+
+            Plotly.react('plot3d', data, layout);
+        }
+
+        // Add event listeners
+        ['w0', 'w1', 'w2'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updatePlot);
+        });
+
+        // Initial plot
+        updatePlot();
+    </script>
+</body>
+</html>

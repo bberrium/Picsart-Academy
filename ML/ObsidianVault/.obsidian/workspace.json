@@ -1,0 +1,287 @@
+{
+  "main": {
+    "id": "5f431e04a815131b",
+    "type": "split",
+    "children": [
+      {
+        "id": "1b6017a3d42b3f43",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "cb86385f67d388b4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "ml/Perceptron algorithm, Support Vector Machines (SVM), and Kernel functions.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Perceptron algorithm, Support Vector Machines (SVM), and Kernel functions"
+            }
+          },
+          {
+            "id": "ac620d7ecc88d1a9",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "ml/Perceptron algorithm, Support Vector Machines (SVM), and Kernel functions.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Perceptron algorithm, Support Vector Machines (SVM), and Kernel functions"
+            }
+          },
+          {
+            "id": "ec23f7e130e3175c",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "ml/Linear Regression.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Linear Regression"
+            }
+          },
+          {
+            "id": "04854292e85cccf8",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ],
+        "currentTab": 3
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "e03a8701968d2da1",
+    "type": "split",
+    "children": [
+      {
+        "id": "b9884c3b7267f0c2",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "410b358a45992419",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "03d4be96389428f3",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "b616937e922c5eaa",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200
+  },
+  "right": {
+    "id": "80d4f4d294bf1b1d",
+    "type": "split",
+    "children": [
+      {
+        "id": "291dfcb40e863c60",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7dc9be9eb74b5bc1",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "diffur.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for diffur"
+            }
+          },
+          {
+            "id": "f23b373d542d4fc2",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "diffur.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from diffur"
+            }
+          },
+          {
+            "id": "5ebe8bf7971829e0",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "306abbc4b9b7ae7e",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "9699f2b4c8a33a32",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "diffur.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of diffur"
+            }
+          },
+          {
+            "id": "ccc86240d9c72f80",
+            "type": "leaf",
+            "state": {
+              "type": "git-view",
+              "state": {},
+              "icon": "git-pull-request",
+              "title": "Source Control"
+            }
+          }
+        ],
+        "currentTab": 5
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "fix-math:Current file": false,
+      "templater-obsidian:Templater": false,
+      "obsidian-git:Open Git source control": false
+    }
+  },
+  "active": "04854292e85cccf8",
+  "lastOpenFiles": [
+    "ml/Generalized Linear Regression & Maximum Likelihood.md",
+    "Generalized Linear Regression & Maximum Likelihood.html",
+    "regularization_viz.html",
+    "runge_phenomenon_viz.html",
+    "Pasted image 20260401181315.png",
+    "polynomial_overfitting_viz.html",
+    "Pasted image 20260401180346.png",
+    "Pasted image 20260401180256.png",
+    "ml/Linear Regression.md",
+    "Generalized Linear Regression & Maximum Likelihood.md",
+    "condition_number_viz.html",
+    "polynomial_crash_viz.html",
+    "probability_viz.html",
+    "zspace_viz.html",
+    "polynomial_viz.html",
+    "Pasted image 20260401011012.png",
+    "Pasted image 20260330225203.png",
+    "ml/Perceptron algorithm, Support Vector Machines (SVM), and Kernel functions.md",
+    "Untitled",
+    "Pasted image 20260203232803.png",
+    "Pasted image 20260129165336.png",
+    "Data Manipulation with Pandas.md",
+    "algebra/(algebra practice). Մատրիցի ձևափոխումը անկյունագծային տեսքի.md",
+    "calculus/(calc lection). Հաջորդականություն R^m-ում.md",
+    "(prob lection). Հավանականությունների տեսություն (06.02.26).md",
+    "havtes/(prob lection). Հավանականությունների տեսության հիմնական հասկացությունները.md",
+    "calculus/(calc lection). Ֆունկցիայի անընդհատություն.md",
+    "Pasted image 20260204000815.png",
+    "Pasted image 20260204000529.png",
+    "Pasted image 20260204000437.png",
+    "ML/Part 1 - NumPy & Computational Foundations.md",
+    "Smart Quote.md",
+    "calculus/(calc lection). Շատ փոփոխականների ֆունկցիաներ.md",
+    "algebra/(algebra practice). Անկյունագծայնացում և SVD.md",
+    "algebra/(algebra lection).  Մատրիցի անկյունագծայնացում և SVD.md",
+    "random.md",
+    "diffur.md",
+    "5. Сводимость комбинаторных задач.md",
+    "4. Алгоритмические задачи теории графов.md",
+    "ехам.md",
+    "Комбалгг.md",
+    "5 - мардавари.md",
+    "5 - транскрипты.md",
+    "Тервер.md",
+    "Теория баз данных - Полное пособие для экзамена.md",
+    "project concepts 100%.md"
+  ]
+}

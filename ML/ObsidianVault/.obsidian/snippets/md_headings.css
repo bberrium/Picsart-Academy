@@ -1,0 +1,35 @@
+/* ============================================================
+   1. CLEAN EDITOR (LIVE PREVIEW)
+   Hides formatting markers while editing for a cleaner look
+   ============================================================ */
+
+/* Hide the leading hashtags (e.g., ##) in headings */
+.cm-s-obsidian .cm-formatting-header {
+    opacity: 0.2; /* Makes them faint instead of invisible (easier to edit) */
+    font-size: 0.8em;
+}
+
+/* Hide the ** markers for bold text */
+.cm-s-obsidian .cm-formatting-strong {
+    display: none !important;
+}
+
+/* Hide the * or _ markers for italics */
+.cm-s-obsidian .cm-formatting-em {
+    display: none !important;
+}
+
+/* ============================================================
+   2. OUTLINE / TABLE OF CONTENTS VISUAL TWEAKS
+   ============================================================ */
+
+/* Remove bold styling from the Outline pane to make it easier to read */
+.workspace-leaf-content[data-type="outline"] .tree-item-inner {
+    font-weight: normal !important;
+    color: var(--text-muted) !important;
+}
+
+/* Hides the "hash" link icon in some TOC plugins */
+a.toc-link::before {
+    display: none !important;
+}
