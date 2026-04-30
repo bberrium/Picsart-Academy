@@ -4,93 +4,20 @@
     "type": "split",
     "children": [
       {
-        "id": "865de4b05b302b90",
+        "id": "27897f85f30ad9a3",
         "type": "tabs",
-        "dimension": 61.24678663239075,
         "children": [
           {
-            "id": "26860e2276dab642",
+            "id": "2736fcc4fa73d214",
             "type": "leaf",
             "state": {
-              "type": "pdf",
-              "state": {
-                "file": "ML/lections/11. Logistic Regression.pdf"
-              },
-              "icon": "lucide-file-text",
-              "title": "11. Logistic Regression"
-            }
-          },
-          {
-            "id": "3129693e36cb39e9",
-            "type": "leaf",
-            "state": {
-              "type": "pdf",
-              "state": {
-                "file": "ML/lections/9. Generalized Linear Regression.pdf"
-              },
-              "icon": "lucide-file-text",
-              "title": "9. Generalized Linear Regression"
-            }
-          },
-          {
-            "id": "74172d5c7fa8c844",
-            "type": "leaf",
-            "state": {
-              "type": "pdf",
-              "state": {
-                "file": "Stanford Notes/LinearLogisticSoftmaxReg&GLM.pdf"
-              },
-              "icon": "lucide-file-text",
-              "title": "LinearLogisticSoftmaxReg&GLM"
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
             }
           }
         ]
-      },
-      {
-        "id": "58f36c4620b789b3",
-        "type": "tabs",
-        "dimension": 38.753213367609256,
-        "children": [
-          {
-            "id": "00975a88365da3c1",
-            "type": "leaf",
-            "state": {
-              "type": "pdf",
-              "state": {
-                "file": "Stanford Notes/cs229-notes6.pdf"
-              },
-              "icon": "lucide-file-text",
-              "title": "cs229-notes6"
-            }
-          },
-          {
-            "id": "3e49d6e9d5836bff",
-            "type": "leaf",
-            "state": {
-              "type": "pdf",
-              "state": {
-                "file": "Stanford Notes/LinearLogisticSoftmaxReg&GLM.pdf"
-              },
-              "icon": "lucide-file-text",
-              "title": "LinearLogisticSoftmaxReg&GLM"
-            }
-          },
-          {
-            "id": "0ba58a4ce5b83991",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "ML/Obsidian Vault/ml/11. Logistic Regression.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "11. Logistic Regression"
-            }
-          }
-        ],
-        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -143,7 +70,8 @@
               "title": "Bookmarks"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -265,20 +193,32 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "0ba58a4ce5b83991",
+  "active": "2736fcc4fa73d214",
   "lastOpenFiles": [
-    "Pasted image 20260430104538.png",
-    "ML/lections/11. Logistic Regression.pdf",
-    "ML/Obsidian Vault/ml/11. Logistic Regression.md",
+    "ML/Obsidian Vault/Pasted image 20260401180346.png",
+    "ML/Obsidian Vault/Pasted image 20260401180256.png",
+    "ML/Obsidian Vault/Pasted image 20260401011012.png",
+    "ML/Obsidian Vault/Pasted image 20260330225203.png",
+    "assets/Pasted image 20260403005820.png",
+    "assets/Pasted image 20260416222017.png",
+    "assets/Pasted image 20260416185518.png",
     "Stanford Notes/cs229-notes6.pdf",
+    "Math/Calculus/image-2.png",
     "Stanford Notes/LinearLogisticSoftmaxReg&GLM.pdf",
+    "assets/Pasted image 20260402200221.png",
+    "ML/Obsidian Vault/ml/11. Logistic Regression.md",
+    "empty files.md",
+    "broken links output.md",
+    "ML/lections/11. Logistic Regression.pdf",
+    "assets/Pasted image 20260430104538.png",
+    "assets/Pasted image 20260425194036.png",
+    "assets",
     "Stanford Notes/cs229-notes2.pdf",
     "Stanford Notes/cs229-notes3.pdf",
     "Stanford Notes/cs229-notes4.pdf",
     "Stanford Notes/cs229-notes5.pdf",
     "Stanford Notes/cs229-notes8.pdf",
     "Stanford Notes/cs229-notes7a.pdf",
-    "Stanford Notes/cs229-notes7b.pdf",
     "ml.md",
     "ML/Obsidian Vault/ml/9. Generalized Linear Regression & Maximum Likelihood.md",
     "ML/practice/Bayes_Theorem_3B1B.md",
@@ -289,20 +229,10 @@
     "Normal Distribution.md",
     "ML/Obsidian Vault/ml/12. Optimization methods.md",
     "ML/Obsidian Vault/ml/10. Regularization and Evaluation.md",
-    "Pasted image 20260425194036.png",
-    "Pasted image 20260425193948.png",
     "ML/practice/Central_Limit_Theorem_3B1B.md",
-    "ML/Obsidian Vault/Pasted image 20260401011012.png",
     "ML/practice/practice materials.md",
     "ML/Obsidian Vault/ml/13. Lagrange multipliers, Advanced SVM.md",
     "ML/practice/Polynomial Regression.md",
-    "Pasted image 20260419135312.png",
-    "Pasted image 20260417022759.png",
-    "Pasted image 20260417022728.png",
-    "Pasted image 20260417021818.png",
-    "Pasted image 20260417021712.png",
-    "Pasted image 20260417014304.png",
-    "Pasted image 20260417013953.png",
     "ML/Obsidian Vault/ml/Midterm Quiz.md",
     "ML/Obsidian Vault/ml/R-squared.md",
     "ML/Obsidian Vault/ml/p-values.md",
