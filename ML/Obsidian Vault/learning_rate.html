@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradient Descent Simulator</title>
+<style>
+    body { 
+        font-family: system-ui, -apple-system, sans-serif; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        background-color: #0f172a; 
+        color: #f8fafc; 
+        padding: 40px 20px; 
+    }
+    h2 { margin-bottom: 20px; }
+    canvas { 
+        background: #1e293b; 
+        border-radius: 8px; 
+        margin-bottom: 20px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5); 
+    }
+    .controls { 
+        display: flex; 
+        gap: 15px; 
+        align-items: center; 
+        background: #1e293b; 
+        padding: 20px; 
+        border-radius: 8px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    input[type=range] { cursor: pointer; }
+    button { 
+        padding: 10px 18px; 
+        border: none; 
+        border-radius: 6px; 
+        background: #3b82f6; 
+        color: white; 
+        cursor: pointer; 
+        font-weight: 600; 
+        transition: background 0.2s;
+    }
+    button:hover { background: #2563eb; }
+    button#reset-btn { background: #475569; }
+    button#reset-btn:hover { background: #334155; }
+    .stats { 
+        margin-top: 20px; 
+        font-size: 1.1em; 
+        background: #1e293b;
+        padding: 15px 30px;
+        border-radius: 8px;
+    }
+    .val { font-family: monospace; color: #38bdf8; font-size: 1.2em;}
+</style>
+</head>
+<body>
+
+    <h2>Gradient Descent: Cost = w²</h2>
+    
+    <canvas id="plot" width="600" height="400"></canvas>
+    
+    <div class="controls">
+        <label for="lr">Learning Rate (α): <span id="lr-val" class="val">0.10</span></label>
+        <input type="range" id="lr" min="0.01" max="1.05" step="0.01" value="0.10">
+        <button id="step-btn">Take Step</button>
+        <button id="reset-btn">Reset</button>
+    </div>
+
+    <div class="stats">
+        Current Weight (w): <span id="w-val" class="val">9.0000</span> &nbsp;|&nbsp; 
+        Loss: <span id="loss-val" class="val">81.0000</span>
+    </div>
+
+<script>
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+    
+    // Initial State
+    let w = 9;
+    let history = [{w: 9, loss: 81}];
+    
+    // DOM Elements
+    const lrInput = document.getElementById('lr');
+    const lrVal = document.getElementById('lr-val');
+    const wVal = document.getElementById('w-val');
+    const lossVal = document.getElementById('loss-val');
+    
+    // Update slider text live
+    lrInput.addEventListener('input', (e) => {
+        lrVal.textContent = parseFloat(e.target.value).toFixed(2);
+    });
+
+    // Helper functions to map math coordinates to HTML canvas pixels
+    // Domain: X is -10 to 10. Range: Y is 0 to 100.
+    function mapX(val) { return (val + 10) * (canvas.width / 20); }
+    function mapY(val) { return canvas.height - 20 - (val * ((canvas.height - 40) / 100)); }
+
+    function draw() {
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw the Parabola curve (the landscape)
+        ctx.beginPath();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2;
+        for(let x = -10; x <= 10; x += 0.1) {
+            let y = x * x;
+            if(x === -10) ctx.moveTo(mapX(x), mapY(y));
+            else ctx.lineTo(mapX(x), mapY(y));
+        }
+        ctx.stroke();
+
+        // Draw the history path (the steps taken)
+        if (history.length > 1) {
+            ctx.beginPath();
+            ctx.strokeStyle = '#ef4444'; // Red line
+            ctx.lineWidth = 2;
+            history.forEach((pt, i) => {
+                if(i === 0) ctx.moveTo(mapX(pt.w), mapY(pt.loss));
+                else ctx.lineTo(mapX(pt.w), mapY(pt.loss));
+            });
+            ctx.stroke();
+        }
+
+        // Draw the Current Point
+        const current = history[history.length - 1];
+        ctx.beginPath();
+        ctx.arc(mapX(current.w), mapY(current.loss), 7, 0, Math.PI * 2);
+        ctx.fillStyle = '#ef4444';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Update Text displays
+        wVal.textContent = current.w.toFixed(4);
+        lossVal.textContent = current.loss.toFixed(4);
+    }
+
+    // Mathematical step logic
+    document.getElementById('step-btn').addEventListener('click', () => {
+        const lr = parseFloat(lrInput.value);
+        const gradient = 2 * w; // The derivative of w^2 is 2w
+        
+        w = w - (lr * gradient); // Gradient Descent formula
+        history.push({w: w, loss: w * w}); // Save step
+        draw();
+    });
+
+    // Reset logic
+    document.getElementById('reset-btn').addEventListener('click', () => {
+        w = 9;
+        history = [{w: 9, loss: 81}];
+        draw();
+    });
+
+    // Initial draw
+    draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Լոգիստիկ Ռեգրեսիա (1D Սիգմոիդ)</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; margin: 20px; background-color: #f8f9fa; color: #333; }
+        .container { max-width: 800px; margin: auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        canvas { border: 1px solid #ddd; background: #fff; border-radius: 5px; margin-top: 10px; }
+        .controls { margin-top: 20px; display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+        .slider-group { display: flex; flex-direction: column; align-items: center; }
+        input[type=range] { width: 200px; margin: 10px 0; }
+        .formula { font-size: 1.2em; margin: 15px 0; padding: 10px; background: #eef2f5; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Լոգիստիկ Ռեգրեսիա (Սիգմոիդի տեսքը)</h2>
+    <p>Փոփոխեք <b>W</b> (Steepness) և <b>b</b> (Shift) պարամետրերը և տեսեք, թե ինչպես է դա ազդում հավանականության կորի և որոշման սահմանի վրա (երբ p = 0.5):</p>
+    
+    <div class="formula">
+        p(y=1|x) = σ(<b><span id="w-val">1.00</span></b>x + <b><span id="b-val">0.00</span></b>)
+    </div>
+
+    <canvas id="sigmoidCanvas" width="700" height="400"></canvas>
+
+    <div class="controls">
+        <div class="slider-group">
+            <label>Կշիռ (Weight, w): <span id="w-disp">1.0</span></label>
+            <input type="range" id="w-slider" min="-5" max="5" step="0.1" value="1">
+        </div>
+        <div class="slider-group">
+            <label>Շեղում (Bias, b): <span id="b-disp">0.0</span></label>
+            <input type="range" id="b-slider" min="-10" max="10" step="0.5" value="0">
+        </div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('sigmoidCanvas');
+    const ctx = canvas.getContext('2d');
+    const wSlider = document.getElementById('w-slider');
+    const bSlider = document.getElementById('b-slider');
+    const wVal = document.getElementById('w-val');
+    const bVal = document.getElementById('b-val');
+    const wDisp = document.getElementById('w-disp');
+    const bDisp = document.getElementById('b-disp');
+
+    // Dummy data points for 1D classification (y=0 or y=1)
+    const dataPoints = [
+        {x: -4, y: 0}, {x: -3.5, y: 0}, {x: -2, y: 0}, {x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0},
+        {x: -0.5, y: 1}, {x: 1.5, y: 1}, {x: 2.5, y: 1}, {x: 3, y: 1}, {x: 4.5, y: 1}, {x: 5, y: 1}
+    ];
+
+    // Coordinate mapping functions
+    const xMin = -6, xMax = 6;
+    const yMin = -0.2, yMax = 1.2;
+    
+    function mapX(x) { return ((x - xMin) / (xMax - xMin)) * canvas.width; }
+    function mapY(y) { return canvas.height - ((y - yMin) / (yMax - yMin)) * canvas.height; }
+    function inverseMapX(cx) { return cx / canvas.width * (xMax - xMin) + xMin; }
+
+    function sigmoid(z) { return 1 / (1 + Math.exp(-z)); }
+
+    function drawGrid() {
+        ctx.strokeStyle = '#eee';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        // X grid
+        for(let i = xMin; i <= xMax; i++) {
+            ctx.moveTo(mapX(i), 0); ctx.lineTo(mapX(i), canvas.height);
+        }
+        // Y grid
+        for(let j = 0; j <= 1; j+=0.25) {
+            ctx.moveTo(0, mapY(j)); ctx.lineTo(canvas.width, mapY(j));
+        }
+        ctx.stroke();
+
+        // Main Axes
+        ctx.strokeStyle = '#aaa';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, mapY(0)); ctx.lineTo(canvas.width, mapY(0)); // X axis
+        ctx.moveTo(mapX(0), 0); ctx.lineTo(mapX(0), canvas.height); // Y axis
+        ctx.stroke();
+
+        // Y Labels
+        ctx.fillStyle = '#666';
+        ctx.font = '14px Arial';
+        ctx.fillText("p = 1.0", mapX(0) + 5, mapY(1) + 15);
+        ctx.fillText("p = 0.5", mapX(0) + 5, mapY(0.5) - 5);
+        ctx.fillText("p = 0.0", mapX(0) + 5, mapY(0) - 5);
+    }
+
+    function drawDataPoints() {
+        dataPoints.forEach(pt => {
+            ctx.beginPath();
+            ctx.arc(mapX(pt.x), mapY(pt.y), 6, 0, Math.PI * 2);
+            ctx.fillStyle = pt.y === 1 ? 'rgba(46, 204, 113, 0.7)' : 'rgba(231, 76, 60, 0.7)';
+            ctx.fill();
+            ctx.strokeStyle = '#333';
+            ctx.stroke();
+        });
+    }
+
+    function drawSigmoid(w, b) {
+        ctx.beginPath();
+        ctx.strokeStyle = '#3498db';
+        ctx.lineWidth = 4;
+        for(let px = 0; px <= canvas.width; px++) {
+            let x = inverseMapX(px);
+            let p = sigmoid(w * x + b);
+            if(px === 0) ctx.moveTo(px, mapY(p));
+            else ctx.lineTo(px, mapY(p));
+        }
+        ctx.stroke();
+    }
+
+    function drawDecisionBoundary(w, b) {
+        if (w === 0) return;
+        // w*x + b = 0 => x = -b/w
+        let dbX = -b / w;
+        
+        // Only draw if it's within canvas
+        if(dbX >= xMin && dbX <= xMax) {
+            ctx.beginPath();
+            ctx.strokeStyle = '#f39c12';
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 2;
+            ctx.moveTo(mapX(dbX), mapY(-0.2));
+            ctx.lineTo(mapX(dbX), mapY(1.2));
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.fillStyle = '#f39c12';
+            ctx.fillText("Decision Boundary (x = " + dbX.toFixed(2) + ")", mapX(dbX) + 10, 30);
+        }
+        
+        // Draw 0.5 Threshold line
+        ctx.beginPath();
+        ctx.strokeStyle = '#95a5a6';
+        ctx.setLineDash([2, 4]);
+        ctx.moveTo(0, mapY(0.5));
+        ctx.lineTo(canvas.width, mapY(0.5));
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let w = parseFloat(wSlider.value);
+        let b = parseFloat(bSlider.value);
+        
+        wVal.innerText = w.toFixed(2);
+        bVal.innerText = b.toFixed(2);
+        wDisp.innerText = w.toFixed(2);
+        bDisp.innerText = b.toFixed(2);
+
+        drawGrid();
+        drawDecisionBoundary(w, b);
+        drawSigmoid(w, b);
+        drawDataPoints();
+    }
+
+    wSlider.addEventListener('input', render);
+    bSlider.addEventListener('input', render);
+
+    render();
+</script>
+</body>
+</html>

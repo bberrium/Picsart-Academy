@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Դիսկրետ ROC Կոր և Շփոթության Մատրիցա</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            max-width: 800px;
+            width: 100%;
+        }
+        h2, h3 {
+            text-align: center;
+            margin-top: 0;
+        }
+        .description {
+            text-align: center;
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input[type="range"] {
+            width: 80%;
+            margin: 15px 0;
+            cursor: pointer;
+        }
+        
+        /* Confusion Matrix Styles */
+        .matrix-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .conf-matrix {
+            display: grid;
+            grid-template-columns: 120px 150px 150px;
+            grid-template-rows: 40px 100px 100px;
+            gap: 5px;
+            text-align: center;
+        }
+        .header-cell {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ecf0f1;
+            border-radius: 6px;
+        }
+        .matrix-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .matrix-cell .val {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .cell-tp { background-color: #e3f2fd; border-color: #3498db; color: #2980b9; }
+        .cell-fp { background-color: #fdedec; border-color: #e74c3c; color: #c0392b; }
+        .cell-fn { background-color: #fdedec; border-color: #e74c3c; color: #c0392b; }
+        .cell-tn { background-color: #e3f2fd; border-color: #3498db; color: #2980b9; }
+
+        /* SVG Styles */
+        #timeline-chart, #roc-chart {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .data-point { stroke: white; stroke-width: 1.5px; }
+        .point-pos { fill: #3498db; }
+        .point-neg { fill: #e74c3c; }
+        .thresh-line { stroke: #2c3e50; stroke-width: 3px; stroke-dasharray: 4,4; }
+        
+        .roc-path { fill: none; stroke: #8e44ad; stroke-width: 4px; stroke-linejoin: round; }
+        .roc-baseline { fill: none; stroke: #95a5a6; stroke-width: 2px; stroke-dasharray: 5,5; }
+        .roc-dot { fill: #f1c40f; stroke: #2c3e50; stroke-width: 2px; }
+        
+        .axis text { font-size: 12px; }
+        .axis path, .axis line { stroke: #bdc3c7; }
+        
+        .stats {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Իրական (Էմպիրիկ) ROC Կորի Կառուցումը</h2>
+    <p class="description">Այստեղ ունենք 15 դիսկրետ կետեր (7 Դրական և 8 Բացասական): Իջեցրեք շեմը (Threshold) 1.0-ից մինչև 0.0 և հետևեք, թե ինչպես է դա ազդում Շփոթության Մատրիցայի վրա և քայլ առ քայլ գծում աստիճանաձև ROC կորը:</p>
+    
+    <div class="controls">
+        <label for="threshSlider" style="font-size: 16px; font-weight: bold;">Որոշման Շեմ (Threshold): <span id="threshValDisp" style="color:#e67e22">1.00</span></label>
+        <br>
+        <input type="range" id="threshSlider" min="0" max="1" value="1" step="0.01">
+    </div>
+
+    <div id="timeline-chart"></div>
+
+    <div class="matrix-container">
+        <div class="conf-matrix">
+            <div></div> <div class="header-cell">Իրական Positive</div>
+            <div class="header-cell">Իրական Negative</div>
+            
+            <div class="header-cell">Կանխատեսված<br>Positive</div>
+            <div class="matrix-cell cell-tp">
+                <span>True Positive (TP)</span>
+                <span class="val" id="valTP">0</span>
+            </div>
+            <div class="matrix-cell cell-fp">
+                <span>False Positive (FP)</span>
+                <span class="val" id="valFP">0</span>
+            </div>
+            
+            <div class="header-cell">Կանխատեսված<br>Negative</div>
+            <div class="matrix-cell cell-fn">
+                <span>False Negative (FN)</span>
+                <span class="val" id="valFN">7</span>
+            </div>
+            <div class="matrix-cell cell-tn">
+                <span>True Negative (TN)</span>
+                <span class="val" id="valTN">8</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="stats">
+        TPR (Recall): <span id="valTPR" style="color:#3498db">0.00</span> &nbsp; | &nbsp; 
+        FPR: <span id="valFPR" style="color:#e74c3c">0.00</span>
+    </div>
+    <div id="roc-chart"></div>
+</div>
+
+<script>
+    // Տվյալների բազա (15 կետեր)
+    const data = [
+        {p: 0.95, c: 1}, {p: 0.90, c: 1}, {p: 0.85, c: 0}, {p: 0.80, c: 1}, 
+        {p: 0.70, c: 1}, {p: 0.65, c: 0}, {p: 0.60, c: 1}, {p: 0.55, c: 0}, 
+        {p: 0.45, c: 1}, {p: 0.40, c: 0}, {p: 0.35, c: 0}, {p: 0.25, c: 1}, 
+        {p: 0.20, c: 0}, {p: 0.15, c: 0}, {p: 0.05, c: 0}
+    ];
+    
+    const P = 7; // Ընդհանուր Positive քանակ
+    const N = 8; // Ընդհանուր Negative քանակ
+
+    // --- SECTION 1: TIMELINE (Number Line) ---
+    const widthLine = 700, heightLine = 100;
+    const marginLine = {top: 40, right: 20, bottom: 20, left: 20};
+    
+    const svgLine = d3.select("#timeline-chart").append("svg")
+        .attr("width", widthLine).attr("height", heightLine);
+        
+    const xScaleLine = d3.scaleLinear().domain([0, 1]).range([marginLine.left, widthLine - marginLine.right]);
+    
+    // Draw Axis
+    svgLine.append("g")
+        .attr("transform", `translate(0, ${heightLine/2})`)
+        .attr("class", "axis")
+        .call(d3.axisBottom(xScaleLine).ticks(10));
+        
+    // Draw Points
+    const circles = svgLine.selectAll("circle")
+        .data(data).enter().append("circle")
+        .attr("class", d => "data-point " + (d.c === 1 ? "point-pos" : "point-neg"))
+        .attr("cx", d => xScaleLine(d.p))
+        .attr("cy", heightLine/2)
+        .attr("r", 8);
+        
+    // Legends for Timeline
+    svgLine.append("circle").attr("cx", marginLine.left).attr("cy", 15).attr("r", 6).attr("class", "point-pos data-point");
+    svgLine.append("text").attr("x", marginLine.left + 10).attr("y", 19).text("Class 1 (Pos)").style("font-size", "12px");
+    
+    svgLine.append("circle").attr("cx", marginLine.left + 120).attr("cy", 15).attr("r", 6).attr("class", "point-neg data-point");
+    svgLine.append("text").attr("x", marginLine.left + 130).attr("y", 19).text("Class 0 (Neg)").style("font-size", "12px");
+
+    // Threshold Line
+    const threshMarker = svgLine.append("line")
+        .attr("class", "thresh-line")
+        .attr("y1", marginLine.top).attr("y2", heightLine - marginLine.bottom);
+
+    // --- PRECALCULATE ROC PATH ---
+    // Դասավորել նվազման կարգով
+    const sortedData = [...data].sort((a, b) => b.p - a.p);
+    const rocPathData = [{fpr: 0, tpr: 0}];
+    let currentTP = 0, currentFP = 0;
+    
+    sortedData.forEach(d => {
+        if (d.c === 1) currentTP++;
+        else currentFP++;
+        rocPathData.push({ fpr: currentFP / N, tpr: currentTP / P, threshold: d.p });
+    });
+    // Ապահովել (1,1) կետը
+    rocPathData.push({fpr: 1, tpr: 1, threshold: -1});
+
+    // --- SECTION 3: ROC CURVE ---
+    const sizeRoc = 400;
+    const marginRoc = {top: 20, right: 20, bottom: 40, left: 50};
+    const innerSize = sizeRoc - marginRoc.left - marginRoc.right;
+    
+    const svgRoc = d3.select("#roc-chart").append("svg")
+        .attr("width", sizeRoc).attr("height", sizeRoc)
+        .append("g").attr("transform", `translate(${marginRoc.left},${marginRoc.top})`);
+        
+    const scaleRoc = d3.scaleLinear().domain([0, 1]).range([innerSize, 0]);
+    const scaleRocX = d3.scaleLinear().domain([0, 1]).range([0, innerSize]);
+    
+    // Axes
+    svgRoc.append("g").attr("transform", `translate(0,${innerSize})`).attr("class", "axis").call(d3.axisBottom(scaleRocX));
+    svgRoc.append("g").attr("class", "axis").call(d3.axisLeft(scaleRoc));
+    
+    // Labels
+    svgRoc.append("text").attr("x", innerSize/2).attr("y", innerSize + 35).style("text-anchor", "middle").text("False Positive Rate (FPR)");
+    svgRoc.append("text").attr("transform", "rotate(-90)").attr("x", -innerSize/2).attr("y", -35).style("text-anchor", "middle").text("True Positive Rate (TPR)");
+    
+    // Diagonal Baseline
+    svgRoc.append("line").attr("class", "roc-baseline").attr("x1", 0).attr("y1", innerSize).attr("x2", innerSize).attr("y2", 0);
+    
+    // ROC Step Curve (using stepBefore to create the staircase)
+    const lineRoc = d3.line()
+        .x(d => scaleRocX(d.fpr))
+        .y(d => scaleRoc(d.tpr))
+        .curve(d3.curveStepBefore); 
+        
+    svgRoc.append("path")
+        .datum(rocPathData)
+        .attr("class", "roc-path")
+        .attr("d", lineRoc);
+        
+    // Moving Dot
+    const currentRocDot = svgRoc.append("circle").attr("class", "roc-dot").attr("r", 8);
+
+    // --- UPDATE FUNCTION ---
+    function updateAll(threshold) {
+        // 1. Թարմացնել Timeline ցուցիչը և տեքստը
+        threshMarker.attr("x1", xScaleLine(threshold)).attr("x2", xScaleLine(threshold));
+        d3.select("#threshValDisp").text(threshold.toFixed(2));
+        
+        // Ներկել կետերը կախված շեմից (մգեցնել նրանք, որոնք Positive են կանխատեսվել)
+        circles.style("opacity", d => d.p >= threshold ? 1.0 : 0.2);
+
+        // 2. Հաշվել Confusion Matrix-ի արժեքները
+        let tp = 0, fp = 0, fn = 0, tn = 0;
+        data.forEach(d => {
+            if (d.p >= threshold) {
+                if (d.c === 1) tp++; else fp++;
+            } else {
+                if (d.c === 1) fn++; else tn++;
+            }
+        });
+        
+        // Թարմացնել DOM
+        d3.select("#valTP").text(tp);
+        d3.select("#valFP").text(fp);
+        d3.select("#valFN").text(fn);
+        d3.select("#valTN").text(tn);
+        
+        // 3. Հաշվել և թարմացնել ROC կորի վրայի կետը
+        let tpr = tp / P;
+        let fpr = fp / N;
+        
+        d3.select("#valTPR").text(tpr.toFixed(2));
+        d3.select("#valFPR").text(fpr.toFixed(2));
+        
+        currentRocDot
+            .attr("cx", scaleRocX(fpr))
+            .attr("cy", scaleRoc(tpr));
+    }
+
+    // --- EVENT LISTENER ---
+    d3.select("#threshSlider").on("input", function() {
+        updateAll(+this.value);
+    });
+
+    // Initialize
+    updateAll(1.0);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <title>Դասի միջինի վիզուալիզացիա</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background-color: #f4f4f5; 
+            margin: 0; 
+            padding: 30px; 
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h2 { color: #1f2937; margin-top: 0; }
+        canvas { 
+            background-color: #fafafa; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 8px; 
+            cursor: pointer; 
+        }
+        .controls { 
+            margin-top: 20px; 
+            display: flex; 
+            justify-content: center;
+            align-items: center; 
+            gap: 15px; 
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        .info { 
+            margin-top: 20px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #0f172a; 
+            background: #fee2e2;
+            padding: 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .hint {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Դասի միջին (Ծանրության կենտրոն)</h2>
+    <canvas id="myCanvas" width="700" height="450"></canvas>
+
+    <div class="controls">
+        <button id="addBtn">Ավելացնել կետ</button>
+    </div>
+
+    <div class="info" id="infoText">Դասի միջին (m): x=0.0, y=0.0</div>
+    <div class="hint">* Բռնեք և տեղաշարժեք կապույտ կետերը (m_n)՝ միջինի փոփոխությունը տեսնելու համար</div>
+</div>
+
+<script>
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    const infoText = document.getElementById('infoText');
+    const addBtn = document.getElementById('addBtn');
+
+    // Սկզբնական կետերը
+    let points = [
+        { x: 200, y: 150 },
+        { x: 300, y: 100 },
+        { x: 250, y: 250 },
+        { x: 400, y: 200 },
+        { x: 450, y: 300 }
+    ];
+    let draggingPointIndex = null;
+
+    // Հաշվել միջինը
+    function calculateMean() {
+        if (points.length === 0) return { x: 0, y: 0 };
+        let sumX = 0;
+        let sumY = 0;
+        for (let p of points) {
+            sumX += p.x;
+            sumY += p.y;
+        }
+        return {
+            x: sumX / points.length,
+            y: sumY / points.length
+        };
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (points.length === 0) return;
+
+        const mean = calculateMean();
+
+        // 1. Նկարել միացնող գծերը կետերից դեպի միջինը
+        ctx.beginPath();
+        for (let p of points) {
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(mean.x, mean.y);
+        }
+        ctx.strokeStyle = '#cbd5e1'; // բաց մոխրագույն
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 5]);
+        ctx.stroke();
+        ctx.setLineDash([]); // վերականգնել
+
+        // 2. Նկարել բոլոր կետերը
+        for (let p of points) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+            ctx.fillStyle = '#3b82f6'; // կապույտ
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // 3. Նկարել միջինը (որպես հատուկ նշան՝ խաչ)
+        const size = 10;
+        ctx.beginPath();
+        ctx.moveTo(mean.x - size, mean.y - size);
+        ctx.lineTo(mean.x + size, mean.y + size);
+        ctx.moveTo(mean.x + size, mean.y - size);
+        ctx.lineTo(mean.x - size, mean.y + size);
+        ctx.strokeStyle = '#ef4444'; // կարմիր
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('m (միջին)', mean.x + 15, mean.y - 15);
+
+        // 4. Թարմացնել տեքստը
+        infoText.innerText = `Դասի միջին (m): x=${mean.x.toFixed(1)}, y=${mean.y.toFixed(1)}`;
+    }
+
+    // --- Ինտերակտիվության ապահովում (Drag and Drop) ---
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Գտնել, թե որ կետի վրա է սեղմվել մկնիկը
+        for (let i = 0; i < points.length; i++) {
+            if (Math.hypot(mouseX - points[i].x, mouseY - points[i].y) < 15) {
+                draggingPointIndex = i;
+                break;
+            }
+        }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (draggingPointIndex === null) return;
+        const rect = canvas.getBoundingClientRect();
+        
+        // Թարմացնել ընտրված կետի կոորդինատները
+        points[draggingPointIndex].x = e.clientX - rect.left;
+        points[draggingPointIndex].y = e.clientY - rect.top;
+        
+        draw(); 
+    });
+
+    window.addEventListener('mouseup', () => {
+        draggingPointIndex = null;
+    });
+
+    // Նոր կետ ավելացնելու ֆունկցիա
+    addBtn.addEventListener('click', () => {
+        // Ավելացնել նոր կետ կտավի պատահական հատվածում (կենտրոնին մոտ)
+        const newX = canvas.width / 2 + (Math.random() - 0.5) * 200;
+        const newY = canvas.height / 2 + (Math.random() - 0.5) * 200;
+        points.push({ x: newX, y: newY });
+        draw();
+    });
+
+    // Սկզբնական նկարում
+    draw();
+</script>
+</body>
+</html>

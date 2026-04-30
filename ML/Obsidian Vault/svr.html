@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <title>SVR Epsilon Tube</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f9f9f9; padding: 20px; }
+        canvas { background: #fff; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; }
+        .controls { margin-top: 15px; }
+        .legend { margin-top: 10px; font-size: 14px; }
+        .box { width: 12px; height: 12px; display: inline-block; vertical-align: middle; border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <h2>Support Vector Regression (&epsilon;-tube)</h2>
+    <p>Քաշեք կետերը վերև կամ ներքև։ Խողովակի ներսում գտնվող կետերը սխալ չեն գեներացնում։</p>
+    
+    <div class="controls">
+        <label>Խողովակի հաստություն (&epsilon;): <span id="eVal">1.0</span></label><br>
+        <input type="range" id="epsilonSlider" min="0" max="3" step="0.1" value="1.0" style="width: 200px;">
+    </div>
+    
+    <canvas id="svrCanvas" width="500" height="350"></canvas>
+    
+    <div class="legend">
+        <span><div class="box" style="background: rgba(217, 83, 79, 0.2);"></div> &epsilon;-insensitive Tube</span>
+        <span><div class="box" style="background: #333; height: 3px;"></div> Ռեգրեսիոն Գիծ</span>
+        <span><div class="box" style="background: #8e44ad; width: 2px; height: 12px;"></div> &xi; (Slack Error)</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('svrCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('epsilonSlider');
+        const eVal = document.getElementById('eVal');
+        
+        const scaleX = 50, scaleY = 40;
+        const cX = 50, cY = canvas.height/2;
+
+        let points = [
+            { x: 1, y: 1 }, { x: 2, y: 2.5 }, { x: 3, y: 1.5 }, { x: 4, y: 3 },
+            { x: 5, y: 4.5 }, { x: 6, y: 4 }, { x: 7, y: 5 }, { x: 8, y: 6.5 }
+        ];
+
+        let isDragging = false, dragIdx = -1;
+
+        function getM(cx, cy) { return { x: (cx - cX)/scaleX, y: -(cy - cY)/scaleY }; }
+        function getC(mx, my) { return { x: cX + mx*scaleX, y: cY - my*scaleY }; }
+
+        points.forEach(p => { p.cx = getC(p.x, p.y).x; p.cy = getC(p.x, p.y).y; });
+
+        function trainSVR(epsilon) {
+            let w = 0.5, b = 0, lr = 0.005, C = 10;
+            for(let i=0; i<1000; i++) {
+                let dw = w, db = 0;
+                for(let p of points) {
+                    let pred = w * p.x + b;
+                    let err = p.y - pred;
+                    if(err > epsilon) { dw -= C * p.x; db -= C; }
+                    else if(err < -epsilon) { dw += C * p.x; db += C; }
+                }
+                w -= lr * dw; b -= lr * db;
+            }
+            return {w, b};
+        }
+
+        function draw() {
+            let epsilon = parseFloat(slider.value);
+            eVal.innerText = epsilon.toFixed(1);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let {w, b} = trainSVR(epsilon);
+
+            let cStart = getC(0, b);
+            let cEnd = getC(10, w*10 + b);
+            let eHeight = epsilon * scaleY;
+
+            // Գծել խողովակը (Tube)
+            ctx.beginPath();
+            ctx.moveTo(cStart.x, cStart.y - eHeight); ctx.lineTo(cEnd.x, cEnd.y - eHeight);
+            ctx.lineTo(cEnd.x, cEnd.y + eHeight); ctx.lineTo(cStart.x, cStart.y + eHeight);
+            ctx.fillStyle = "rgba(217, 83, 79, 0.2)"; ctx.fill();
+
+            // Գծել Ռեգրեսիոն գիծը
+            ctx.beginPath(); ctx.moveTo(cStart.x, cStart.y); ctx.lineTo(cEnd.x, cEnd.y);
+            ctx.strokeStyle = "#333"; ctx.lineWidth = 3; ctx.stroke();
+
+            // Գծել կետերը և slack գծերը
+            for(let p of points) {
+                let pred = w * p.x + b;
+                let err = p.y - pred;
+                
+                if (Math.abs(err) > epsilon) {
+                    let boundY = err > 0 ? pred + epsilon : pred - epsilon;
+                    let pBound = getC(p.x, boundY);
+                    ctx.beginPath(); ctx.moveTo(p.cx, p.cy); ctx.lineTo(pBound.x, pBound.y);
+                    ctx.strokeStyle = "#8e44ad"; ctx.lineWidth = 3; ctx.stroke();
+                }
+                
+                ctx.beginPath(); ctx.arc(p.cx, p.cy, 6, 0, Math.PI*2);
+                ctx.fillStyle = "#337ab7"; ctx.fill();
+            }
+        }
+
+        slider.addEventListener('input', draw);
+        canvas.addEventListener('mousedown', e => {
+            let r = canvas.getBoundingClientRect();
+            let mx = e.clientX - r.left, my = e.clientY - r.top;
+            dragIdx = points.findIndex(p => Math.hypot(mx - p.cx, my - p.cy) < 15);
+            if(dragIdx > -1) { isDragging = true; canvas.style.cursor = 'ns-resize'; }
+        });
+        canvas.addEventListener('mousemove', e => {
+            if(isDragging) {
+                let r = canvas.getBoundingClientRect();
+                points[dragIdx].cy = e.clientY - r.top;
+                points[dragIdx].y = getM(points[dragIdx].cx, points[dragIdx].cy).y;
+                draw();
+            }
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; canvas.style.cursor = 'grab'; });
+        draw();
+    </script>
+</body>
+</html>

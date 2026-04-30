@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <title>Soft Margin SVM</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f9f9f9; padding: 20px; }
+        canvas { background: #fff; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; }
+        .legend { margin-top: 15px; font-size: 14px; line-height: 1.8; }
+        .box { width: 12px; height: 12px; display: inline-block; vertical-align: middle; border-radius: 2px; }
+        .circle { border-radius: 50%; }
+        .info { margin-top: 10px; font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+    <h2>Soft Margin SVM (Slack Փոփոխականներ)</h2>
+    <p>Քաշեք կետերը մարջինի մեջ կամ սխալ կողմ՝ տեսնելու համար Slack փոփոխականների (&xi;) առաջացումը:</p>
+    <canvas id="svmCanvas" width="500" height="400"></canvas>
+    
+    <div class="legend">
+        <span><div class="box circle" style="background: #337ab7;"></div> Դաս 1</span>
+        <span><div class="box circle" style="background: #d9534f;"></div> Դաս -1</span>
+        <span><div class="box" style="background: #333; height: 3px;"></div> Decision Boundary</span>
+        <span><div class="box" style="background: transparent; border: 2px dashed #999; height: 0px;"></div> Margin</span><br>
+        <span><div class="box circle" style="border: 3px solid #f0ad4e;"></div> Support Vector (&alpha; > 0)</span>
+        <span><div class="box" style="background: #8e44ad; width: 2px; height: 12px;"></div> Slack Penalty (&xi; > 0)</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('svmCanvas');
+        const ctx = canvas.getContext('2d');
+        const scale = 50; const cX = canvas.width/2; const cY = canvas.height/2;
+
+        function toM(x, y) { return { x: (x - cX)/scale, y: -(y - cY)/scale }; }
+        function toC(x, y) { return { x: cX + x*scale, y: cY - y*scale }; }
+
+        let points = [
+            { x: -2, y: 2, label: 1, cx:0, cy:0 }, { x: -1, y: 3, label: 1, cx:0, cy:0 }, { x: -0.5, y: 1.5, label: 1, cx:0, cy:0 },
+            { x: 2, y: -2, label: -1, cx:0, cy:0 }, { x: 1, y: -3, label: -1, cx:0, cy:0 }, { x: 0.5, y: -1.5, label: -1, cx:0, cy:0 }
+        ];
+
+        points.forEach(p => { let c = toC(p.x, p.y); p.cx = c.x; p.cy = c.y; });
+        let isDragging = false; let dragIdx = -1;
+
+        function trainSVM() {
+            let w = {x: 0.5, y: 0.5}, b = 0, lr = 0.01, C = 5;
+            for(let i=0; i<1500; i++) {
+                let dwx = w.x, dwy = w.y, db = 0;
+                for(let p of points) {
+                    let dist = p.label * (w.x * p.x + w.y * p.y + b);
+                    if(dist < 1) { dwx -= C * p.label * p.x; dwy -= C * p.label * p.y; db -= C * p.label; }
+                }
+                w.x -= lr * dwx; w.y -= lr * dwy; b -= lr * db;
+            }
+            return {w, b};
+        }
+
+        function drawLine(w, b, offset, dash) {
+            ctx.beginPath();
+            let x1 = -5, x2 = 5;
+            let y1 = (-w.x * x1 - b + offset) / w.y;
+            let y2 = (-w.x * x2 - b + offset) / w.y;
+            let c1 = toC(x1, y1), c2 = toC(x2, y2);
+            ctx.moveTo(c1.x, c1.y); ctx.lineTo(c2.x, c2.y);
+            ctx.setLineDash(dash ? [8,8] : []);
+            ctx.lineWidth = dash ? 2 : 3;
+            ctx.strokeStyle = dash ? "#999" : "#333";
+            ctx.stroke(); ctx.setLineDash([]);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let {w, b} = trainSVM();
+            
+            drawLine(w, b, 0, false); drawLine(w, b, 1, true); drawLine(w, b, -1, true);
+
+            for(let p of points) {
+                let dist = p.label * (w.x * p.x + w.y * p.y + b);
+                
+                if (dist <= 1.05) { // Support Vector
+                    ctx.beginPath(); ctx.arc(p.cx, p.cy, 12, 0, Math.PI*2);
+                    ctx.strokeStyle = "#f0ad4e"; ctx.lineWidth = 3; ctx.stroke();
+                }
+
+                if (dist < 1) { // Slack variable
+                    let idealDist = 1 / Math.sqrt(w.x*w.x + w.y*w.y);
+                    let projX = p.x - p.label * w.x * (1 - dist) / (w.x*w.x + w.y*w.y);
+                    let projY = p.y - p.label * w.y * (1 - dist) / (w.x*w.x + w.y*w.y);
+                    let pc = toC(projX, projY);
+                    ctx.beginPath(); ctx.moveTo(p.cx, p.cy); ctx.lineTo(pc.x, pc.y);
+                    ctx.strokeStyle = "#8e44ad"; ctx.lineWidth = 2; ctx.stroke();
+                }
+
+                ctx.beginPath(); ctx.arc(p.cx, p.cy, 7, 0, Math.PI*2);
+                ctx.fillStyle = p.label === 1 ? "#337ab7" : "#d9534f"; ctx.fill();
+                ctx.strokeStyle = "#fff"; ctx.lineWidth = 1; ctx.stroke();
+            }
+        }
+
+        canvas.addEventListener('mousedown', e => {
+            let r = canvas.getBoundingClientRect();
+            let mx = e.clientX - r.left, my = e.clientY - r.top;
+            dragIdx = points.findIndex(p => Math.hypot(mx - p.cx, my - p.cy) < 15);
+            if(dragIdx > -1) { isDragging = true; canvas.style.cursor = 'grabbing'; }
+        });
+        canvas.addEventListener('mousemove', e => {
+            if(isDragging) {
+                let r = canvas.getBoundingClientRect();
+                points[dragIdx].cx = e.clientX - r.left; points[dragIdx].cy = e.clientY - r.top;
+                let m = toM(points[dragIdx].cx, points[dragIdx].cy);
+                points[dragIdx].x = m.x; points[dragIdx].y = m.y; draw();
+            }
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; canvas.style.cursor = 'grab'; });
+        draw();
+    </script>
+</body>
+</html>

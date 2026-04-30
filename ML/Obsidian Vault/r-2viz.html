@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R² vs Adjusted R²</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .description {
+            text-align: center;
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f1f2f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        input[type="range"] {
+            width: 80%;
+            margin: 10px 0;
+        }
+        .readouts {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .r2-text { color: #3498db; }
+        .adj-r2-text { color: #e74c3c; }
+        
+        /* SVG Styles */
+        .line-r2 { fill: none; stroke: #3498db; stroke-width: 3; }
+        .line-adj-r2 { fill: none; stroke: #e74c3c; stroke-width: 3; }
+        .indicator-line { stroke: #2d3436; stroke-width: 2; stroke-dasharray: 4,4; }
+        .axis text { font-size: 12px; }
+        .axis path, .axis line { stroke: #bdc3c7; }
+        .legend text { font-size: 14px; alignment-baseline: middle; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>R² vs Adjusted R² Ինտերակտիվ Գրաֆիկ</h2>
+    <p class="description">Դիտարկումների քանակը (n) ֆիքսված է 40: Ավելացրեք նոր պրեդիկտորներ (ֆիչերներ) և տեսեք, թե ինչպես է ստանդարտ R²-ը շարունակում աճել, մինչդեռ Adjusted R²-ը սկսում է նվազել՝ պատժելով մոդելին ավելորդ աղմուկի (բարդության) համար:</p>
+    
+    <div class="controls">
+        <label for="pSlider"><b>Պրեդիկտորների քանակ (p): <span id="pValue">1</span></b></label>
+        <input type="range" id="pSlider" min="1" max="25" value="1" step="1">
+        
+        <div class="readouts">
+            <span class="r2-text">R²: <span id="r2Value">0.000</span></span>
+            <span class="adj-r2-text">Adjusted R²: <span id="adjR2Value">0.000</span></span>
+        </div>
+    </div>
+
+    <div id="chart"></div>
+</div>
+
+<script>
+    // Դատայի գեներացիա
+    const n = 40; // Դիտարկումների քանակ
+    const data = [];
+    
+    for (let p = 1; p <= 25; p++) {
+        // Սիմուլյացիա անենք R2-ի աճը, երբ պատահական աղմուկ ենք ավելացնում
+        let r2 = 0.70 + 0.20 * (1 - Math.exp(-p / 6)); 
+        // Adjusted R2-ի բանաձևը
+        let adjR2 = 1 - ((1 - r2) * (n - 1)) / (n - p - 1);
+        data.push({ p: p, r2: r2, adjR2: adjR2 });
+    }
+
+    // Գրաֆիկի չափսերը
+    const margin = {top: 20, right: 30, bottom: 50, left: 60},
+          width = 740 - margin.left - margin.right,
+          height = 400 - margin.top - margin.bottom;
+
+    const svg = d3.select("#chart")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Սանդղակներ
+    const xScale = d3.scaleLinear().domain([1, 25]).range([0, width]);
+    const yScale = d3.scaleLinear().domain([0.65, 0.95]).range([height, 0]);
+
+    // Առանցքներ
+    svg.append("g")
+       .attr("transform", `translate(0,${height})`)
+       .attr("class", "axis")
+       .call(d3.axisBottom(xScale).ticks(10));
+
+    svg.append("g")
+       .attr("class", "axis")
+       .call(d3.axisLeft(yScale).ticks(6));
+
+    // Առանցքների պիտակներ
+    svg.append("text")
+       .attr("x", width / 2)
+       .attr("y", height + 40)
+       .style("text-anchor", "middle")
+       .text("Պրեդիկտորների քանակ (p)");
+
+    svg.append("text")
+       .attr("transform", "rotate(-90)")
+       .attr("x", -height / 2)
+       .attr("y", -40)
+       .style("text-anchor", "middle")
+       .text("Արժեք (Score)");
+
+    // Գծեր
+    const lineR2 = d3.line().x(d => xScale(d.p)).y(d => yScale(d.r2));
+    const lineAdjR2 = d3.line().x(d => xScale(d.p)).y(d => yScale(d.adjR2));
+
+    svg.append("path").datum(data).attr("class", "line-r2").attr("d", lineR2);
+    svg.append("path").datum(data).attr("class", "line-adj-r2").attr("d", lineAdjR2);
+
+    // Ինդիկատոր (Ուղղահայաց գիծ և կետեր)
+    const indicatorGroup = svg.append("g");
+    
+    const indicatorLine = indicatorGroup.append("line")
+        .attr("class", "indicator-line")
+        .attr("y1", 0).attr("y2", height);
+
+    const dotR2 = indicatorGroup.append("circle").attr("r", 6).attr("fill", "#3498db");
+    const dotAdjR2 = indicatorGroup.append("circle").attr("r", 6).attr("fill", "#e74c3c");
+
+    // Լեգենդ
+    const legend = svg.append("g").attr("transform", `translate(20, 20)`);
+    legend.append("rect").attr("x", 0).attr("y", 0).attr("width", 20).attr("height", 4).attr("fill", "#3498db");
+    legend.append("text").attr("x", 30).attr("y", 5).text("R² (Ստանդարտ)").attr("class", "legend");
+    
+    legend.append("rect").attr("x", 0).attr("y", 25).attr("width", 20).attr("height", 4).attr("fill", "#e74c3c");
+    legend.append("text").attr("x", 30).attr("y", 30).text("Adjusted R²").attr("class", "legend");
+
+    // Թարմացման ֆունկցիա
+    function updateChart(pVal) {
+        const pointData = data.find(d => d.p === pVal);
+        const xPos = xScale(pVal);
+        
+        indicatorLine.attr("x1", xPos).attr("x2", xPos);
+        dotR2.attr("cx", xPos).attr("cy", yScale(pointData.r2));
+        dotAdjR2.attr("cx", xPos).attr("cy", yScale(pointData.adjR2));
+        
+        d3.select("#pValue").text(pVal);
+        d3.select("#r2Value").text(pointData.r2.toFixed(3));
+        d3.select("#adjR2Value").text(pointData.adjR2.toFixed(3));
+    }
+
+    // Միացնել սլայդերին
+    d3.select("#pSlider").on("input", function() {
+        updateChart(+this.value);
+    });
+
+    // Սկզբնական դիրք
+    updateChart(1);
+</script>
+
+</body>
+</html>

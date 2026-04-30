@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MSE vs Cross-Entropy Simulator</title>
+<style>
+    body {
+        font-family: system-ui, -apple-system, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #0f172a;
+        color: #f8fafc;
+        padding: 40px 20px;
+        margin: 0;
+    }
+    h2 { margin-bottom: 5px; text-align: center; }
+    p { color: #94a3b8; margin-bottom: 20px; text-align: center; max-width: 600px; line-height: 1.5; }
+    
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #1e293b;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    canvas {
+        background: #0f172a;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #334155;
+    }
+
+    .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        width: 100%;
+        max-width: 600px;
+        margin-bottom: 15px;
+    }
+
+    .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    label { font-size: 0.9em; font-weight: 600; color: #cbd5e1; }
+    select, input[type=range] {
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #475569;
+        background: #334155;
+        color: white;
+        cursor: pointer;
+    }
+    
+    button { 
+        padding: 10px 18px; 
+        border: none; 
+        border-radius: 6px; 
+        background: #3b82f6; 
+        color: white; 
+        cursor: pointer; 
+        font-weight: 600; 
+        transition: background 0.2s;
+        margin-top: 10px;
+    }
+    button:hover { background: #2563eb; }
+    button#reset-btn { background: #475569; }
+    button#reset-btn:hover { background: #334155; }
+    
+    .btn-group {
+        display: flex;
+        gap: 10px;
+        grid-column: span 2;
+        justify-content: center;
+    }
+
+    .stats { 
+        width: 100%;
+        max-width: 600px;
+        margin-top: 10px; 
+        font-size: 1em; 
+        background: #0f172a;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        display: flex;
+        justify-content: space-around;
+    }
+    .val { font-family: monospace; color: #38bdf8; font-size: 1.1em;}
+    .alert { color: #ef4444; font-weight: bold; font-size: 0.9em; display: none; }
+</style>
+</head>
+<body>
+
+    <h2>Logistic Regression Loss Landscapes</h2>
+    <p>Target (y) = 1. Watch how the ball gets stuck on the left side of the MSE curve because the slope (gradient) approaches zero. Cross-Entropy fixes this by keeping a steep slope!</p>
+    
+    <div class="container">
+        <canvas id="plot" width="600" height="350"></canvas>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="loss_type">Loss Function</label>
+                <select id="loss_type">
+                    <option value="mse">Mean Squared Error (MSE)</option>
+                    <option value="ce">Cross-Entropy (Log Loss)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Starting Weight (w): <span id="start-val" class="val">-5.0</span></label>
+                <input type="range" id="start_w" min="-6" max="6" step="0.5" value="-5">
+            </div>
+
+            <div class="btn-group">
+                <button id="step-btn">Take Step (Gradient Descent)</button>
+                <button id="reset-btn">Reset</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div>Current w: <span id="w-val" class="val">-5.000</span></div>
+            <div>Gradient: <span id="grad-val" class="val">0.000</span> <span id="stuck-alert" class="alert"> (STUCK!)</span></div>
+            <div>Loss: <span id="loss-val" class="val">0.000</span></div>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+    
+    // UI Elements
+    const lossTypeSelect = document.getElementById('loss_type');
+    const startWInput = document.getElementById('start_w');
+    const startValDisplay = document.getElementById('start-val');
+    const wValDisplay = document.getElementById('w-val');
+    const gradValDisplay = document.getElementById('grad-val');
+    const lossValDisplay = document.getElementById('loss-val');
+    const stuckAlert = document.getElementById('stuck-alert');
+
+    // State
+    let currentW = -5.0;
+    const learningRate = 2.0; // Exaggerated slightly for visual effect
+    const y = 1; // Assuming target is class 1
+
+    // Math Functions
+    function sigmoid(z) {
+        return 1 / (1 + Math.exp(-z));
+    }
+
+    // MSE: L = (y_hat - y)^2 = (sigmoid(w) - 1)^2
+    function calcMSELoss(w) {
+        let p = sigmoid(w);
+        return Math.pow(p - 1, 2);
+    }
+    
+    // Derivative of MSE w.r.t w: 2 * (sigmoid(w) - 1) * sigmoid(w) * (1 - sigmoid(w))
+    function calcMSEGrad(w) {
+        let p = sigmoid(w);
+        return 2 * (p - 1) * p * (1 - p);
+    }
+
+    // Cross-Entropy: L = -y*log(y_hat) = -log(sigmoid(w))
+    function calcCELoss(w) {
+        let p = sigmoid(w);
+        return -Math.log(p);
+    }
+
+    // Derivative of CE w.r.t w: sigmoid(w) - y = sigmoid(w) - 1
+    function calcCEGrad(w) {
+        let p = sigmoid(w);
+        return p - 1;
+    }
+
+    // Helper to map math coordinates to Canvas pixels
+    // w ranges from -6 to 6
+    // Loss ranges from 0 to max loss roughly 6.5
+    function mapX(w) { return ((w + 6) / 12) * canvas.width; }
+    function mapY(loss) { return canvas.height - 30 - (loss / 6.5 * (canvas.height - 60)); }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let type = lossTypeSelect.value;
+        
+        // Draw Grid Lines
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        // Center Y axis
+        ctx.beginPath(); ctx.moveTo(mapX(0), 0); ctx.lineTo(mapX(0), canvas.height); ctx.stroke();
+        // Bottom X axis
+        ctx.beginPath(); ctx.moveTo(0, mapY(0)); ctx.lineTo(canvas.width, mapY(0)); ctx.stroke();
+
+        // Draw Landscape Curve
+        ctx.beginPath();
+        ctx.strokeStyle = type === 'mse' ? '#f59e0b' : '#10b981'; // Orange for MSE, Green for CE
+        ctx.lineWidth = 3;
+        
+        for (let w = -6; w <= 6; w += 0.1) {
+            let loss = type === 'mse' ? calcMSELoss(w) : calcCELoss(w);
+            if (w === -6) ctx.moveTo(mapX(w), mapY(loss));
+            else ctx.lineTo(mapX(w), mapY(loss));
+        }
+        ctx.stroke();
+
+        // Calculate current state
+        let currentLoss = type === 'mse' ? calcMSELoss(currentW) : calcCELoss(currentW);
+        let currentGrad = type === 'mse' ? calcMSEGrad(currentW) : calcCEGrad(currentW);
+
+        // Draw The Ball
+        ctx.beginPath();
+        ctx.arc(mapX(currentW), mapY(currentLoss), 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#ef4444';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw Gradient Arrow (Tangent line approximation)
+        ctx.beginPath();
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        // Draw a line indicating the slope at the current point
+        let tangentLength = 1.5; 
+        ctx.moveTo(mapX(currentW - tangentLength), mapY(currentLoss - currentGrad * tangentLength));
+        ctx.lineTo(mapX(currentW + tangentLength), mapY(currentLoss + currentGrad * tangentLength));
+        ctx.stroke();
+
+        // Update Text displays
+        wValDisplay.textContent = currentW.toFixed(3);
+        lossValDisplay.textContent = currentLoss.toFixed(3);
+        gradValDisplay.textContent = currentGrad.toFixed(4);
+
+        // Show "STUCK" warning if gradient is extremely tiny
+        if (Math.abs(currentGrad) < 0.01 && currentW < 0) {
+            stuckAlert.style.display = "inline";
+        } else {
+            stuckAlert.style.display = "none";
+        }
+    }
+
+    // Event Listeners
+    startWInput.addEventListener('input', (e) => {
+        let val = parseFloat(e.target.value);
+        startValDisplay.textContent = val.toFixed(1);
+        currentW = val;
+        draw();
+    });
+
+    lossTypeSelect.addEventListener('change', () => {
+        currentW = parseFloat(startWInput.value);
+        draw();
+    });
+
+    document.getElementById('step-btn').addEventListener('click', () => {
+        let type = lossTypeSelect.value;
+        let grad = type === 'mse' ? calcMSEGrad(currentW) : calcCEGrad(currentW);
+        currentW = currentW - (learningRate * grad);
+        
+        // Clamp to prevent drawing off-screen
+        if (currentW > 6) currentW = 6;
+        if (currentW < -6) currentW = -6;
+        
+        draw();
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+        currentW = parseFloat(startWInput.value);
+        draw();
+    });
+
+    // Initial draw
+    draw();
+</script>
+</body>
+</html>

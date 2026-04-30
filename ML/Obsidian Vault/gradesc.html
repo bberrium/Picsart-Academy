@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gradient Descent & Learning Rate</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            text-align: center;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        canvas {
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            background-color: #ffffff;
+            margin-top: 15px;
+        }
+        .controls {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f1f2f6;
+            border-radius: 8px;
+            display: inline-block;
+            text-align: left;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        input[type="range"] {
+            width: 250px;
+        }
+        button {
+            padding: 8px 20px;
+            font-size: 1em;
+            background-color: #3498db;
+            color: whigradte;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #status {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+        .good { color: #27ae60; }
+        .slow { color: #f39c12; }
+        .bad { color: #e74c3c; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Գրադիենտային Վայրէջք (Gradient Descent)</h2>
+        <p>Ֆունկցիա: <b>f(x) = x²</b> | Գրադիենտ: <b>f'(x) = 2x</b></p>
+        
+        <div class="controls">
+            <div class="slider-row">
+                <label for="lrSlider"><b>Learning Rate ($\eta$):</b> <span id="lrValue">0.10</span></label>
+                <input type="range" id="lrSlider" min="0.01" max="1.1" step="0.01" value="0.10">
+            </div>
+            <button onclick="startDescent()">Սկսել Վայրէջքը (Start)</button>
+        </div>
+        
+        <div id="status" class="good">Պատրաստ է...</div>
+        
+        <canvas id="gdCanvas" width="700" height="400"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gdCanvas');
+        const ctx = canvas.getContext('2d');
+        const lrSlider = document.getElementById('lrSlider');
+        const lrValue = document.getElementById('lrValue');
+        const statusText = document.getElementById('status');
+
+        // Մաթեմատիկական Ֆունկցիաներ
+        function f(x) { return x * x; }
+        function df(x) { return 2 * x; } // Գրադիենտ
+
+        // Կոորդինատային համակարգի կարգավորումներ
+        const xMin = -5, xMax = 5;
+        const yMin = -2, yMax = 26;
+        
+        function mapX(x) { return ((x - xMin) / (xMax - xMin)) * canvas.width; }
+        function mapY(y) { return canvas.height - ((y - yMin) / (yMax - yMin)) * canvas.height; }
+
+        let history = [];
+        let animationId;
+        const startX = -4; // Սկզբնական կետը (x0)
+
+        // Թարմացնել UI-ը սլայդերի փոփոխության ժամանակ
+        lrSlider.addEventListener('input', () => {
+            let lr = parseFloat(lrSlider.value);
+            lrValue.innerText = lr.toFixed(2);
+            updateStatusText(lr);
+            drawScene(); // Նկարել միայն պարաբոլը (առանց քայլերի)
+        });
+
+        function updateStatusText(lr) {
+            if (lr < 0.1) {
+                statusText.innerText = "Շատ փոքր LR: Կոնվերգենցիան կլինի շատ դանդաղ:";
+                statusText.className = "slow";
+            } else if (lr >= 0.1 && lr < 0.8) {
+                statusText.innerText = "Լավ LR: Օպտիմալ արագությամբ կհասնի մինիմումին:";
+                statusText.className = "good";
+            } else if (lr >= 0.8 && lr < 1.0) {
+                statusText.innerText = "Մեծ LR: Տատանումներ (Oscillations) մինիմումի շուրջը:";
+                statusText.className = "slow";
+            } else if (lr === 1.0) {
+                statusText.innerText = "LR = 1: Անվերջ տատանում նույն կետերի միջև:";
+                statusText.className = "bad";
+            } else {
+                statusText.innerText = "Չափազանց մեծ LR: Դիվերգենցիա (Divergence)! Կթռչի անվերջություն:";
+                statusText.className = "bad";
+            }
+        }
+
+        // Նկարել Առանցքներ և Պարաբոլ
+        function drawScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Ցանց (Grid)
+            ctx.strokeStyle = '#ecf0f1';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for(let i = xMin; i <= xMax; i++) {
+                ctx.moveTo(mapX(i), 0); ctx.lineTo(mapX(i), canvas.height);
+            }
+            for(let j = 0; j <= yMax; j+=5) {
+                ctx.moveTo(0, mapY(j)); ctx.lineTo(canvas.width, mapY(j));
+            }
+            ctx.stroke();
+
+            // Առանցքներ
+            ctx.strokeStyle = '#7f8c8d';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, mapY(0)); ctx.lineTo(canvas.width, mapY(0)); // X axis
+            ctx.moveTo(mapX(0), 0); ctx.lineTo(mapX(0), canvas.height); // Y axis
+            ctx.stroke();
+
+            // Պարաբոլ f(x) = x^2
+            ctx.beginPath();
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            for(let px = 0; px <= canvas.width; px++) {
+                let x = (px / canvas.width) * (xMax - xMin) + xMin;
+                let y = f(x);
+                if (px === 0) ctx.moveTo(px, mapY(y));
+                else ctx.lineTo(px, mapY(y));
+            }
+            ctx.stroke();
+            
+            // Նկարել նաև սկզբնական կետը
+            drawPoint(startX, f(startX), '#8e44ad');
+        }
+
+        function drawPoint(x, y, color) {
+            ctx.beginPath();
+            ctx.arc(mapX(x), mapY(y), 5, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        function drawPath() {
+            if (history.length < 2) return;
+            ctx.beginPath();
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            ctx.moveTo(mapX(history[0].x), mapY(history[0].y));
+            
+            for (let i = 1; i < history.length; i++) {
+                ctx.lineTo(mapX(history[i].x), mapY(history[i].y));
+            }
+            ctx.stroke();
+
+            // Նկարել բոլոր կետերը գծի վրայից
+            history.forEach(pt => drawPoint(pt.x, pt.y, '#c0392b'));
+        }
+
+        // Գրադիենտային վայրէջքի լոգիկան
+        function startDescent() {
+            if (animationId) clearTimeout(animationId);
+            
+            let lr = parseFloat(lrSlider.value);
+            history = [{ x: startX, y: f(startX) }];
+            drawScene();
+
+            let currentX = startX;
+            let step = 0;
+            const maxSteps = 30; // Առավելագույն իտերացիաները որպեսզի անվերջ չգնա
+
+            function nextStep() {
+                if (step >= maxSteps) return;
+
+                // Գրադիենտային Վայրէջքի Բանաձևը: x_new = x_old - LR * f'(x_old)
+                let gradient = df(currentX);
+                currentX = currentX - lr * gradient;
+                
+                let currentY = f(currentX);
+                history.push({ x: currentX, y: currentY });
+
+                drawScene();
+                drawPath();
+
+                // Եթե շատ մեծ է (դիվերգենցիա), կանգնեցնել գրաֆիկից դուրս չգալու համար
+                if (Math.abs(currentX) > 10) {
+                    statusText.innerText = "Դիվերգենցիա! Մոդելը դուրս թռավ սահմաններից:";
+                    return;
+                }
+
+                // Եթե հասել ենք մինիմումին (կոնվերգենցիա)
+                if (Math.abs(gradient) < 0.001) {
+                    statusText.innerText = "Կոնվերգենցիա! Մոդելը հաջողությամբ գտավ մինիմումը:";
+                    return;
+                }
+
+                step++;
+                animationId = setTimeout(nextStep, 300); // Անիմացիայի արագությունը (300ms)
+            }
+
+            nextStep();
+        }
+
+        // Սկզբնական նկարչություն
+        updateStatusText(parseFloat(lrSlider.value));
+        drawScene();
+
+    </script>
+</body>
+</html>

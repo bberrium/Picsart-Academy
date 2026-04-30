@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Օպտիմիզացիայի Ալգորիթմների Վիզուալիզացիա</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+        h2 {
+            margin-top: 0;
+            text-align: center;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        select, input[type="range"] {
+            padding: 5px;
+            font-size: 14px;
+        }
+        button {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.reset {
+            background-color: #dc3545;
+        }
+        button.reset:hover {
+            background-color: #a71d2a;
+        }
+        canvas {
+            background: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+        .info {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Օպտիմիզացիայի Ալգորիթմներ</h2>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="optimizer">Օպտիմիզատոր (Optimizer)</label>
+            <select id="optimizer">
+                <option value="sgd">Standard SGD</option>
+                <option value="momentum">SGD + Momentum</option>
+                <option value="adam" selected>Adam</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="lr">Learning Rate (<span id="lr-val">0.05</span>)</label>
+            <input type="range" id="lr" min="0.001" max="0.3" step="0.001" value="0.05">
+        </div>
+        
+        <div class="control-group">
+            <label for="momentum">Momentum / β1 (<span id="mom-val">0.90</span>)</label>
+            <input type="range" id="momentum" min="0.0" max="0.99" step="0.01" value="0.90">
+        </div>
+
+        <button id="btn-play">Սկսել (Play)</button>
+        <button id="btn-reset" class="reset">Զրոյացնել (Reset)</button>
+    </div>
+
+    <canvas id="canvas" width="750" height="400"></canvas>
+    
+    <div class="info">
+        Ֆունկցիա: <strong>f(x) = x⁴ - 3x² + x</strong> | Սկզբնական կետ: x = 1.8 (Լոկալ մինիմումի կողմից)<br>
+        <em>Նկատեք, թե ինչպես է Momentum-ը կամ Adam-ը օգնում դուրս թռչել աջ կողմի լոկալ մինիմումից և գնալ դեպի գլոբալ մինիմում (ձախ):</em>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // UI Elements
+    const optSelect = document.getElementById('optimizer');
+    const lrSlider = document.getElementById('lr');
+    const lrVal = document.getElementById('lr-val');
+    const momSlider = document.getElementById('momentum');
+    const momVal = document.getElementById('mom-val');
+    const btnPlay = document.getElementById('btn-play');
+    const btnReset = document.getElementById('btn-reset');
+
+    // Mathematical Function: f(x) = x^4 - 3x^2 + x
+    function f(x) {
+        return Math.pow(x, 4) - 3 * Math.pow(x, 2) + x;
+    }
+
+    // Derivative: f'(x) = 4x^3 - 6x + 1
+    function grad(x) {
+        return 4 * Math.pow(x, 3) - 6 * x + 1;
+    }
+
+    // Coordinate mapping bounds
+    const world = { minX: -2.2, maxX: 2.2, minY: -4, maxY: 6 };
+
+    function w2cx(x) {
+        return (x - world.minX) / (world.maxX - world.minX) * canvas.width;
+    }
+
+    function w2cy(y) {
+        return canvas.height - (y - world.minY) / (world.maxY - world.minY) * canvas.height;
+    }
+
+    // State
+    let isPlaying = false;
+    let startX = 1.8; // Starting position (right side, prone to local minimum)
+    let state = resetState(startX);
+    let history = [];
+    let animationId = null;
+
+    function resetState(x0) {
+        return {
+            x: x0,
+            v: 0,       // Momentum velocity
+            m: 0,       // Adam 1st moment
+            v_a: 0,     // Adam 2nd moment
+            t: 0        // Time step
+        };
+    }
+
+    function drawScene() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw axes
+        ctx.beginPath();
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 1;
+        ctx.moveTo(0, w2cy(0));
+        ctx.lineTo(canvas.width, w2cy(0));
+        ctx.moveTo(w2cx(0), 0);
+        ctx.lineTo(w2cx(0), canvas.height);
+        ctx.stroke();
+
+        // Draw function curve
+        ctx.beginPath();
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 2;
+        for (let x = world.minX; x <= world.maxX; x += 0.02) {
+            let cx = w2cx(x);
+            let cy = w2cy(f(x));
+            if (x === world.minX) ctx.moveTo(cx, cy);
+            else ctx.lineTo(cx, cy);
+        }
+        ctx.stroke();
+
+        // Draw history path
+        if (history.length > 0) {
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(0, 123, 255, 0.5)';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < history.length; i++) {
+                let p = history[i];
+                if (i === 0) ctx.moveTo(w2cx(p.x), w2cy(p.y));
+                else ctx.lineTo(w2cx(p.x), w2cy(p.y));
+            }
+            ctx.stroke();
+        }
+
+        // Draw current point (Ball)
+        let bx = w2cx(state.x);
+        let by = w2cy(f(state.x));
+        
+        ctx.beginPath();
+        ctx.arc(bx, by, 8, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ff3b30';
+        ctx.fill();
+        ctx.strokeStyle = '#b00';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    function updateStep() {
+        if (!isPlaying) return;
+
+        let lr = parseFloat(lrSlider.value);
+        let gamma = parseFloat(momSlider.value);
+        let opt = optSelect.value;
+        let g = grad(state.x);
+
+        state.t += 1;
+
+        if (opt === 'sgd') {
+            // Standard SGD
+            state.x = state.x - lr * g;
+        } 
+        else if (opt === 'momentum') {
+            // SGD + Momentum
+            state.v = gamma * state.v + lr * g;
+            state.x = state.x - state.v;
+        } 
+        else if (opt === 'adam') {
+            // Adam
+            let beta1 = gamma; // Use momentum slider for beta1
+            let beta2 = 0.999;
+            let epsilon = 1e-8;
+
+            state.m = beta1 * state.m + (1 - beta1) * g;
+            state.v_a = beta2 * state.v_a + (1 - beta2) * (g * g);
+
+            let m_hat = state.m / (1 - Math.pow(beta1, state.t));
+            let v_hat = state.v_a / (1 - Math.pow(beta2, state.t));
+
+            state.x = state.x - lr * m_hat / (Math.sqrt(v_hat) + epsilon);
+        }
+
+        // Boundary constraint for visualization
+        if (state.x < world.minX) state.x = world.minX;
+        if (state.x > world.maxX) state.x = world.maxX;
+
+        history.push({ x: state.x, y: f(state.x) });
+        
+        // Keep history manageable
+        if (history.length > 500) {
+            isPlaying = false;
+            btnPlay.textContent = "Սկսել (Play)";
+        }
+
+        drawScene();
+
+        if (isPlaying) {
+            setTimeout(updateStep, 40); // ~25 FPS for visibility
+        }
+    }
+
+    // Event Listeners
+    lrSlider.addEventListener('input', (e) => { lrVal.textContent = parseFloat(e.target.value).toFixed(3); });
+    momSlider.addEventListener('input', (e) => { momVal.textContent = parseFloat(e.target.value).toFixed(2); });
+
+    btnPlay.addEventListener('click', () => {
+        isPlaying = !isPlaying;
+        if (isPlaying) {
+            btnPlay.textContent = "Դադար (Pause)";
+            if(history.length === 0) history.push({x: state.x, y: f(state.x)});
+            updateStep();
+        } else {
+            btnPlay.textContent = "Շարունակել (Resume)";
+        }
+    });
+
+    btnReset.addEventListener('click', () => {
+        isPlaying = false;
+        btnPlay.textContent = "Սկսել (Play)";
+        state = resetState(startX);
+        history = [];
+        drawScene();
+    });
+
+    optSelect.addEventListener('change', () => {
+        // Adjust default LR based on optimizer for better UX
+        if(optSelect.value === 'adam') {
+            lrSlider.value = 0.05;
+            momSlider.value = 0.90;
+        } else if (optSelect.value === 'sgd') {
+            lrSlider.value = 0.01;
+        } else {
+            lrSlider.value = 0.02;
+            momSlider.value = 0.90;
+        }
+        lrVal.textContent = parseFloat(lrSlider.value).toFixed(3);
+        momVal.textContent = parseFloat(momSlider.value).toFixed(2);
+        
+        btnReset.click();
+    });
+
+    // Initial draw
+    drawScene();
+</script>
+
+</body>
+</html>

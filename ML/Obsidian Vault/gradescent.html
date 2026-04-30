@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Գրադիենտային վայրէջք (Gradient Descent)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        canvas {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-top: 25px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 600px;
+            box-sizing: border-box;
+        }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        input[type=range] {
+            flex-grow: 1;
+            margin: 0 20px;
+            cursor: pointer;
+        }
+        .stats {
+            margin-top: 15px;
+            font-size: 15px;
+            color: #34495e;
+            text-align: center;
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .lr-badge {
+            background: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Գրադիենտային վայրէջք (y = x²)</h2>
+    
+    <canvas id="plot" width="600" height="400"></canvas>
+
+    <div class="controls">
+        <div class="slider-container">
+            <label for="lr" style="font-weight: bold; color: #2c3e50;">Learning Rate (LR):</label>
+            <input type="range" id="lr" min="0.01" max="1.05" step="0.01" value="0.1">
+            <span class="lr-badge" id="lr-value">0.10</span>
+        </div>
+        <div class="stats" id="stats"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('plot');
+        const ctx = canvas.getContext('2d');
+        const lrSlider = document.getElementById('lr');
+        const lrValue = document.getElementById('lr-value');
+        const stats = document.getElementById('stats');
+
+        // Կոորդինատային համակարգի կարգավորումներ
+        const width = canvas.width;
+        const height = canvas.height;
+        const scaleX = width / 20; // x առանցք (-10-ից 10)
+        const scaleY = height / 100; // y առանցք (-10-ից 90)
+
+        // Մաթեմատիկական կոորդինատները էկրանի պիքսելների վերածող ֆունկցիա
+        function toScreen(x, y) {
+            return [width / 2 + x * scaleX, height - 20 - y * scaleY];
+        }
+
+        // Առանցքների նկարում
+        function drawAxes() {
+            ctx.beginPath();
+            ctx.strokeStyle = '#bdc3c7';
+            ctx.lineWidth = 1.5;
+            
+            // X առանցք
+            ctx.moveTo(0, height - 20);
+            ctx.lineTo(width, height - 20);
+            
+            // Y առանցք
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+            
+            ctx.stroke();
+        }
+
+        // Պարաբոլայի (y = x^2) նկարում
+        function drawCurve() {
+            ctx.beginPath();
+            ctx.strokeStyle = '#2980b9';
+            ctx.lineWidth = 2.5;
+            
+            for (let x = -10; x <= 10; x += 0.1) {
+                const y = x * x;
+                const [sx, sy] = toScreen(x, y);
+                if (x === -10) ctx.moveTo(sx, sy);
+                else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+        }
+
+        // Գրադիենտային վայրէջքի սիմուլյացիա
+        function simulateAndDraw(lr) {
+            // Մաքրել կտավը
+            ctx.clearRect(0, 0, width, height);
+            drawAxes();
+            drawCurve();
+
+            let x = -8; // Սկզբնական կետ
+            const maxIter = 15; // Քայլերի քանակ
+            
+            ctx.beginPath();
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 1.5;
+            
+            let [sx, sy] = toScreen(x, x * x);
+            ctx.moveTo(sx, sy);
+            
+            // Նկարել սկզբնական կետը
+            drawPoint(sx, sy, '#c0392b');
+
+            let isDiverging = false;
+
+            for (let i = 0; i < maxIter; i++) {
+                // Գրադիենտի հաշվարկ (ածանցյալ x^2 = 2x)
+                const grad = 2 * x;
+                
+                // Պարամետրի թարմացում (Update rule)
+                const next_x = x - lr * grad;
+                const next_y = next_x * next_x;
+                
+                // Եթե արժեքը շատ է մեծանում, նշանակում է տարամիտում է (diverge)
+                if (next_y > 150) {
+                    isDiverging = true;
+                    break;
+                }
+
+                const [nsx, nsy] = toScreen(next_x, next_y);
+                
+                // Նկարել գիծ դեպի հաջորդ կետ
+                ctx.lineTo(nsx, nsy);
+                ctx.stroke();
+                
+                // Նկարել հաջորդ կետը
+                drawPoint(nsx, nsy, '#e74c3c');
+                
+                ctx.beginPath();
+                ctx.moveTo(nsx, nsy);
+
+                x = next_x;
+            }
+
+            // Արդյունքների արտածում
+            if (isDiverging) {
+                stats.innerHTML = `<span style="color:#e74c3c; font-weight:bold;">Ալգորիթմը տարամիտում է (Diverging)!</span> Learning rate-ը չափազանց մեծ է:`;
+            } else if (Math.abs(x) < 0.01) {
+                stats.innerHTML = `Վերջնական X: <strong>${x.toFixed(4)}</strong> <br><span style="color:#27ae60; font-weight:bold;">Արագ զուգամիտեց (Converged) մինիմումին:</span>`;
+            } else {
+                stats.innerHTML = `Վերջնական X: <strong>${x.toFixed(4)}</strong> (15 քայլից հետո)`;
+            }
+        }
+
+        // Օգնական ֆունկցիա կետեր նկարելու համար
+        function drawPoint(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 4.5, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        // Slider-ի փոփոխության event listener
+        lrSlider.addEventListener('input', function() {
+            const lr = parseFloat(this.value);
+            lrValue.innerText = lr.toFixed(2);
+            simulateAndDraw(lr);
+        });
+
+        // Ինիցիալիզացիա սկզբնական բեռնման ժամանակ
+        simulateAndDraw(parseFloat(lrSlider.value));
+    </script>
+</body>
+</html>

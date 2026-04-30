@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KNN Վիզուալիզացիա - Bias-Variance Tradeoff</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            margin: 20px; 
+            color: #333;
+        }
+        canvas { 
+            border: 1px solid #ccc; 
+            background-color: #fcfcfc; 
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 100%; 
+        }
+        .controls { 
+            margin: 20px auto; 
+            padding: 15px 30px; 
+            background: #f4f4f9; 
+            border: 1px solid #ddd;
+            border-radius: 8px; 
+            display: inline-block;
+        }
+        input[type=range] { 
+            width: 300px; 
+            margin: 10px 0;
+        }
+        .k-label {
+            font-size: 1.2em;
+            color: #2c3e50;
+        }
+        #statusText {
+            font-weight: bold;
+            min-height: 20px;
+        }
+        .overfit { color: #e74c3c; }
+        .underfit { color: #f39c12; }
+        .optimal { color: #27ae60; }
+    </style>
+</head>
+<body>
+
+    <h2>K-Nearest Neighbors (KNN) Ռեգրեսիա</h2>
+    <p>Տեսեք, թե ինչպես է <b>k</b>-ի փոփոխությունը ազդում մոդելի բարդության վրա:</p>
+    
+    <div class="controls">
+        <label for="kSlider" class="k-label"><b>k = <span id="kValue">5</span></b></label><br>
+        <input type="range" id="kSlider" min="1" max="50" value="5" step="1">
+        <p id="statusText" class="optimal">Բալանսավորված մոդել (Օպտիմալ Tradeoff)</p>
+    </div><br>
+
+    <canvas id="knnCanvas" width="800" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('knnCanvas');
+        const ctx = canvas.getContext('2d');
+        const kSlider = document.getElementById('kSlider');
+        const kValue = document.getElementById('kValue');
+        const statusText = document.getElementById('statusText');
+
+        const numPoints = 50;
+        let dataPoints = [];
+
+        // Գեներացնել տվյալներ (սինուսոիդալ կախվածություն + աղմուկ)
+        function generateData() {
+            dataPoints = [];
+            for (let i = 0; i < numPoints; i++) {
+                let x = i * (canvas.width / numPoints) + (Math.random() * 10 - 5);
+                let y = canvas.height / 2 + Math.sin(x * 0.015) * 100 + (Math.random() - 0.5) * 90;
+                
+                // Սահմանափակել կտավի (canvas) մեջ
+                y = Math.max(20, Math.min(canvas.height - 20, y));
+                dataPoints.push({ x: x, y: y });
+            }
+        }
+
+        // Նկարել տվյալների կետերը
+        function drawPoints() {
+            ctx.fillStyle = '#e74c3c';
+            ctx.strokeStyle = '#c0392b';
+            ctx.lineWidth = 1;
+            dataPoints.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            });
+        }
+
+        // Հաշվել KNN ռեգրեսիայի արժեքը տրված X-ի համար
+        function getKNNPrediction(targetX, k) {
+            let distances = dataPoints.map(p => {
+                return { y: p.y, dist: Math.abs(p.x - targetX) };
+            });
+            
+            // Սորտավորել ըստ հեռավորության և վերցնել k հատ ամենամոտիկները
+            distances.sort((a, b) => a.dist - b.dist);
+            let nearest = distances.slice(0, k);
+            
+            // Միջինացնել նրանց Y արժեքները
+            let sumY = nearest.reduce((sum, p) => sum + p.y, 0);
+            return sumY / k;
+        }
+
+        // Նկարել մոդելի կանխատեսումների գիծը
+        function drawRegressionLine(k) {
+            ctx.beginPath();
+            ctx.strokeStyle = '#2980b9';
+            ctx.lineWidth = 4;
+            ctx.lineJoin = 'round';
+            
+            for (let x = 0; x <= canvas.width; x += 3) {
+                let y = getKNNPrediction(x, k);
+                if (x === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        // Թարմացնել գրաֆիկը և տեքստերը
+        function update() {
+            let k = parseInt(kSlider.value);
+            kValue.innerText = k;
+            
+            if (k === 1) {
+                statusText.innerText = "k=1: Մոդելը անգիր է անում աղմուկը (Overfitting / Բարձր Variance)";
+                statusText.className = "overfit";
+            } else if (k > 35) {
+                statusText.innerText = `k=${k}: Մոդելը չափազանց պարզ է (Underfitting / Բարձր Bias)`;
+                statusText.className = "underfit";
+            } else {
+                statusText.innerText = "Բալանսավորված մոդել (Օպտիմալ Tradeoff)";
+                statusText.className = "optimal";
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawRegressionLine(k);
+            drawPoints();
+        }
+
+        // Սկզբնական գեներացիա
+        generateData();
+        update();
+
+        // Լսել slider-ի փոփոխությունները
+        kSlider.addEventListener('input', update);
+    </script>
+</body>
+</html>

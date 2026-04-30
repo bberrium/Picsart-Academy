@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Բազմադաս Կլասիֆիկացիա - Decision Boundaries</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            text-align: center;
+            margin: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f1f2f6;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            align-items: center;
+        }
+        label {
+            font-size: 1.1em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        input[type="radio"] {
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+        canvas {
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            cursor: crosshair;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+        .instructions {
+            font-size: 0.95em;
+            color: #7f8c8d;
+            margin-top: 10px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .color-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Բազմադաս (Multi-class) Կլասիֆիկացիա</h2>
+        <p>Համեմատություն <b>One-vs-Rest</b> և <b>K-class Discriminant</b> մոտեցումների միջև։</p>
+        
+        <div class="controls">
+            <label>
+                <input type="radio" name="mode" value="ovr" checked onchange="setMode('ovr')"> 
+                Մեկը մնացածի դեմ (One-vs-Rest)
+            </label>
+            <label>
+                <input type="radio" name="mode" value="kclass" onchange="setMode('kclass')"> 
+                K-դասի դիսկրիմինանտ (Max Score)
+            </label>
+        </div>
+
+        <canvas id="mainCanvas" width="800" height="450"></canvas>
+        <p class="instructions">💡 <b>Տեղաշարժեք կետերը (C1, C2, C3)</b>՝ տեսնելու համար, թե ինչպես են փոխվում որոշման տիրույթները:</p>
+
+        <div class="legend">
+            <div class="legend-item"><div class="color-box" style="background: #ffcccc;"></div> Դաս 1 (C1)</div>
+            <div class="legend-item"><div class="color-box" style="background: #cce0ff;"></div> Դաս 2 (C2)</div>
+            <div class="legend-item"><div class="color-box" style="background: #fff0cc;"></div> Դաս 3 (C3)</div>
+            <div class="legend-item"><div class="color-box" style="background: #82e0aa;"></div> Անորոշ տիրույթ (?)</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        let mode = 'ovr'; // 'ovr' կամ 'kclass'
+
+        // Դասերի կենտրոնները
+        let centers = [
+            { x: 250, y: 150, color: '#e74c3c', rgb: {r: 255, g: 204, b: 204}, label: 'C1' },
+            { x: 600, y: 300, color: '#3498db', rgb: {r: 204, g: 224, b: 255}, label: 'C2' },
+            { x: 350, y: 350, color: '#f39c12', rgb: {r: 255, g: 240, b: 204}, label: 'C3' }
+        ];
+
+        const ambiguousColor = {r: 130, g: 224, b: 170}; // Կանաչ (ինչպես սլայդներում)
+
+        // Drag & Drop լոգիկա
+        let draggingPoint = null;
+
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            for (let p of centers) {
+                if (Math.hypot(p.x - mouseX, p.y - mouseY) < 15) {
+                    draggingPoint = p;
+                    break;
+                }
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (draggingPoint) {
+                const rect = canvas.getBoundingClientRect();
+                draggingPoint.x = Math.max(10, Math.min(canvas.width - 10, e.clientX - rect.left));
+                draggingPoint.y = Math.max(10, Math.min(canvas.height - 10, e.clientY - rect.top));
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => draggingPoint = null);
+        canvas.addEventListener('mouseleave', () => draggingPoint = null);
+
+        function setMode(newMode) {
+            mode = newMode;
+            draw();
+        }
+
+        // Մաթեմատիկական ֆունկցիաներ
+        function getLinearDiscriminant(p1, p2, p3) {
+            // Ստեղծում է գիծ, որը տարանջատում է p1-ը p2-ի և p3-ի միջնակետից
+            const midX = (p2.x + p3.x) / 2;
+            const midY = (p2.y + p3.y) / 2;
+            
+            // Նորմալ վեկտոր p1-ից դեպի միջնակետ (կամ հակառակը)
+            const nx = p1.x - midX;
+            const ny = p1.y - midY;
+            
+            // Գիծը անցնում է p1-ի և միջնակետի կիսով
+            const cx = (p1.x + midX) / 2;
+            const cy = (p1.y + midY) / 2;
+
+            return { nx, ny, cx, cy };
+        }
+
+        function evaluateDiscriminant(x, y, disc) {
+            // դրական նշանակում է պատկանում է տվյալ դասին
+            return ((x - disc.cx) * disc.nx + (y - disc.cy) * disc.ny) > 0;
+        }
+
+        // Հիմնական նկարչության ֆունկցիան
+        function draw() {
+            // Օպտիմիզացիա. հաշվարկում ենք 4 անգամ փոքր կտավի վրա արագության համար
+            const scale = 4;
+            const w = canvas.width / scale;
+            const h = canvas.height / scale;
+            
+            const offscreen = document.createElement('canvas');
+            offscreen.width = w;
+            offscreen.height = h;
+            const offCtx = offscreen.getContext('2d');
+            const imgData = offCtx.createImageData(w, h);
+            const data = imgData.data;
+
+            const d1 = getLinearDiscriminant(centers[0], centers[1], centers[2]);
+            const d2 = getLinearDiscriminant(centers[1], centers[0], centers[2]);
+            const d3 = getLinearDiscriminant(centers[2], centers[0], centers[1]);
+
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    let rx = x * scale;
+                    let ry = y * scale;
+                    let r, g, b;
+
+                    if (mode === 'ovr') {
+                        // One-vs-Rest մոտեցում
+                        let c1 = evaluateDiscriminant(rx, ry, d1);
+                        let c2 = evaluateDiscriminant(rx, ry, d2);
+                        let c3 = evaluateDiscriminant(rx, ry, d3);
+                        
+                        let sum = (c1?1:0) + (c2?1:0) + (c3?1:0);
+
+                        if (sum === 1) {
+                            if (c1) { r = centers[0].rgb.r; g = centers[0].rgb.g; b = centers[0].rgb.b; }
+                            else if (c2) { r = centers[1].rgb.r; g = centers[1].rgb.g; b = centers[1].rgb.b; }
+                            else { r = centers[2].rgb.r; g = centers[2].rgb.g; b = centers[2].rgb.b; }
+                        } else {
+                            // Անորոշություն (0 կամ >1 դրական)
+                            r = ambiguousColor.r; g = ambiguousColor.g; b = ambiguousColor.b;
+                        }
+                    } else {
+                        // K-Class մոտեցում (Voronoi / Max Score)
+                        let dists = centers.map(c => Math.hypot(rx - c.x, ry - c.y));
+                        let minIdx = dists.indexOf(Math.min(...dists));
+                        r = centers[minIdx].rgb.r;
+                        g = centers[minIdx].rgb.g;
+                        b = centers[minIdx].rgb.b;
+                    }
+
+                    let idx = (y * w + x) * 4;
+                    data[idx] = r;
+                    data[idx+1] = g;
+                    data[idx+2] = b;
+                    data[idx+3] = 255;
+                }
+            }
+
+            offCtx.putImageData(imgData, 0, 0);
+            
+            // Նկարել մեծ կտավի վրա
+            ctx.imageSmoothingEnabled = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(offscreen, 0, 0, canvas.width, canvas.height);
+
+            // Նկարել բաժանարար գծերը OVR ռեժիմում
+            if (mode === 'ovr') {
+                drawBoundaryLine(d1);
+                drawBoundaryLine(d2);
+                drawBoundaryLine(d3);
+            }
+
+            // Նկարել կենտրոնները
+            centers.forEach(c => {
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = c.color;
+                ctx.fill();
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(c.label, c.x + 12, c.y + 5);
+            });
+        }
+
+        function drawBoundaryLine(disc) {
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(231, 76, 60, 0.8)';
+            ctx.lineWidth = 2;
+            
+            // Ուղղության վեկտոր (-ny, nx)
+            let dx = -disc.ny;
+            let dy = disc.nx;
+            
+            // Նորմալիզացիա
+            let len = Math.hypot(dx, dy);
+            dx = (dx / len) * 1500;
+            dy = (dy / len) * 1500;
+
+            ctx.moveTo(disc.cx - dx, disc.cy - dy);
+            ctx.lineTo(disc.cx + dx, disc.cy + dy);
+            ctx.stroke();
+        }
+
+        // Սկզբնական նկարչություն
+        draw();
+    </script>
+</body>
+</html>

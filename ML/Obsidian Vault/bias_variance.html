@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bias-Variance Tradeoff Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+            margin: 0;
+        }
+        h1 { color: #2c3e50; font-size: 1.6rem; text-align: center; margin-bottom: 10px; }
+        p.subtitle { color: #7f8c8d; margin-bottom: 20px; text-align: center; max-width: 600px; }
+        
+        .dashboard {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 700px;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .slider-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        input[type="range"] {
+            flex-grow: 1;
+            margin: 0 15px;
+        }
+
+        .metrics {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .metric-box {
+            text-align: center;
+        }
+        
+        .metric-title { font-size: 0.9rem; font-weight: bold; color: #7f8c8d; }
+        .metric-value { font-size: 1.4rem; font-weight: bold; }
+        
+        .train-metric { color: #3498db; }
+        .test-metric { color: #2ecc71; }
+
+        canvas {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 700px;
+            height: 400px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .line { width: 20px; height: 4px; border-radius: 2px; }
+    </style>
+</head>
+<body>
+
+    <h1>Дилемма Смещения и Разброса (Bias-Variance Tradeoff)</h1>
+    <p class="subtitle">Перемещайте ползунок сложности модели. Найдите "Золотую середину" (Sweet Spot), где ошибка на тестовых данных минимальна.</p>
+
+    <div class="dashboard">
+        <div class="metrics">
+            <div class="metric-box">
+                <div class="metric-title">Ошибка на обучающей выборке (Train)</div>
+                <div class="metric-value train-metric" id="train-error">0.00</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-title">Ошибка на тестовой выборке (Test)</div>
+                <div class="metric-value test-metric" id="test-error">0.00</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <label for="complexity"><strong>Сложность модели:</strong> <span id="comp-label">1 (Простая / High Bias)</span></label>
+            <div class="slider-container">
+                <span>1</span>
+                <input type="range" id="complexity" min="1" max="10" step="0.1" value="1">
+                <span>10</span>
+            </div>
+        </div>
+
+        <canvas id="plot" width="700" height="400"></canvas>
+
+        <div class="legend">
+            <div class="legend-item"><div class="dot" style="background: rgba(52, 152, 219, 0.8);"></div> Обучающие данные</div>
+            <div class="legend-item"><div class="dot" style="background: rgba(46, 204, 113, 0.8);"></div> Тестовые данные</div>
+            <div class="legend-item"><div class="line" style="background: #e74c3c;"></div> Модель предсказания</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('plot');
+        const ctx = canvas.getContext('2d');
+        const compSlider = document.getElementById('complexity');
+        const compLabel = document.getElementById('comp-label');
+        const trainErrorDisplay = document.getElementById('train-error');
+        const testErrorDisplay = document.getElementById('test-error');
+
+        // Данные: Истинная функция (которую мы не знаем) y = a * log(x) + b
+        // Мышиный вес (x) и рост (y)
+        const trueFunction = (x) => 2.5 * Math.log(x + 1) + 2;
+
+        const trainData = [
+            {x: 1, y: 3.5}, {x: 2.5, y: 5.8}, {x: 3.5, y: 5.2}, 
+            {x: 5, y: 6.9}, {x: 6.5, y: 6.8}, {x: 8, y: 7.9}, {x: 9.5, y: 8.2}
+        ];
+        
+        const testData = [
+            {x: 1.5, y: 4.8}, {x: 3, y: 6.2}, {x: 4, y: 6.7}, 
+            {x: 5.5, y: 6.6}, {x: 7.5, y: 7.1}, {x: 8.5, y: 8.4}, {x: 9, y: 7.3}
+        ];
+
+        // Функция линейной регрессии (Сложность = 1)
+        function getLinearFit() {
+            let n = trainData.length, sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+            trainData.forEach(p => { sumX += p.x; sumY += p.y; sumXY += p.x * p.y; sumXX += p.x * p.x; });
+            const m = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const b = (sumY - m * sumX) / n;
+            return (x) => m * x + b;
+        }
+
+        const linearModel = getLinearFit();
+
+        // Генерация модели на основе ползунка сложности
+        function getModel(x, complexity) {
+            const linY = linearModel(x);
+            const trueY = trueFunction(x);
+            
+            // Сложность от 1 до 10. 
+            // 1: Линейная (High Bias)
+            // 4: Истинная "Сладкая точка" (Sweet Spot)
+            // 10: Переобучение (High Variance) - волнистая линия через обучающие точки
+
+            let overfitBump = 0;
+            if (complexity > 4) {
+                // Добавляем "горбы" (Гауссианы), которые притягивают кривую к синим точкам
+                const overfitFactor = (complexity - 4) / 6; // 0 to 1
+                trainData.forEach(p => {
+                    // Вычисляем, насколько истинная кривая промахнулась мимо точки
+                    const errorAtPoint = p.y - trueFunction(p.x);
+                    // Чем больше сложность, тем острее пик (меньше width)
+                    const width = Math.max(0.05, 1.5 - (complexity - 4) * 0.2);
+                    overfitBump += errorAtPoint * Math.exp(-Math.pow(x - p.x, 2) / width) * overfitFactor;
+                });
+            }
+
+            // Плавное смешивание от линейной к истинной кривой
+            let blendC = Math.min(complexity, 4);
+            let blendRatio = (blendC - 1) / 3; // 0 at C=1, 1 at C=4
+            
+            let basePrediction = linY * (1 - blendRatio) + trueY * blendRatio;
+
+            return basePrediction + overfitBump;
+        }
+
+        // Вычисление Среднеквадратичной ошибки (MSE)
+        function calculateMSE(data, complexity) {
+            let sumSq = 0;
+            data.forEach(p => {
+                const diff = p.y - getModel(p.x, complexity);
+                sumSq += diff * diff;
+            });
+            return sumSq / data.length;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const complexity = parseFloat(compSlider.value);
+            
+            // Обновление текста
+            if(complexity < 3) compLabel.textContent = `${complexity.toFixed(1)} (Слишком просто / Underfit)`;
+            else if(complexity < 5.5) compLabel.textContent = `${complexity.toFixed(1)} (Золотая середина / Sweet Spot!)`;
+            else compLabel.textContent = `${complexity.toFixed(1)} (Переобучение / Overfit)`;
+
+            // Рисуем сетку
+            ctx.strokeStyle = '#f0f0f0';
+            ctx.lineWidth = 1;
+            for(let i=0; i<10; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * 70, 0); ctx.lineTo(i * 70, 400);
+                ctx.moveTo(0, i * 40); ctx.lineTo(700, i * 40);
+                ctx.stroke();
+            }
+
+            // Масштабирование координат
+            const scaleX = (x) => (x / 10) * canvas.width;
+            const scaleY = (y) => canvas.height - ((y / 10) * canvas.height);
+
+            // Рисуем кривую модели
+            ctx.beginPath();
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            for (let x = 0; x <= 10; x += 0.05) {
+                const cx = scaleX(x);
+                const cy = scaleY(getModel(x, complexity));
+                if (x === 0) ctx.moveTo(cx, cy);
+                else ctx.lineTo(cx, cy);
+            }
+            ctx.stroke();
+
+            // Рисуем точки данных
+            function drawPoints(data, color) {
+                data.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(scaleX(p.x), scaleY(p.y), 6, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                });
+            }
+
+            drawPoints(trainData, 'rgba(52, 152, 219, 0.9)'); // Blue
+            drawPoints(testData, 'rgba(46, 204, 113, 0.9)'); // Green
+
+            // Вычисляем и обновляем ошибки
+            const trainError = calculateMSE(trainData, complexity);
+            const testError = calculateMSE(testData, complexity);
+            
+            trainErrorDisplay.textContent = trainError.toFixed(2);
+            testErrorDisplay.textContent = testError.toFixed(2);
+
+            // Цветовая индикация (Красный если ошибка растет)
+            testErrorDisplay.style.color = testError > 1.0 ? '#e74c3c' : '#2ecc71';
+        }
+
+        compSlider.addEventListener('input', draw);
+        draw(); // Первая отрисовка
+    </script>
+</body>
+</html>

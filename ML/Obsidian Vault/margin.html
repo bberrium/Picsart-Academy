@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <title>SVM Սքեյլինգի Վիզուալիզացիա</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+        canvas {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-top: 15px;
+        }
+        .controls {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            display: inline-block;
+            text-align: left;
+            width: 500px;
+        }
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        .equation {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f1f1f1;
+            transition: all 0.3s;
+        }
+        .matched {
+            background-color: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .legend {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .legend span {
+            display: inline-block;
+            margin: 0 10px;
+        }
+        .box {
+            width: 15px;
+            height: 3px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>SVM Հավասարման Սքեյլինգ (Scaling w and b)</h2>
+    <p>Շարժեք <b>k</b> սլայդերը՝ հավասարումը սքեյլ անելու համար: Նկատեք, որ բաժանարար գիծը մնում է տեղում, բայց մարջինի մակարդակը (1-ի արժեքը) մոտենում է կետին:</p>
+    
+    <div class="controls">
+        <div class="slider-container">
+            <label for="kSlider">Սքեյլինգի գործակից (k): <span id="kValue">0.5</span></label>
+            <input type="range" id="kSlider" min="0.1" max="2.0" step="0.1" value="0.5">
+        </div>
+        <div id="eqDisplay" class="equation">
+            Ամենամոտ կետի համարիչը՝<br>
+            t_n(w^T x + b) = <span id="numValue">0.50</span>
+        </div>
+    </div>
+
+    <br>
+
+    <canvas id="scaleCanvas" width="600" height="300"></canvas>
+
+    <div class="legend">
+        <span><div class="box" style="background: #333;"></div> Որոշման սահման (x = 0)</span>
+        <span><div class="box" style="background: transparent; border-top: 2px dashed #d9534f;"></div> Մարջինի գիծ (= 1)</span>
+        <span><div style="width: 10px; height: 10px; background: #337ab7; border-radius: 50%; display: inline-block; vertical-align: middle;"></div> Ամենամոտ կետ (Support Vector)</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('scaleCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('kSlider');
+        const kValueDisplay = document.getElementById('kValue');
+        const numValueDisplay = document.getElementById('numValue');
+        const eqDisplay = document.getElementById('eqDisplay');
+
+        // Կոորդինատային համակարգ
+        const scale = 50; // 1 միավոր = 50 պիքսել
+        const originX = 150; // Y առանցքի դիրքը ձախից
+        const originY = canvas.height / 2; // X առանցքի դիրքը մեջտեղում
+
+        // Սկզբնական պարամետրեր
+        const w_initial = 0.5; // Այնպես ենք ընտրում, որ k=1 դեպքում ճիշտ նստի x=2 կետի վրա
+        const fixedPointX = 2; // Support Vector-ի X դիրքը
+
+        function draw() {
+            const k = parseFloat(slider.value);
+            kValueDisplay.innerText = k.toFixed(1);
+
+            // Մաքրել կտավը
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Գծել ցանց և առանցքներ
+            ctx.strokeStyle = "#eee";
+            ctx.lineWidth = 1;
+            for(let i = 0; i <= canvas.width; i += scale) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+            }
+            for(let i = 0; i <= canvas.height; i += scale) {
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+            }
+
+            // X առանցք
+            ctx.strokeStyle = "#ccc";
+            ctx.beginPath(); ctx.moveTo(0, originY); ctx.lineTo(canvas.width, originY); ctx.stroke();
+
+            // 1. Որոշման սահման (Decision Boundary, x = 0)
+            // Այն ԵՐԲԵՔ չի շարժվում սքեյլինգից, քանի որ (k*w)x + (k*b) = 0 նույնն է ինչ wx+b=0
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(originX, 0);
+            ctx.lineTo(originX, canvas.height);
+            ctx.stroke();
+
+            // 2. Ամենամոտ կետը (Support Vector)
+            // Այն նույնպես ֆիզիկապես ֆիքսված է իր տեղում (x = 2)
+            const pointCanvasX = originX + fixedPointX * scale;
+            const pointCanvasY = originY;
+            
+            ctx.beginPath();
+            ctx.arc(pointCanvasX, pointCanvasY, 8, 0, Math.PI * 2);
+            ctx.fillStyle = "#337ab7";
+            ctx.fill();
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 3. Մարջինի գիծ (w^T x + b = 1)
+            // Հավասարումը: (k * w_initial) * x = 1  =>  x = 1 / (k * w_initial)
+            const marginX = 1 / (k * w_initial);
+            const marginCanvasX = originX + marginX * scale;
+
+            ctx.strokeStyle = "#d9534f";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.moveTo(marginCanvasX, 0);
+            ctx.lineTo(marginCanvasX, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]); // վերականգնել
+
+            // 4. Հաշվարկներ և Տեքստային արդյունք
+            // Համարիչը = k * w_initial * fixedPointX
+            const numerator = k * w_initial * fixedPointX;
+            numValueDisplay.innerText = numerator.toFixed(2);
+
+            // Եթե համարիչը ճիշտ 1 է (այսինքն k = 1), կանաչացնել ֆոնը
+            if (Math.abs(numerator - 1.0) < 0.01) {
+                eqDisplay.classList.add("matched");
+                eqDisplay.innerHTML = "Ամենամոտ կետի համարիչը ֆիքսվեց 1-ի վրա!<br>t_n(w^T x + b) = <b>1.00</b>";
+            } else {
+                eqDisplay.classList.remove("matched");
+                eqDisplay.innerHTML = "Ամենամոտ կետի համարիչը՝<br>t_n(w^T x + b) = <b>" + numerator.toFixed(2) + "</b>";
+            }
+        }
+
+        // Լսել սլայդերի փոփոխությունները
+        slider.addEventListener('input', draw);
+        
+        // Նկարել սկզբնական վիճակը
+        draw();
+    </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Rate Scheduling (LR Պլանավորում)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        p.desc {
+            color: #7f8c8d;
+            margin-bottom: 20px;
+            text-align: center;
+            max-width: 600px;
+        }
+        canvas {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 600px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .radio-group {
+            display: flex;
+            justify-content: space-around;
+            background: #ecf0f1;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        .radio-group label {
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #219653;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .stats {
+            font-size: 15px;
+            color: #34495e;
+            text-align: center;
+            background: #e8f8f5;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #a3e4d7;
+            min-height: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Ուսուցման արագության պլանավորում (LR Decay)</h2>
+    <p class="desc">Համեմատեք հաստատուն մեծ քայլը ժամանակի ընթացքում նվազող (decaying) քայլի հետ։</p>
+    
+    <canvas id="plot" width="600" height="400"></canvas>
+
+    <div class="controls">
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="mode" value="constant" checked> 
+                Հաստատուն LR (1.0)
+            </label>
+            <label>
+                <input type="radio" name="mode" value="decay"> 
+                Նվազող LR (Step Decay)
+            </label>
+        </div>
+        
+        <button id="startBtn">Սկսել Սիմուլյացիան</button>
+        
+        <div class="stats" id="stats">Պատրաստ է։ Ընտրեք ռեժիմը և սեղմեք "Սկսել":</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('plot');
+        const ctx = canvas.getContext('2d');
+        const startBtn = document.getElementById('startBtn');
+        const stats = document.getElementById('stats');
+        const radios = document.getElementsByName('mode');
+
+        const width = canvas.width;
+        const height = canvas.height;
+        const scaleX = width / 20;  // X axis: -10 to 10
+        const scaleY = height / 100; // Y axis: 0 to 100
+
+        let animationId;
+        let isAnimating = false;
+
+        function toScreen(x, y) {
+            return [width / 2 + x * scaleX, height - 20 - y * scaleY];
+        }
+
+        function drawAxes() {
+            ctx.beginPath();
+            ctx.strokeStyle = '#bdc3c7';
+            ctx.lineWidth = 1.5;
+            ctx.moveTo(0, height - 20);
+            ctx.lineTo(width, height - 20);
+            ctx.moveTo(width / 2, 0);
+            ctx.lineTo(width / 2, height);
+            ctx.stroke();
+        }
+
+        function drawCurve() {
+            ctx.beginPath();
+            ctx.strokeStyle = '#2980b9';
+            ctx.lineWidth = 2.5;
+            for (let x = -10; x <= 10; x += 0.1) {
+                const y = x * x;
+                const [sx, sy] = toScreen(x, y);
+                if (x === -10) ctx.moveTo(sx, sy);
+                else ctx.lineTo(sx, sy);
+            }
+            ctx.stroke();
+        }
+
+        function drawPoint(x, y, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        function resetCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            drawAxes();
+            drawCurve();
+        }
+
+        function getSelectedMode() {
+            for (const radio of radios) {
+                if (radio.checked) return radio.value;
+            }
+            return 'constant';
+        }
+
+        async function startSimulation() {
+            if (isAnimating) return;
+            isAnimating = true;
+            startBtn.disabled = true;
+            radios.forEach(r => r.disabled = true);
+            
+            resetCanvas();
+            
+            const mode = getSelectedMode();
+            let x = -9;
+            let lr = 0.98; // Մի փոքր փոքր 1-ից, որպեսզի հավերժական տատանում ցույց տա (bounce around)
+            const maxSteps = 25;
+            
+            let [sx, sy] = toScreen(x, x * x);
+            drawPoint(sx, sy, '#e74c3c');
+            
+            stats.innerHTML = `Քայլ 0: X = ${x.toFixed(2)}, LR = ${lr.toFixed(3)}`;
+
+            for (let i = 1; i <= maxSteps; i++) {
+                // Սպասել կես վայրկյան անիմացիայի համար
+                await new Promise(r => setTimeout(r, 400));
+                
+                const grad = 2 * x;
+                const next_x = x - lr * grad;
+                const next_y = next_x * next_x;
+
+                const [nsx, nsy] = toScreen(next_x, next_y);
+                
+                // Գծել հետագիծը
+                ctx.beginPath();
+                ctx.strokeStyle = mode === 'decay' ? '#8e44ad' : '#e67e22';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]); // Կետագիծ
+                ctx.moveTo(sx, sy);
+                ctx.lineTo(nsx, nsy);
+                ctx.stroke();
+                ctx.setLineDash([]); // Վերականգնել սովորական գիծը
+                
+                drawPoint(nsx, nsy, mode === 'decay' ? '#9b59b6' : '#d35400');
+                
+                x = next_x;
+                sx = nsx;
+                sy = nsy;
+
+                // LR-ի նվազեցում (Step Decay), եթե ռեժիմը ընտրված է
+                if (mode === 'decay' && i % 3 === 0) {
+                    lr = lr * 0.55; // Կիսով չափ փոքրացնում ենք քայլը ամեն 3 իտերացիան մեկ
+                }
+
+                stats.innerHTML = `Քայլ ${i}: X = ${x.toFixed(4)}, LR = ${lr.toFixed(4)}`;
+
+                if (Math.abs(x) < 0.01) {
+                    stats.innerHTML = `<strong>Վերջնական կետ: Իդեալական Զուգամիտում 0-ին (Ընդամենը ${i} քայլից)</strong>`;
+                    break;
+                }
+            }
+
+            if (mode === 'constant' && Math.abs(x) > 0.1) {
+                stats.innerHTML += `<br><span style="color:#c0392b; font-weight:bold;">Արդյունք: Ալգորիթմը խրվեց տատանումների մեջ (Oscillating) և չի հասնում 0-ին:</span>`;
+            }
+
+            isAnimating = false;
+            startBtn.disabled = false;
+            radios.forEach(r => r.disabled = false);
+            startBtn.innerText = "Վերագործարկել (Reset)";
+        }
+
+        startBtn.addEventListener('click', startSimulation);
+        
+        // Ինիցիալիզացիա դատարկ գրաֆիկով
+        resetCanvas();
+
+    </script>
+</body>
+</html>

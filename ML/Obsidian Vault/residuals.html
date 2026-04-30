@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Residual Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .controls { margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+        .chart-container { position: relative; height: 30vh; width: 100%; margin-bottom: 30px; }
+        select { padding: 8px; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <label for="scenario"><strong>Select Data Scenario: </strong></label>
+        <select id="scenario" onchange="updateCharts()">
+            <option value="ideal">Ideal (Random Scatter)</option>
+            <option value="hetero">Heteroscedasticity (Funnel)</option>
+            <option value="curve">Missed Trend (Curve)</option>
+            <option value="outliers">Outliers</option>
+        </select>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="mainChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <canvas id="residualChart"></canvas>
+    </div>
+
+    <script>
+        let mainChart, residualChart;
+
+        // 1. Generate Fake Data based on scenario
+        function generateData(scenario) {
+            let data = [];
+            for (let i = 0; i < 50; i++) {
+                let x = Math.random() * 10;
+                let noise = (Math.random() - 0.5) * 4;
+                let y;
+
+                if (scenario === 'ideal') {
+                    y = 2 * x + 5 + noise;
+                } else if (scenario === 'hetero') {
+                    // Noise increases as X increases
+                    y = 2 * x + 5 + noise * (x * 0.8);
+                } else if (scenario === 'curve') {
+                    // True relationship is a curve, not a line
+                    y = 0.5 * Math.pow(x, 2) + 5 + noise;
+                } else if (scenario === 'outliers') {
+                    y = 2 * x + 5 + noise;
+                    // Inject 2 massive outliers
+                    if (i === 10 || i === 20) y += 25; 
+                }
+                data.push({ x: x, y: y });
+            }
+            // Sort by X so the regression line draws cleanly
+            return data.sort((a, b) => a.x - b.x);
+        }
+
+        // 2. Calculate Ordinary Least Squares (OLS) Linear Regression
+        function calculateOLS(data) {
+            let n = data.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+            for (let point of data) {
+                sumX += point.x;
+                sumY += point.y;
+                sumXY += point.x * point.y;
+                sumX2 += point.x * point.x;
+            }
+            let slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            let intercept = (sumY - slope * sumX) / n;
+            return { slope, intercept };
+        }
+
+        // 3. Update the charts
+        function updateCharts() {
+            const scenario = document.getElementById('scenario').value;
+            const rawData = generateData(scenario);
+            const { slope, intercept } = calculateOLS(rawData);
+
+            // Calculate regression line points and residuals
+            const lineData = [];
+            const residualData = [];
+            
+            rawData.forEach(point => {
+                let predictedY = slope * point.x + intercept;
+                let residual = point.y - predictedY;
+                
+                lineData.push({ x: point.x, y: predictedY });
+                residualData.push({ x: predictedY, y: residual }); // Residuals plotted against predicted Y
+            });
+
+            // Destroy old charts if they exist
+            if (mainChart) mainChart.destroy();
+            if (residualChart) residualChart.destroy();
+
+            // Draw Top Chart (Data vs Fit)
+            const ctxMain = document.getElementById('mainChart').getContext('2d');
+            mainChart = new Chart(ctxMain, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Raw Data',
+                        data: rawData,
+                        backgroundColor: '#3b82f6'
+                    }, {
+                        type: 'line',
+                        label: 'Linear Fit (OLS)',
+                        data: lineData,
+                        borderColor: '#ef4444',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { title: { display: true, text: 'Data vs. Linear Regression Fit' } },
+                    scales: { x: { title: { display: true, text: 'X (Feature)' } }, y: { title: { display: true, text: 'Y (Target)' } } }
+                }
+            });
+
+            // Draw Bottom Chart (Residuals)
+            const ctxRes = document.getElementById('residualChart').getContext('2d');
+            residualChart = new Chart(ctxRes, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Residuals',
+                        data: residualData,
+                        backgroundColor: '#8b5cf6'
+                    }, {
+                        // Horizontal line at y=0
+                        type: 'line',
+                        label: 'Zero Error Line',
+                        data: [{x: Math.min(...residualData.map(d=>d.x)), y: 0}, {x: Math.max(...residualData.map(d=>d.x)), y: 0}],
+                        borderColor: '#9ca3af',
+                        borderDash: [5, 5],
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { title: { display: true, text: 'Residual Plot (Predicted Y vs Error)' } },
+                    scales: { x: { title: { display: true, text: 'Predicted Y' } }, y: { title: { display: true, text: 'Residual (Actual Y - Predicted Y)' } } }
+                }
+            });
+        }
+
+        // Initialize on load
+        updateCharts();
+    </script>
+</body>
+</html>

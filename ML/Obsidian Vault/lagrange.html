@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <title>Լագրանժի Բազմապատկիչներ</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f9f9f9; padding: 20px; }
+        canvas { background-color: #fff; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-top: 10px; }
+        .controls { margin-top: 20px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #ddd; display: inline-block; text-align: left; width: 470px; }
+        .slider-container { margin-bottom: 15px; }
+        input[type="range"] { width: 100%; }
+        .legend { margin-top: 10px; font-size: 14px; text-align: center; }
+        .legend span { display: inline-block; margin: 0 10px; }
+        .color-box { width: 12px; height: 12px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+        .optimal { color: #d9534f; font-weight: bold; font-size: 16px; margin-top: 10px; text-align: center;}
+        .not-optimal { color: #555; font-size: 16px; margin-top: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+    <h2>Լագրանժի Բազմապատկիչներ (f-ի և g-ի շոշափում)</h2>
+    <p>Շարժեք սլայդերը՝ կետը g(x,y) արահետով տեղաշարժելու համար։</p>
+    
+    <canvas id="lagrangeCanvas" width="500" height="500"></canvas>
+    
+    <div class="controls">
+        <div class="slider-container">
+            <label for="xSlider">Քայլել արահետով (X կոորդինատ): <span id="xVal">2.00</span></label>
+            <input type="range" id="xSlider" min="0" max="4" step="0.05" value="0.5">
+        </div>
+        <div id="infoText">Y կոորդինատ: <span id="yVal">3.50</span></div>
+        <div id="statusText" class="not-optimal">Գրադիենտները զուգահեռ չեն</div>
+    </div>
+
+    <div class="legend">
+        <span><div class="color-box" style="background: #337ab7;"></div> Արահետ g(x,y) = 4</span>
+        <span><div class="color-box" style="background: #e0e0e0; border: 1px solid #999;"></div> Կոնտուրներ f(x,y) = k</span>
+        <br>
+        <span><div class="color-box" style="background: #d9534f;"></div> ∇f (f-ի գրադիենտ)</span>
+        <span><div class="color-box" style="background: #5cb85c;"></div> ∇g (g-ի գրադիենտ)</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('lagrangeCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('xSlider');
+        const xValSpan = document.getElementById('xVal');
+        const yValSpan = document.getElementById('yVal');
+        const statusText = document.getElementById('statusText');
+
+        // Կոորդինատային համակարգի կարգավորումներ
+        const margin = 40;
+        const scale = 75; // 1 մաթեմատիկական միավորը = 75 պիքսել
+        const mathSize = 6; // x և y առանցքները 0-ից 6
+
+        function toScreen(mathX, mathY) {
+            return {
+                x: margin + mathX * scale,
+                y: canvas.height - margin - mathY * scale
+            };
+        }
+
+        function drawArrow(fromX, fromY, toX, toY, color, width=2) {
+            const headlen = 10; 
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.stroke();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Գծել առանցքներ և ցանց
+            ctx.strokeStyle = "#eee";
+            ctx.lineWidth = 1;
+            for(let i=0; i<=mathSize; i++) {
+                let p1 = toScreen(i, 0);
+                let p2 = toScreen(i, mathSize);
+                ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+                
+                p1 = toScreen(0, i);
+                p2 = toScreen(mathSize, i);
+                ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+            }
+
+            // Առանցքներ
+            ctx.strokeStyle = "#999";
+            ctx.lineWidth = 2;
+            let origin = toScreen(0,0);
+            ctx.beginPath(); ctx.moveTo(origin.x, origin.y); ctx.lineTo(toScreen(mathSize, 0).x, toScreen(mathSize, 0).y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(origin.x, origin.y); ctx.lineTo(toScreen(0, mathSize).x, toScreen(0, mathSize).y); ctx.stroke();
+
+            // Գծել ֆոնային կոնտուրները f(x,y) = x^2 + y^2
+            ctx.strokeStyle = "#e0e0e0";
+            ctx.lineWidth = 1;
+            for(let r=1; r<=6; r++) {
+                ctx.beginPath();
+                ctx.arc(origin.x, origin.y, r * scale, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Գծել սահմանափակումը g(x,y): x + y = 4
+            ctx.strokeStyle = "#337ab7";
+            ctx.lineWidth = 3;
+            let gStart = toScreen(0, 4);
+            let gEnd = toScreen(4, 0);
+            ctx.beginPath();
+            ctx.moveTo(gStart.x, gStart.y);
+            ctx.lineTo(gEnd.x, gEnd.y);
+            ctx.stroke();
+
+            // Ընթացիկ կետը
+            let currentX = parseFloat(slider.value);
+            let currentY = 4 - currentX;
+            let pointScreen = toScreen(currentX, currentY);
+
+            // Գծել ակտիվ կոնտուրը (շրջանագիծը, որն անցնում է ընթացիկ կետով)
+            let currentRadius = Math.sqrt(currentX*currentX + currentY*currentY);
+            ctx.strokeStyle = "#888";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(origin.x, origin.y, currentRadius * scale, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Գրադիենտ վեկտորներ
+            // ∇g = (1, 1). Ցուցադրական երկարություն՝ 1 միավոր
+            let gradGx = 1;
+            let gradGy = 1;
+            let gVecScreen = toScreen(currentX + gradGx, currentY + gradGy);
+            drawArrow(pointScreen.x, pointScreen.y, gVecScreen.x, gVecScreen.y, "#5cb85c", 3);
+
+            // ∇f = (2x, 2y). Որպեսզի էկրանից դուրս չգա, կնորմավորենք և կտանք ֆիքսված երկարություն (օր. 1.5 միավոր)
+            let magF = Math.sqrt((2*currentX)*(2*currentX) + (2*currentY)*(2*currentY));
+            if(magF > 0) {
+                let fDirX = (2*currentX) / magF;
+                let fDirY = (2*currentY) / magF;
+                let visualLen = 1.5; // վեկտորի վիզուալ երկարությունը
+                let fVecScreen = toScreen(currentX + fDirX * visualLen, currentY + fDirY * visualLen);
+                drawArrow(pointScreen.x, pointScreen.y, fVecScreen.x, fVecScreen.y, "#d9534f", 3);
+            }
+
+            // Գծել բուն կետը
+            ctx.beginPath();
+            ctx.arc(pointScreen.x, pointScreen.y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = "#333";
+            ctx.fill();
+
+            // Թարմացնել տեքստերը
+            xValSpan.innerText = currentX.toFixed(2);
+            yValSpan.innerText = currentY.toFixed(2);
+
+            // Ստուգել օպտիմալությունը (մոտ (2,2) կետին)
+            if(Math.abs(currentX - 2.0) < 0.06) {
+                statusText.innerHTML = "Օպտիմալ կետ. Գրադիենտները զուգահեռ են (∇f = &lambda;∇g)";
+                statusText.className = "optimal";
+            } else {
+                statusText.innerText = "Գրադիենտները զուգահեռ չեն";
+                statusText.className = "not-optimal";
+            }
+        }
+
+        slider.addEventListener('input', draw);
+        draw(); // սկզբնական նկարում
+    </script>
+</body>
+</html>

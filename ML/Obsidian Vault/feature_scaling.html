@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feature Scaling Visualizer</title>
+<style>
+    body {
+        font-family: system-ui, -apple-system, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #0f172a;
+        color: #f8fafc;
+        padding: 40px 20px;
+        margin: 0;
+    }
+    h2 { margin-bottom: 5px; text-align: center; }
+    p { color: #94a3b8; margin-bottom: 20px; text-align: center; max-width: 600px; line-height: 1.5; }
+    
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: #1e293b;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        width: 100%;
+        max-width: 800px;
+    }
+
+    .controls {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    input[type=text] {
+        flex-grow: 1;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #475569;
+        background: #334155;
+        color: white;
+        font-family: monospace;
+        font-size: 1.1em;
+    }
+
+    button { 
+        padding: 10px 18px; 
+        border: none; 
+        border-radius: 6px; 
+        background: #3b82f6; 
+        color: white; 
+        cursor: pointer; 
+        font-weight: 600; 
+        transition: background 0.2s;
+    }
+    button:hover { background: #2563eb; }
+
+    canvas {
+        background: #0f172a;
+        border-radius: 8px;
+        border: 1px solid #334155;
+        margin-bottom: 20px;
+        width: 100%;
+        max-width: 800px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        background: #0f172a;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    th, td {
+        padding: 12px;
+        text-align: center;
+        border-bottom: 1px solid #334155;
+    }
+    th {
+        background: #334155;
+        color: #cbd5e1;
+        font-weight: 600;
+    }
+    .val-original { color: #10b981; font-weight: bold; } /* Green */
+    .val-norm { color: #3b82f6; font-weight: bold; }     /* Blue */
+    .val-std { color: #f43f5e; font-weight: bold; }      /* Red */
+    .error { color: #ef4444; font-weight: bold; margin-bottom: 10px; display: none;}
+</style>
+</head>
+<body>
+
+    <h2>Feature Scaling Visualizer</h2>
+    <p>Compare how Normalization (Min-Max) squashes data between 0 and 1, while Standardization (Z-Score) centers data around a mean of 0 with a standard deviation of 1.</p>
+    
+    <div class="container">
+        <div id="error-msg" class="error">Please enter valid comma-separated numbers.</div>
+        
+        <div class="controls">
+            <label for="data-input" style="font-weight: bold; color: #cbd5e1;">Dataset:</label>
+            <input type="text" id="data-input" value="18, 27, 35, 42, 53">
+            <button id="calc-btn">Scale Data</button>
+        </div>
+
+        <canvas id="plot" width="800" height="350"></canvas>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Data Point</th>
+                    <th>Unscaled (Original)</th>
+                    <th>Normalized [0, 1]</th>
+                    <th>Standardized (Z-Score)</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                </tbody>
+        </table>
+    </div>
+
+<script>
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+    const dataInput = document.getElementById('data-input');
+    const calcBtn = document.getElementById('calc-btn');
+    const tableBody = document.getElementById('table-body');
+    const errorMsg = document.getElementById('error-msg');
+
+    // Drawing settings
+    const padding = 60;
+    const trackHeight = canvas.height / 3;
+
+    function parseInput(str) {
+        return str.split(',')
+                  .map(s => parseFloat(s.trim()))
+                  .filter(n => !isNaN(n));
+    }
+
+    function calculateStats(arr) {
+        const min = Math.min(...arr);
+        const max = Math.max(...arr);
+        
+        const sum = arr.reduce((a, b) => a + b, 0);
+        const mean = sum / arr.length;
+        
+        // Population Standard Deviation
+        const variance = arr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / arr.length;
+        const stdDev = Math.sqrt(variance) || 1; // Prevent div by 0
+
+        const norm = arr.map(x => (max === min) ? 0 : (x - min) / (max - min));
+        const std = arr.map(x => (x - mean) / stdDev);
+
+        return { arr, min, max, mean, stdDev, norm, std };
+    }
+
+    function drawAxis(y, title, color) {
+        // Line
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(canvas.width - padding, y);
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Title
+        ctx.fillStyle = color;
+        ctx.font = 'bold 14px system-ui';
+        ctx.textAlign = 'left';
+        ctx.fillText(title, padding, y - 25);
+    }
+
+    function drawPoints(values, y, minVal, maxVal, color) {
+        // Expand the visual range slightly so points don't sit exactly on the edges
+        const range = maxVal - minVal;
+        const visualMin = minVal - (range * 0.1);
+        const visualMax = maxVal + (range * 0.1);
+        const visualRange = visualMax - visualMin;
+
+        values.forEach(val => {
+            // Map value to X pixel coordinate
+            const x = padding + ((val - visualMin) / visualRange) * (canvas.width - padding * 2);
+            
+            // Draw Point
+            ctx.beginPath();
+            ctx.arc(x, y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Draw Value Label
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = '12px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(val.toFixed(2), x, y + 25);
+        });
+    }
+
+    function updateApp() {
+        const rawData = parseInput(dataInput.value);
+        
+        if (rawData.length < 2) {
+            errorMsg.style.display = 'block';
+            return;
+        }
+        errorMsg.style.display = 'none';
+
+        const stats = calculateStats(rawData);
+        
+        // 1. Draw Graphics
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Track 1: Unscaled
+        const y1 = trackHeight * 0.5;
+        drawAxis(y1, `Unscaled Data (Mean: ${stats.mean.toFixed(1)})`, '#10b981');
+        drawPoints(stats.arr, y1, stats.min, stats.max, '#10b981');
+
+        // Track 2: Normalized
+        const y2 = trackHeight * 1.5;
+        drawAxis(y2, 'Normalized [0 to 1]', '#3b82f6');
+        drawPoints(stats.norm, y2, 0, 1, '#3b82f6');
+
+        // Track 3: Standardized
+        const y3 = trackHeight * 2.5;
+        const maxAbsZ = Math.max(...stats.std.map(Math.abs));
+        drawAxis(y3, 'Standardized (Z-Score)', '#f43f5e');
+        // Center the axis around 0
+        drawPoints(stats.std, y3, -maxAbsZ, maxAbsZ, '#f43f5e');
+
+        // 2. Populate Table
+        tableBody.innerHTML = '';
+        for(let i = 0; i < stats.arr.length; i++) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="color: #94a3b8;">Point ${i + 1}</td>
+                <td class="val-original">${stats.arr[i].toFixed(2)}</td>
+                <td class="val-norm">${stats.norm[i].toFixed(3)}</td>
+                <td class="val-std">${stats.std[i].toFixed(3)}</td>
+            `;
+            tableBody.appendChild(row);
+        }
+    }
+
+    // Event Listeners
+    calcBtn.addEventListener('click', updateApp);
+    dataInput.addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') updateApp();
+    });
+
+    // Initial render
+    updateApp();
+</script>
+</body>
+</html>

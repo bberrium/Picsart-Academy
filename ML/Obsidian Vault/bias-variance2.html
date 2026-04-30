@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bias-Variance Trade-off Ինտերակտիվ Վիզուալիզացիա</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 800px;
+            width: 100%;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        input[type="range"] {
+            width: 80%;
+            margin: 15px 0;
+        }
+        #status-box {
+            font-size: 1.1em;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .underfitting { background-color: #ffeaa7; color: #d35400; }
+        .optimal { background-color: #55efc4; color: #00b894; }
+        .overfitting { background-color: #fab1a0; color: #c0392b; }
+        
+        /* SVG Styles */
+        .line-bias { fill: none; stroke: #e74c3c; stroke-width: 3; }
+        .line-var { fill: none; stroke: #3498db; stroke-width: 3; }
+        .line-noise { fill: none; stroke: #95a5a6; stroke-width: 2; stroke-dasharray: 5,5; }
+        .line-total { fill: none; stroke: #2c3e50; stroke-width: 4; }
+        .indicator-line { stroke: #2d3436; stroke-width: 2; stroke-dasharray: 4,4; }
+        .axis text { font-size: 12px; }
+        .axis path, .axis line { stroke: #bdc3c7; }
+        .legend text { font-size: 14px; alignment-baseline: middle; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Շեղման և Վարիացիայի Փոխզիջում (Bias-Variance Trade-off)</h2>
+    
+    <div class="controls">
+        <label for="complexitySlider"><b>Մոդելի Բարդություն: <span id="complexityValue">50</span></b></label>
+        <input type="range" id="complexitySlider" min="1" max="100" value="50">
+        <div id="status-box" class="optimal">Օպտիմալ Բալանս (Sweet Spot)</div>
+    </div>
+
+    <div id="chart"></div>
+</div>
+
+<script>
+    // Գրաֆիկի չափսերը և լուսանցքները
+    const margin = {top: 20, right: 150, bottom: 50, left: 60},
+          width = 800 - margin.left - margin.right,
+          height = 400 - margin.top - margin.bottom;
+
+    // Ստեղծել SVG կոնտեյներ
+    const svg = d3.select("#chart")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Սանդղակներ (Scales)
+    const xScale = d3.scaleLinear().domain([0, 100]).range([0, width]);
+    const yScale = d3.scaleLinear().domain([0, 120]).range([height, 0]);
+
+    // Առանցքներ (Axes)
+    svg.append("g")
+       .attr("transform", `translate(0,${height})`)
+       .attr("class", "axis")
+       .call(d3.axisBottom(xScale).ticks(0)); // Թաքցնել թվերը, միայն գիծը
+
+    svg.append("g")
+       .attr("class", "axis")
+       .call(d3.axisLeft(yScale).ticks(0));
+
+    // Առանցքների պիտակներ
+    svg.append("text")
+       .attr("x", width / 2)
+       .attr("y", height + 30)
+       .style("text-anchor", "middle")
+       .text("Մոդելի Բարդություն (Model Complexity)");
+
+    svg.append("text")
+       .attr("transform", "rotate(-90)")
+       .attr("x", -height / 2)
+       .attr("y", -30)
+       .style("text-anchor", "middle")
+       .text("Սխալանք (Error)");
+
+    // Մաթեմատիկական ֆունկցիաներ կորերի համար
+    const data = [];
+    for (let x = 0; x <= 100; x++) {
+        let biasSq = Math.pow((100 - x), 2) / 100; // Նվազող
+        let variance = Math.pow(x, 2) / 100;       // Աճող
+        let noise = 15;                            // Հաստատուն աղմուկ
+        let total = biasSq + variance + noise;     // Ընդհանուր U-աձև կոր
+        data.push({ x, biasSq, variance, noise, total });
+    }
+
+    // Գծեր նկարելու ֆունկցիաներ (Line generators)
+    const lineBias = d3.line().x(d => xScale(d.x)).y(d => yScale(d.biasSq));
+    const lineVar = d3.line().x(d => xScale(d.x)).y(d => yScale(d.variance));
+    const lineNoise = d3.line().x(d => xScale(d.x)).y(d => yScale(d.noise));
+    const lineTotal = d3.line().x(d => xScale(d.x)).y(d => yScale(d.total));
+
+    // Ավելացնել կորերը գրաֆիկի վրա
+    svg.append("path").datum(data).attr("class", "line-bias").attr("d", lineBias);
+    svg.append("path").datum(data).attr("class", "line-var").attr("d", lineVar);
+    svg.append("path").datum(data).attr("class", "line-noise").attr("d", lineNoise);
+    svg.append("path").datum(data).attr("class", "line-total").attr("d", lineTotal);
+
+    // Ինդիկատոր (Ուղղահայաց գիծ և կետ)
+    const indicatorGroup = svg.append("g");
+    
+    const indicatorLine = indicatorGroup.append("line")
+        .attr("class", "indicator-line")
+        .attr("y1", 0).attr("y2", height);
+
+    const indicatorDot = indicatorGroup.append("circle")
+        .attr("r", 6).attr("fill", "#2d3436");
+
+    // Լեգենդ (Legend)
+    const legend = svg.append("g").attr("transform", `translate(${width + 10}, 20)`);
+    const legendData = [
+        { color: "#2c3e50", label: "Ընդհանուր Սխալանք" },
+        { color: "#e74c3c", label: "Շեղում² (Bias²)" },
+        { color: "#3498db", label: "Վարիացիա" },
+        { color: "#95a5a6", label: "Աղմուկ (Noise)" }
+    ];
+
+    legendData.forEach((d, i) => {
+        legend.append("rect").attr("x", 0).attr("y", i * 25).attr("width", 20).attr("height", 4).attr("fill", d.color);
+        legend.append("text").attr("x", 25).attr("y", i * 25 + 5).text(d.label);
+    });
+
+    // Թարմացման ֆունկցիա՝ կապված սլայդերի հետ
+    function updateChart(val) {
+        const xPos = xScale(val);
+        const yVal = Math.pow((100 - val), 2) / 100 + Math.pow(val, 2) / 100 + 15;
+        
+        indicatorLine.attr("x1", xPos).attr("x2", xPos);
+        indicatorDot.attr("cx", xPos).attr("cy", yScale(yVal));
+        
+        d3.select("#complexityValue").text(val);
+
+        const statusBox = d3.select("#status-box");
+        if (val < 40) {
+            statusBox.text("Թերհարմարեցում (Underfitting) - Բարձր Bias, Ցածր Variance").attr("class", "underfitting");
+        } else if (val > 60) {
+            statusBox.text("Գերհարմարեցում (Overfitting) - Ցածր Bias, Բարձր Variance").attr("class", "overfitting");
+        } else {
+            statusBox.text("Օպտիմալ Բալանս (Sweet Spot)").attr("class", "optimal");
+        }
+    }
+
+    // Միացնել սլայդերին
+    d3.select("#complexitySlider").on("input", function() {
+        updateChart(+this.value);
+    });
+
+    // Սկզբնական կարգավորում
+    updateChart(50);
+</script>
+
+</body>
+</html>

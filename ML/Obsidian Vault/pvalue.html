@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Визуализатор P-значения</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 30px;
+        }
+        h1 { font-size: 1.5rem; color: #2c3e50; }
+        .panel {
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .control-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        select, input[type="range"] {
+            width: 55%;
+            padding: 5px;
+        }
+        .result {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 10px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        #p-value-display {
+            font-weight: bold;
+            color: #e74c3c;
+            font-size: 1.4rem;
+        }
+        canvas {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Стандартное нормальное распределение</h1>
+    
+    <div class="panel">
+        <div class="control-group">
+            <label for="test-type">Тип теста:</label>
+            <select id="test-type">
+                <option value="right">Правосторонний (Right-tailed)</option>
+                <option value="left">Левосторонний (Left-tailed)</option>
+                <option value="two" selected>Двусторонний (Two-tailed)</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <label for="z-score">Тестовая статистика (Z-оценка): <span id="z-val">1.96</span></label>
+            <input type="range" id="z-score" min="-4" max="4" step="0.01" value="1.96">
+        </div>
+
+        <div class="result">
+            P-значение: <span id="p-value-display">0.0500</span>
+        </div>
+    </div>
+
+    <canvas id="bell-curve" width="600" height="350"></canvas>
+
+    <script>
+        const canvas = document.getElementById('bell-curve');
+        const ctx = canvas.getContext('2d');
+        const testTypeSelect = document.getElementById('test-type');
+        const zScoreInput = document.getElementById('z-score');
+        const zValDisplay = document.getElementById('z-val');
+        const pValueDisplay = document.getElementById('p-value-display');
+
+        // Математические функции для нормального распределения
+        function normalPDF(x) {
+            return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
+        }
+
+        // Численное интегрирование для вычисления площади (P-значения)
+        function normalCDF(z) {
+            let sum = 0;
+            const step = 0.005;
+            for (let x = -8; x <= z; x += step) {
+                sum += normalPDF(x) * step;
+            }
+            return sum;
+        }
+
+        function calculatePValue(z, type) {
+            if (type === 'left') return normalCDF(z);
+            if (type === 'right') return 1 - normalCDF(z);
+            if (type === 'two') return 2 * (1 - normalCDF(Math.abs(z)));
+            return 0;
+        }
+
+        // Отрисовка графика
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const z = parseFloat(zScoreInput.value);
+            const type = testTypeSelect.value;
+            
+            const minX = -4;
+            const maxX = 4;
+            const scaleX = canvas.width / (maxX - minX);
+            const scaleY = canvas.height / 0.45; // Максимум PDF ~0.3989
+            const zeroX = canvas.width / 2;
+            const zeroY = canvas.height - 30;
+
+            // Функция преобразования координат
+            function getCanvasCoords(x, y) {
+                return {
+                    cx: zeroX + x * scaleX,
+                    cy: zeroY - y * scaleY
+                };
+            }
+
+            // 1. Отрисовка заштрихованной области
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.4)';
+            ctx.beginPath();
+            
+            for (let x = minX; x <= maxX; x += 0.02) {
+                let shade = false;
+                if (type === 'left' && x <= z) shade = true;
+                if (type === 'right' && x >= z) shade = true;
+                if (type === 'two' && (x >= Math.abs(z) || x <= -Math.abs(z))) shade = true;
+
+                if (shade) {
+                    const y = normalPDF(x);
+                    const { cx, cy } = getCanvasCoords(x, y);
+                    const { cy: baseline } = getCanvasCoords(x, 0);
+                    
+                    ctx.moveTo(cx, baseline);
+                    ctx.lineTo(cx, cy);
+                }
+            }
+            ctx.stroke(); // Заливка линиями
+
+            // 2. Отрисовка самой кривой колокола
+            ctx.strokeStyle = '#2980b9';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let x = minX; x <= maxX; x += 0.05) {
+                const y = normalPDF(x);
+                const { cx, cy } = getCanvasCoords(x, y);
+                if (x === minX) ctx.moveTo(cx, cy);
+                else ctx.lineTo(cx, cy);
+            }
+            ctx.stroke();
+
+            // 3. Отрисовка осей
+            ctx.strokeStyle = '#7f8c8d';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, zeroY);
+            ctx.lineTo(canvas.width, zeroY); // X-ось
+            ctx.moveTo(zeroX, 10);
+            ctx.lineTo(zeroX, canvas.height); // Y-ось
+            ctx.stroke();
+
+            // 4. Отрисовка отсечек (Z-оценок) на оси X
+            ctx.fillStyle = '#7f8c8d';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            for (let x = -3; x <= 3; x++) {
+                const { cx } = getCanvasCoords(x, 0);
+                ctx.fillText(x, cx, zeroY + 15);
+                ctx.beginPath();
+                ctx.moveTo(cx, zeroY - 5);
+                ctx.lineTo(cx, zeroY + 5);
+                ctx.stroke();
+            }
+
+            // Обновление текстовых значений
+            zValDisplay.textContent = z.toFixed(2);
+            const pValue = calculatePValue(z, type);
+            pValueDisplay.textContent = pValue.toFixed(4);
+        }
+
+        // Слушатели событий
+        zScoreInput.addEventListener('input', draw);
+        testTypeSelect.addEventListener('change', draw);
+
+        // Первичная отрисовка
+        draw();
+    </script>
+</body>
+</html>

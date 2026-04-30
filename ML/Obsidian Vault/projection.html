@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <title>Վեկտորի պրոյեկցիայի վիզուալիզացիա</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            background-color: #f4f4f5; 
+            margin: 0; 
+            padding: 30px; 
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h2 { color: #1f2937; margin-top: 0; }
+        canvas { 
+            background-color: #fafafa; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 8px; 
+            cursor: crosshair; 
+        }
+        .controls { 
+            margin-top: 20px; 
+            display: flex; 
+            justify-content: center;
+            align-items: center; 
+            gap: 15px; 
+            background: #f8fafc; 
+            padding: 15px 20px; 
+            border-radius: 8px; 
+            border: 1px solid #e2e8f0;
+        }
+        label { font-weight: 500; color: #475569; }
+        input[type=range] { width: 250px; cursor: pointer; }
+        .info { 
+            margin-top: 20px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #0f172a; 
+            background: #e0f2fe;
+            padding: 10px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .hint {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Վեկտորի պրոյեկցիան առանցքի վրա (m2 - m1)</h2>
+    <canvas id="myCanvas" width="700" height="450"></canvas>
+
+    <div class="controls">
+        <label for="angleSlider">Առանցքի անկյունը (w): <span id="angleValue">30°</span></label>
+        <input type="range" id="angleSlider" min="0" max="180" value="30">
+    </div>
+
+    <div class="info" id="infoText">Պրոյեկցված հեռավորությունը՝ 0.00</div>
+    <div class="hint">* Կարող եք մկնիկով բռնել և տեղաշարժել կարմիր կետերը (m1 և m2)</div>
+</div>
+
+<script>
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('angleSlider');
+    const angleValueDisplay = document.getElementById('angleValue');
+    const infoText = document.getElementById('infoText');
+
+    // Սկզբնական կետերը (m1 և m2)
+    let m1 = { x: 250, y: 350 };
+    let m2 = { x: 500, y: 150 };
+    let isDragging = null;
+
+    // Կոորդինատների սկզբնակետը (տեսողական կենտրոն)
+    const origin = { x: canvas.width / 2, y: canvas.height / 2 + 50 };
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Կտավի y առանցքը ուղղված է ներքև, ուստի անկյունը շրջում ենք բնական տեսքի համար
+        const angleDeg = parseFloat(slider.value);
+        const angleRad = -angleDeg * Math.PI / 180; 
+
+        // 1. Նկարել w առանցքը
+        const axisLength = 500;
+        const wEndX = origin.x + Math.cos(angleRad) * axisLength;
+        const wEndY = origin.y + Math.sin(angleRad) * axisLength;
+        const wStartX = origin.x - Math.cos(angleRad) * axisLength;
+        const wStartY = origin.y - Math.sin(angleRad) * axisLength;
+
+        ctx.beginPath();
+        ctx.moveTo(wStartX, wStartY);
+        ctx.lineTo(wEndX, wEndY);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.fillStyle = '#64748b';
+        ctx.font = '16px sans-serif';
+        ctx.fillText('Առանցք w', origin.x + Math.cos(angleRad) * 250 + 10, origin.y + Math.sin(angleRad) * 250 - 10);
+
+        // 2. Նկարել (m2 - m1) վեկտորը որպես սլաք
+        drawArrow(m1.x, m1.y, m2.x, m2.y, '#3b82f6');
+        
+        // 3. Հաշվել պրոյեկցիաները (Սկալյար արտադրյալի սկզբունքով)
+        // Վեկտորներ սկզբնակետից մինչև m1 և m2
+        const v1 = { x: m1.x - origin.x, y: m1.y - origin.y };
+        const v2 = { x: m2.x - origin.x, y: m2.y - origin.y };
+        
+        // w առանցքի ուղղորդող (միավոր) վեկտորը
+        const dirW = { x: Math.cos(angleRad), y: Math.sin(angleRad) };
+        
+        // Պրոյեկցիաների երկարությունները w առանցքի վրա (dot product)
+        const projLength1 = v1.x * dirW.x + v1.y * dirW.y;
+        const projLength2 = v2.x * dirW.x + v2.y * dirW.y;
+        
+        // Պրոյեկցված կետերի ճշգրիտ կոորդինատները կտավի վրա
+        const proj1 = { x: origin.x + projLength1 * dirW.x, y: origin.y + projLength1 * dirW.y };
+        const proj2 = { x: origin.x + projLength2 * dirW.x, y: origin.y + projLength2 * dirW.y };
+
+        // 4. Նկարել պրոյեկցիոն (ընդհատվող) գծերը
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.moveTo(m1.x, m1.y); ctx.lineTo(proj1.x, proj1.y);
+        ctx.moveTo(m2.x, m2.y); ctx.lineTo(proj2.x, proj2.y);
+        ctx.strokeStyle = '#ef4444'; // կարմիր
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.setLineDash([]); // վերականգնել հոծ գիծը
+
+        // 5. Ընդգծել պրոյեկցված հեռավորությունը w առանցքի վրա
+        ctx.beginPath();
+        ctx.moveTo(proj1.x, proj1.y);
+        ctx.lineTo(proj2.x, proj2.y);
+        ctx.strokeStyle = '#10b981'; // կանաչ
+        ctx.lineWidth = 5;
+        ctx.stroke();
+
+        // 6. Նկարել բուն կետերը վերջում, որպեսզի լինեն վերևի շերտում
+        drawPoint(m1.x, m1.y, '#ef4444', 'm1');
+        drawPoint(m2.x, m2.y, '#ef4444', 'm2');
+        drawPoint(proj1.x, proj1.y, '#10b981', 'm1_proj');
+        drawPoint(proj2.x, proj2.y, '#10b981', 'm2_proj');
+
+        // 7. Թարմացնել տեքստային ինֆորմացիան
+        // Բաժանում ենք 10-ի զուտ վիզուալ հարմար թվեր ստանալու համար
+        const distance = Math.abs(projLength2 - projLength1);
+        infoText.innerText = `Պրոյեկցված հեռավորությունը՝ ${(distance/10).toFixed(2)}`;
+    }
+
+    // Օժանդակ ֆունկցիա՝ կետեր նկարելու համար
+    function drawPoint(x, y, color, label) {
+        ctx.beginPath();
+        ctx.arc(x, y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 15px sans-serif';
+        // Գրության դիրքի փոքրիկ կարգավորում
+        const yOffset = label.includes('proj') ? 20 : -12;
+        ctx.fillText(label, x - 10, y + yOffset);
+    }
+
+    // Օժանդակ ֆունկցիա՝ սլաք (վեկտոր) նկարելու համար
+    function drawArrow(fromx, fromy, tox, toy, color) {
+        const headlen = 12; // սլաքի գլխիկի չափը
+        const dx = tox - fromx;
+        const dy = toy - fromy;
+        const angle = Math.atan2(dy, dx);
+        
+        ctx.beginPath();
+        ctx.moveTo(fromx, fromy);
+        ctx.lineTo(tox, toy);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        
+        // Նկարել գլխիկը
+        ctx.beginPath();
+        ctx.moveTo(tox, toy);
+        ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.lineTo(tox, toy);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    // --- Ինտերակտիվության ապահովում (Drag and Drop) ---
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Ստուգում ենք՝ արդյոք մկնիկը m1 կամ m2 կետերի վրա է (15px շառավղով)
+        if (Math.hypot(mouseX - m1.x, mouseY - m1.y) < 15) {
+            isDragging = 'm1';
+        } else if (Math.hypot(mouseX - m2.x, mouseY - m2.y) < 15) {
+            isDragging = 'm2';
+        }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const rect = canvas.getBoundingClientRect();
+        if (isDragging === 'm1') { 
+            m1.x = e.clientX - rect.left; 
+            m1.y = e.clientY - rect.top; 
+        }
+        if (isDragging === 'm2') { 
+            m2.x = e.clientX - rect.left; 
+            m2.y = e.clientY - rect.top; 
+        }
+        draw(); // Վերանկարել ամեն տեղաշարժի ժամանակ
+    });
+
+    window.addEventListener('mouseup', () => {
+        isDragging = null;
+    });
+
+    // Սլայդերի իրադարձություն
+    slider.addEventListener('input', () => {
+        angleValueDisplay.innerText = `${slider.value}°`;
+        draw();
+    });
+
+    // Սկզբնական նկարում
+    draw();
+</script>
+</body>
+</html>

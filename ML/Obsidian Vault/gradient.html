@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+    <meta charset="UTF-8">
+    <title>Գրադիենտ և Կոնտուրային գծեր</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f9f9f9; padding: 20px; }
+        canvas { background-color: #fff; border: 1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: grab; }
+        .legend { margin-top: 15px; font-size: 14px; }
+        .legend span { display: inline-block; margin: 0 10px; }
+        .color-box { width: 12px; height: 12px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <h2>Գրադիենտի վեկտորի և Կոնտուրային գծերի ուղղահայացությունը</h2>
+    <p>Քաշեք կապույտ կետը՝ տեսնելու, որ ∇f-ը միշտ ուղղահայաց է (90°) կոնտուրային գծի շոշափողին։</p>
+    
+    <canvas id="gradCanvas" width="500" height="500"></canvas>
+    
+    <div class="legend">
+        <span><div class="color-box" style="background: #ccc; border-radius: 50%;"></div> Կոնտուրային գծեր (f(x,y)=k)</span>
+        <span><div class="color-box" style="background: #d9534f;"></div> Գրադիենտ վեկտոր (∇f)</span>
+        <span><div class="color-box" style="background: #5cb85c;"></div> Շոշափող գիծ</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gradCanvas');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        
+        let point = { x: 300, y: 150 };
+        let isDragging = false;
+
+        function drawArrow(fromX, fromY, toX, toY, color) {
+            const headlen = 10; 
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Գծել համակենտրոն կոնտուրային գծեր
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "#e0e0e0";
+            for (let r = 20; r <= 300; r += 20) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Հաշվել գրադիենտը և շոշափողը
+            const dx = point.x - centerX;
+            const dy = point.y - centerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            // Ներկայիս կոնտուրը
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, dist, 0, Math.PI * 2);
+            ctx.strokeStyle = "#999";
+            ctx.stroke();
+
+            // Շոշափող (Tangent line)
+            // Ուղղահայաց է շառավղին
+            const tx = -dy; 
+            const ty = dx;
+            const tLen = 100; // գծի երկարությունը
+            const normT = Math.sqrt(tx*tx + ty*ty);
+            const ux = (tx / normT) * tLen;
+            const uy = (ty / normT) * tLen;
+
+            ctx.beginPath();
+            ctx.moveTo(point.x - ux, point.y - uy);
+            ctx.lineTo(point.x + ux, point.y + uy);
+            ctx.strokeStyle = "#5cb85c";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Գրադիենտի վեկտոր (ուղղված կենտրոնից դուրս)
+            const gLen = 60;
+            const gx = (dx / dist) * gLen;
+            const gy = (dy / dist) * gLen;
+            drawArrow(point.x, point.y, point.x + gx, point.y + gy, "#d9534f");
+
+            // 90 աստիճանի նշան
+            const size = 15;
+            const uTangentX = tx / normT;
+            const uTangentY = ty / normT;
+            const uGradX = dx / dist;
+            const uGradY = dy / dist;
+            
+            const p1 = { x: point.x + uGradX * size, y: point.y + uGradY * size };
+            const p2 = { x: p1.x + uTangentX * size, y: p1.y + uTangentY * size };
+            const p3 = { x: point.x + uTangentX * size, y: point.y + uTangentY * size };
+            
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.lineTo(p3.x, p3.y);
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Գծել կետը
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+            ctx.fillStyle = "#337ab7";
+            ctx.fill();
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            if (Math.hypot(mouseX - point.x, mouseY - point.y) < 15) {
+                isDragging = true;
+                canvas.style.cursor = 'grabbing';
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                point.x = e.clientX - rect.left;
+                point.y = e.clientY - rect.top;
+                // Ապահովել, որ կենտրոնի վրա չնստի զրոյական բաժանումից խուսափելու համար
+                if (Math.hypot(point.x - centerX, point.y - centerY) < 10) {
+                    point.x = centerX + 10;
+                }
+                draw();
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        draw();
+    </script>
+</body>
+</html>
