@@ -8,13 +8,41 @@
         "type": "tabs",
         "children": [
           {
-            "id": "2736fcc4fa73d214",
+            "id": "27c902b812494f65",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "pdf",
+              "state": {
+                "file": "ML/lections/14. Ensemble Methods.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "14. Ensemble Methods"
+            }
+          },
+          {
+            "id": "dad0fdb2ae42948e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "ML/Obsidian Vault/ml/12. Optimization methods.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "12. Optimization methods"
+            }
+          },
+          {
+            "id": "397468f03af456c5",
+            "type": "leaf",
+            "state": {
+              "type": "pdf",
+              "state": {
+                "file": "ML/lections/13. Lagrange Multipliers.pdf"
+              },
+              "icon": "lucide-file-text",
+              "title": "13. Lagrange Multipliers"
             }
           }
         ]
@@ -70,8 +98,7 @@
               "title": "Bookmarks"
             }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "horizontal",
@@ -177,7 +204,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -193,8 +221,21 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "2736fcc4fa73d214",
+  "active": "27c902b812494f65",
   "lastOpenFiles": [
+    "ML/lections/13. Lagrange Multipliers.pdf",
+    "ML/Obsidian Vault/ml/12. Optimization methods.md",
+    "ML/lections/17. Gaussian Mixture Modeling.pdf",
+    "ML/lections/16. Clustering.pdf",
+    "ML/lections/15. (Generative Modeling) Naive Bayes & Gaussian Discriminant Analysis.pdf",
+    "ML/lections/14. Ensemble Methods.pdf",
+    "ML/lections/Naive Bayes & Gaussian Discriminant Analysis.pdf",
+    "ML/lections/Gaussian Mixture Modeling.pdf",
+    "ML/lections/Ensemble Methods.pdf",
+    "ML/lections/Clustering.pdf",
+    "ML/lections/13. Advanced SVMs.pdf",
+    "ML/Obsidian Vault/ml/13. Lagrange multipliers, Advanced SVM.md",
+    "ML/Obsidian Vault/ml/11. Logistic Regression.md",
     "ML/Obsidian Vault/Pasted image 20260401180346.png",
     "ML/Obsidian Vault/Pasted image 20260401180256.png",
     "ML/Obsidian Vault/Pasted image 20260401011012.png",
@@ -202,23 +243,11 @@
     "assets/Pasted image 20260403005820.png",
     "assets/Pasted image 20260416222017.png",
     "assets/Pasted image 20260416185518.png",
-    "Stanford Notes/cs229-notes6.pdf",
     "Math/Calculus/image-2.png",
-    "Stanford Notes/LinearLogisticSoftmaxReg&GLM.pdf",
     "assets/Pasted image 20260402200221.png",
-    "ML/Obsidian Vault/ml/11. Logistic Regression.md",
     "empty files.md",
     "broken links output.md",
-    "ML/lections/11. Logistic Regression.pdf",
     "assets/Pasted image 20260430104538.png",
-    "assets/Pasted image 20260425194036.png",
-    "assets",
-    "Stanford Notes/cs229-notes2.pdf",
-    "Stanford Notes/cs229-notes3.pdf",
-    "Stanford Notes/cs229-notes4.pdf",
-    "Stanford Notes/cs229-notes5.pdf",
-    "Stanford Notes/cs229-notes8.pdf",
-    "Stanford Notes/cs229-notes7a.pdf",
     "ml.md",
     "ML/Obsidian Vault/ml/9. Generalized Linear Regression & Maximum Likelihood.md",
     "ML/practice/Bayes_Theorem_3B1B.md",
@@ -227,11 +256,9 @@
     "Untitled.md",
     "Likelihood.md",
     "Normal Distribution.md",
-    "ML/Obsidian Vault/ml/12. Optimization methods.md",
     "ML/Obsidian Vault/ml/10. Regularization and Evaluation.md",
     "ML/practice/Central_Limit_Theorem_3B1B.md",
     "ML/practice/practice materials.md",
-    "ML/Obsidian Vault/ml/13. Lagrange multipliers, Advanced SVM.md",
     "ML/practice/Polynomial Regression.md",
     "ML/Obsidian Vault/ml/Midterm Quiz.md",
     "ML/Obsidian Vault/ml/R-squared.md",
