@@ -6,6 +6,12 @@
 <title>AdaBoost — Interactive Study Guide</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -193,14 +199,20 @@
   /* ── Formula ── */
   .formula {
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: 14px;
     background: var(--bg);
     border-left: 3px solid var(--blue);
     border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    padding: 9px 14px;
-    margin: 10px 0;
+    padding: 12px 14px;
+    margin: 14px 0;
     color: var(--text);
     overflow-x: auto;
+  }
+  
+  .formula-inline {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text);
   }
 
   /* ── Sliders & controls ── */
@@ -417,7 +429,6 @@
     <p class="subtitle">Adaptive Boosting builds a strong classifier from many weak decision stumps, iteratively focusing on the hardest examples.</p>
   </header>
 
-  <!-- 3 Core Ideas -->
   <div class="section-label">The 3 core ideas</div>
   <div class="card accent-blue">
     <div class="card-title">1. Forest of stumps, not full trees</div>
@@ -425,14 +436,13 @@
   </div>
   <div class="card accent-amber">
     <div class="card-title">2. Stumps have different amounts of say</div>
-    <div class="card-body">Unlike Random Forests (equal votes), each AdaBoost stump gets a weight called <strong>Amount of Say (α)</strong> based on accuracy. Better stumps influence the final answer more.</div>
+    <div class="card-body">Unlike Random Forests (equal votes), each AdaBoost stump gets a weight called <strong>Amount of Say ($\alpha$)</strong> based on accuracy. Better stumps influence the final answer more.</div>
   </div>
   <div class="card accent-teal">
     <div class="card-title">3. Stumps are made sequentially — errors inform the next</div>
     <div class="card-body">Each stump is built knowing what the previous one got wrong. Misclassified samples get higher weights so the next stump focuses on them.</div>
   </div>
 
-  <!-- Pipeline diagram -->
   <div class="section-label">Sequential boosting pipeline</div>
   <div class="diagram-wrap">
     <svg width="100%" viewBox="0 0 720 170" role="img" aria-label="AdaBoost pipeline: Dataset with equal weights feeds into Stump 1, then weight update, then Stump 2, continuing sequentially to Stump N, whose outputs are combined via weighted sum into final prediction">
@@ -452,32 +462,27 @@
         .d-arr{ stroke: var(--text-faint); stroke-width: 1.2; fill: none; marker-end: url(#arr); }
       </style>
 
-      <!-- Dataset -->
       <rect class="d-box" x="10" y="50" width="88" height="48" rx="8"/>
       <text class="d-t" x="54" y="71" text-anchor="middle">Dataset</text>
       <text class="d-s" x="54" y="87" text-anchor="middle">equal weights</text>
       <line class="d-arr" x1="98" y1="74" x2="118" y2="74"/>
 
-      <!-- Stump 1 -->
       <rect class="d-blue" x="120" y="50" width="88" height="48" rx="8"/>
       <text class="d-t" x="164" y="71" text-anchor="middle" style="fill:var(--blue-text)">Stump 1</text>
       <text class="d-s" x="164" y="87" text-anchor="middle" style="fill:var(--blue-text)">best Gini split</text>
       <line class="d-arr" x1="208" y1="74" x2="228" y2="74"/>
 
-      <!-- Update 1 -->
       <rect class="d-amber" x="230" y="50" width="88" height="48" rx="8"/>
       <text class="d-t" x="274" y="67" text-anchor="middle" style="fill:var(--amber-text)">Update</text>
       <text class="d-t" x="274" y="80" text-anchor="middle" style="fill:var(--amber-text)">weights</text>
       <text class="d-s" x="274" y="94" text-anchor="middle" style="fill:var(--amber-text)">errors ↑ ok ↓</text>
       <line class="d-arr" x1="318" y1="74" x2="338" y2="74"/>
 
-      <!-- Stump 2 -->
       <rect class="d-blue" x="340" y="50" width="88" height="48" rx="8"/>
       <text class="d-t" x="384" y="71" text-anchor="middle" style="fill:var(--blue-text)">Stump 2</text>
       <text class="d-s" x="384" y="87" text-anchor="middle" style="fill:var(--blue-text)">weighted split</text>
       <line class="d-arr" x1="428" y1="74" x2="448" y2="74"/>
 
-      <!-- Ellipsis + Stump N -->
       <text class="d-s" x="458" y="78" text-anchor="middle">···</text>
       <line class="d-arr" x1="470" y1="74" x2="488" y2="74"/>
       <rect class="d-blue" x="490" y="50" width="80" height="48" rx="8"/>
@@ -485,18 +490,15 @@
       <text class="d-s" x="530" y="87" text-anchor="middle" style="fill:var(--blue-text)">weighted split</text>
       <line class="d-arr" x1="570" y1="74" x2="590" y2="74"/>
 
-      <!-- Weighted sum -->
       <rect class="d-teal" x="592" y="44" width="100" height="60" rx="8"/>
       <text class="d-t" x="642" y="65" text-anchor="middle" style="fill:var(--teal-text)">Σ αₜhₜ(x)</text>
       <text class="d-s" x="642" y="80" text-anchor="middle" style="fill:var(--teal-text)">weighted sum</text>
       <text class="d-s" x="642" y="95" text-anchor="middle" style="fill:var(--teal-text)">sign → class</text>
 
-      <!-- Bottom label -->
       <text class="d-s" x="360" y="138" text-anchor="middle">Each stump trains on the same data, but with updated sample weights — errors get more attention</text>
     </svg>
   </div>
 
-  <!-- Deep dives -->
   <div class="section-label">Deep dives</div>
   <div class="tab-nav">
     <button class="tab-btn active" onclick="showTab('gini',this)">Gini index</button>
@@ -506,12 +508,11 @@
     <button class="tab-btn" onclick="showTab('vs',this)">vs Random Forest</button>
   </div>
 
-  <!-- GINI TAB -->
   <div id="tab-gini" class="tab-panel active">
     <div class="ia">
       <div class="ia-title">Building the first stump — Gini impurity</div>
       <div class="ia-text">AdaBoost evaluates all features and picks the stump with the lowest weighted Gini impurity as the first weak learner.</div>
-      <div class="formula">Gini = 1 − Σ(pᵢ)²</div>
+      <div class="formula">$$ \text{Gini} = 1 - \sum (p_i)^2 $$</div>
       <div class="ia-text">Gini = <strong>0</strong> → perfect purity (all same class)&nbsp;&nbsp;|&nbsp;&nbsp;Gini = <strong>0.5</strong> → max impurity (50/50 split)</div>
       <div class="ctrl-row">
         <span class="ctrl-label">✅ Correct: <strong id="gc-val">3</strong></span>
@@ -529,13 +530,12 @@
     <div class="insight">The stump with the lowest <em>weighted</em> Gini impurity (using current sample weights) is selected each round.</div>
   </div>
 
-  <!-- AMOUNT OF SAY TAB -->
   <div id="tab-say" class="tab-panel">
     <div class="ia">
-      <div class="ia-title">Amount of Say (α) — stump influence weight</div>
+      <div class="ia-title">Amount of Say ($\alpha$) — stump influence weight</div>
       <div class="ia-text">After building a stump, compute how much it should influence the final prediction:</div>
-      <div class="formula">α = ½ × log( (1 − Total Error) / Total Error )</div>
-      <div class="ia-text">Total Error = sum of weights of misclassified samples. On the first stump, all sample weights = 1/N.</div>
+      <div class="formula">$$ \alpha = \frac{1}{2} \ln \left( \frac{1 - \text{Total Error}}{\text{Total Error}} \right) $$</div>
+      <div class="ia-text">Total Error = sum of weights of misclassified samples. On the first stump, all sample weights = $1/N$.</div>
       <div class="ctrl-row">
         <span class="ctrl-label">Error: <strong id="err-val">0.30</strong></span>
         <input type="range" min="1" max="99" value="30" id="err-sl" oninput="updateSay()">
@@ -546,18 +546,21 @@
         <div class="mini-bar"><div class="mini-fill" id="say-bar" style="width:60%;background:var(--teal)"></div></div>
       </div>
     </div>
-    <div class="insight">When error = 0.5 (random guessing), α = 0. When error &gt; 0.5, α goes <em>negative</em> — AdaBoost flips the stump's predictions and still uses it!</div>
+    <div class="insight">When error = 0.5 (random guessing), $\alpha = 0$. When error &gt; 0.5, $\alpha$ goes <em>negative</em> — AdaBoost flips the stump's predictions and still uses it!</div>
   </div>
 
-  <!-- WEIGHT UPDATE TAB -->
   <div id="tab-weights" class="tab-panel">
     <div class="ia">
       <div class="ia-title">Updating sample weights after each stump</div>
       <div class="ia-text">Misclassified samples get higher weight; correctly classified get lower weight. Then all weights are normalized to sum to 1.</div>
-      <div class="formula">Misclassified: w_new = w × e^α &nbsp;↑ higher</div>
-      <div class="formula" style="border-color: var(--teal);">Correct: w_new = w × e^(−α) &nbsp;↓ lower</div>
+      <div class="formula">
+        $$ w_{\text{new}} = w \cdot e^{\alpha} \quad \text{(misclassified } \uparrow \text{)} $$
+      </div>
+      <div class="formula" style="border-color: var(--teal);">
+        $$ w_{\text{new}} = w \cdot e^{-\alpha} \quad \text{(correct } \downarrow \text{)} $$
+      </div>
       <div class="ctrl-row" style="margin-top:12px;">
-        <span class="ctrl-label">α: <strong id="alpha-val">0.42</strong></span>
+        <span class="ctrl-label">$\alpha$: <strong id="alpha-val">0.42</strong></span>
         <input type="range" min="1" max="200" value="42" id="alpha-sl" oninput="updateWeights()">
       </div>
       <div id="sw-container" style="margin-top:10px;"></div>
@@ -565,11 +568,10 @@
     <div class="insight">Normalization ensures weights always sum to 1, so they can serve as sampling probabilities when building the next stump.</div>
   </div>
 
-  <!-- CLASSIFY TAB -->
   <div id="tab-classify" class="tab-panel">
     <div class="ia">
       <div class="ia-title">Making the final prediction</div>
-      <div class="ia-text">Each stump votes for a class, weighted by α. The class with the highest total α-weighted votes wins.</div>
+      <div class="ia-text">Each stump votes for a class, weighted by $\alpha$. The class with the highest total $\alpha$-weighted votes wins.</div>
       <div id="clf-list"></div>
       <hr class="div" style="margin:14px 0;">
       <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Vote tally for sample X:</div>
@@ -587,10 +589,9 @@
         → Final prediction: <span id="final-pred">YES</span>
       </div>
     </div>
-    <div class="insight">Unlike a majority vote, a single highly-accurate stump (high α) can outweigh several mediocre ones.</div>
+    <div class="insight">Unlike a majority vote, a single highly-accurate stump (high $\alpha$) can outweigh several mediocre ones.</div>
   </div>
 
-  <!-- VS TAB -->
   <div id="tab-vs" class="tab-panel">
     <div class="cmp-grid">
       <div class="cmp-card" style="border-left:3px solid var(--blue)">
@@ -609,7 +610,7 @@
         <ul class="cmp-list">
           <li>Decision stumps only</li>
           <li>Sequential — depend on last</li>
-          <li>Weighted votes (α)</li>
+          <li>Weighted votes ($\alpha$)</li>
           <li>Boosting (re-weight)</li>
           <li>Reduces bias</li>
           <li>Sequential only ✗</li>
@@ -620,16 +621,18 @@
     <hr class="div">
     <div style="font-size:12px;font-weight:600;color:var(--text-faint);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;">Full algorithm</div>
     <div class="algo-steps">
-      <span>1.</span> Initialize: w = 1/N for all samples<br>
+      <span>1.</span> Initialize: $w = 1/N$ for all samples<br>
       <span>2.</span> Find best stump using weighted Gini<br>
-      <span>3.</span> Compute Total Error = Σw of misclassified samples<br>
-      <span>4.</span> Compute α = ½ log((1−ε)/ε)<br>
-      <span>5.</span> Update weights: ↑ misclassified × e^α, ↓ correct × e^(−α)<br>
+      <span>3.</span> Compute Total Error = $\sum w$ of misclassified samples<br>
+      <span>4.</span> Compute $\alpha = \frac{1}{2} \ln \left( \frac{1 - \epsilon}{\epsilon} \right)$<br>
+      <span>5.</span> Update weights: $\uparrow$ misclassified $\cdot e^{\alpha}$, $\downarrow$ correct $\cdot e^{-\alpha}$<br>
       <span>6.</span> Normalize all weights to sum to 1<br>
-      <span>7.</span> Repeat from step 2 for T rounds<br>
-      <span>8.</span> Final: sign(Σ αₜ × hₜ(x)) → class
+      <span>7.</span> Repeat from step 2 for $T$ rounds<br>
+      <span>8.</span> Final: $$ H(x) = \text{sign}\left(\sum_{t=1}^T \alpha_t h_t(x)\right) \rightarrow \text{class} $$
     </div>
-    <div class="formula" style="margin-top:14px;">Note: For Chest Pain stump, α = ½·log(5/3) ≈ 0.25 (not 0.42 — see video correction at 10:18)</div>
+    <div class="formula" style="margin-top:14px;">
+      Note: For Chest Pain stump, $$ \alpha = \frac{1}{2} \ln(5/3) \approx 0.25 $$ (not 0.42 — see video correction at 10:18)
+    </div>
   </div>
 
   <footer>

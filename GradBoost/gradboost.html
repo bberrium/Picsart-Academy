@@ -6,6 +6,12 @@
 <title>Gradient Boost Study Guide — StatQuest Parts 1–4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] }
+  };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
 /* ── Reset & base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -95,7 +101,8 @@ body {
 
 /* ── Panels ── */
 .panel { display: none; }
-.panel.active { display: block; }
+.panel.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
 /* ── Cards ── */
 .card {
@@ -176,17 +183,16 @@ body {
 
 /* ── Formula blocks ── */
 .formula {
-  font-family: var(--mono);
-  font-size: .82rem;
+  font-family: var(--sans); /* MathJax handles fonts */
+  font-size: .95rem;
   background: #0b0e17;
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
   border-radius: 0 var(--r) var(--r) 0;
-  padding: .8rem 1rem;
+  padding: 1rem;
   color: var(--accent2);
-  margin: .6rem 0 .9rem;
+  margin: .8rem 0;
   line-height: 1.8;
-  white-space: pre;
   overflow-x: auto;
 }
 
@@ -303,14 +309,12 @@ body {
 <body>
 <div class="page">
 
-  <!-- HEADER -->
   <div class="header">
     <div class="header-label">StatQuest — Gradient Boost series</div>
     <h1>Gradient Boost study guide</h1>
     <div class="header-sub">Parts 1–4 &nbsp;·&nbsp; Regression &amp; classification</div>
   </div>
 
-  <!-- TABS -->
   <div class="tabs">
     <button class="tab active" onclick="showPanel('overview',this)">Overview</button>
     <button class="tab" onclick="showPanel('p1',this)">Part 1 — Regression ideas</button>
@@ -320,9 +324,6 @@ body {
     <button class="tab" onclick="showPanel('quiz',this)">Quiz</button>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       OVERVIEW
-  ══════════════════════════════════════════ -->
   <div id="panel-overview" class="panel active">
 
     <div class="card">
@@ -330,7 +331,6 @@ body {
       <div class="card-body">Gradient Boost is an ensemble method that builds many small decision trees <em>sequentially</em>, each one correcting the errors of the previous. It is one of the most widely used algorithms for tabular data, powering many winning solutions in machine learning competitions.</div>
     </div>
 
-    <!-- Flow diagram -->
     <div class="diagram-wrap">
       <svg width="100%" viewBox="0 0 660 160" role="img" xmlns="http://www.w3.org/2000/svg">
         <title>Gradient Boost high-level flow</title>
@@ -340,34 +340,25 @@ body {
             <path d="M2 1L8 5L2 9" fill="none" stroke="#3a4058" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </marker>
         </defs>
-        <!-- Initial leaf -->
         <rect x="12" y="56" width="110" height="48" rx="8" stroke-width="1" class="n-gray"/>
         <text font-family="Sora,sans-serif" font-size="12" font-weight="600" x="67" y="77" text-anchor="middle" class="t-gray">Initial leaf</text>
         <text font-family="Sora,sans-serif" font-size="11" x="67" y="94" text-anchor="middle" class="t-muted">mean(y)</text>
-        <!-- arrow -->
         <line x1="122" y1="80" x2="143" y2="80" stroke-width="1" class="arr-line" marker-end="url(#a1)"/>
-        <!-- Tree 1 -->
         <rect x="145" y="46" width="128" height="68" rx="8" stroke-width="1" class="n-blue"/>
         <text font-family="Sora,sans-serif" font-size="12" font-weight="600" x="209" y="68" text-anchor="middle" class="t-blue">Tree 1</text>
         <text font-family="Sora,sans-serif" font-size="10" x="209" y="84" text-anchor="middle" class="t-muted">fit residuals r₁</text>
         <text font-family="Sora,sans-serif" font-size="10" x="209" y="100" text-anchor="middle" class="t-muted">× learning rate</text>
-        <!-- arrow -->
         <line x1="273" y1="80" x2="294" y2="80" stroke-width="1" class="arr-line" marker-end="url(#a1)"/>
-        <!-- Tree 2 -->
         <rect x="296" y="46" width="128" height="68" rx="8" stroke-width="1" class="n-blue"/>
         <text font-family="Sora,sans-serif" font-size="12" font-weight="600" x="360" y="68" text-anchor="middle" class="t-blue">Tree 2</text>
         <text font-family="Sora,sans-serif" font-size="10" x="360" y="84" text-anchor="middle" class="t-muted">fit residuals r₂</text>
         <text font-family="Sora,sans-serif" font-size="10" x="360" y="100" text-anchor="middle" class="t-muted">× learning rate</text>
-        <!-- dots -->
         <text font-family="Sora,sans-serif" font-size="18" x="440" y="85" text-anchor="middle" class="t-muted">···</text>
-        <!-- arrow -->
         <line x1="456" y1="80" x2="478" y2="80" stroke-width="1" class="arr-line" marker-end="url(#a1)"/>
-        <!-- Final -->
         <rect x="480" y="46" width="162" height="68" rx="8" stroke-width="1" class="n-teal"/>
         <text font-family="Sora,sans-serif" font-size="12" font-weight="600" x="561" y="68" text-anchor="middle" class="t-teal">Final prediction</text>
         <text font-family="Sora,sans-serif" font-size="10" x="561" y="84" text-anchor="middle" class="t-muted">sum of all trees</text>
         <text font-family="Sora,sans-serif" font-size="10" x="561" y="100" text-anchor="middle" class="t-muted">+ initial leaf</text>
-        <!-- caption -->
         <text font-family="Sora,sans-serif" font-size="11" x="330" y="142" text-anchor="middle" class="caption">Each new tree corrects what all previous trees got wrong</text>
       </svg>
     </div>
@@ -390,7 +381,7 @@ body {
       <div class="card-title">Key terms at a glance</div>
       <div class="kv-table">
         <div class="kv"><span class="kv-k">Pseudo-residual</span><span class="kv-v">Observed − Predicted (error to correct)</span></div>
-        <div class="kv"><span class="kv-k">Learning rate (ν)</span><span class="kv-v">Scales each tree's contribution (0–1)</span></div>
+        <div class="kv"><span class="kv-k">Learning rate ($\nu$)</span><span class="kv-v">Scales each tree's contribution (0–1)</span></div>
         <div class="kv"><span class="kv-k">Number of leaves</span><span class="kv-v">Controls tree size; typically 8–32</span></div>
         <div class="kv"><span class="kv-k">Log(odds)</span><span class="kv-v">Initial prediction for classification</span></div>
         <div class="kv"><span class="kv-k">Logistic function</span><span class="kv-v">Converts log(odds) → probability</span></div>
@@ -398,9 +389,6 @@ body {
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       PART 1
-  ══════════════════════════════════════════ -->
   <div id="panel-p1" class="panel">
     <span class="badge badge-blue">Part 1 of 4</span>
     <div class="card">
@@ -417,7 +405,7 @@ body {
       <div class="step-row">
         <div class="step-num">2</div>
         <div class="step-text"><strong>Compute pseudo-residuals.</strong> For each sample, calculate the difference between the observed value and the current prediction. These capture exactly what the model got wrong.
-          <div class="formula">residual = observed − predicted</div>
+          <div class="formula">$$ \text{residual} = \text{observed} - \text{predicted} $$</div>
         </div>
       </div>
       <div class="step-row">
@@ -427,8 +415,8 @@ body {
       <div class="step-row">
         <div class="step-num">4</div>
         <div class="step-text"><strong>Update prediction using the learning rate.</strong>
-          <div class="formula">New prediction = prev. prediction + ν × (tree output)</div>
-          The learning rate ν scales down each tree's contribution to prevent overfitting.
+          <div class="formula">$$ \text{New prediction} = \text{prev. prediction} + \nu \times (\text{tree output}) $$</div>
+          The learning rate $\nu$ scales down each tree's contribution to prevent overfitting.
         </div>
       </div>
       <div class="step-row">
@@ -439,10 +427,9 @@ body {
 
     <div class="section-label">Why does the learning rate help?</div>
     <div class="card">
-      <div class="card-body">Friedman's original paper showed empirically that many <em>small steps</em> generalize better than a few large steps. A low ν reduces variance on the test set — at the cost of needing more trees. Typical values used in practice: <strong>0.05–0.1</strong>.</div>
+      <div class="card-body">Friedman's original paper showed empirically that many <em>small steps</em> generalize better than a few large steps. A low $\nu$ reduces variance on the test set — at the cost of needing more trees. Typical values used in practice: <strong>0.05–0.1</strong>.</div>
     </div>
 
-    <!-- Learning rate diagram -->
     <div class="diagram-wrap">
       <svg width="100%" viewBox="0 0 660 190" role="img" xmlns="http://www.w3.org/2000/svg">
         <title>Learning rate intuition: high vs low</title>
@@ -455,7 +442,6 @@ body {
             <path d="M2 1L8 5L2 9" fill="none" stroke="#38d4a4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </marker>
         </defs>
-        <!-- Left: high LR -->
         <text font-family="Sora,sans-serif" font-size="12" font-weight="600" x="165" y="24" text-anchor="middle" class="t-gray">High learning rate</text>
         <text font-family="Sora,sans-serif" font-size="10" x="165" y="40" text-anchor="middle" class="t-muted">fewer, bigger steps — can overshoot</text>
         <line x1="20" y1="128" x2="310" y2="128" stroke="#2a2f3e" stroke-width="1"/>
@@ -465,7 +451,6 @@ body {
         <line x1="187" y1="145" x2="245" y2="108" stroke="#f0705a" stroke-width="1.5" marker-end="url(#a2)"/>
         <circle cx="290" cy="128" r="5" fill="#0c2820" stroke="#38d4a4" stroke-width="1.5"/>
         <text font-family="Sora,sans-serif" font-size="10" x="295" y="148" class="t-teal">optimal</text>
-        <!-- Right: low LR -->
         <text font-family="Sora,sans-serif" font-size="12" font-weight="600" x="500" y="24" text-anchor="middle" class="t-gray">Low learning rate</text>
         <text font-family="Sora,sans-serif" font-size="10" x="500" y="40" text-anchor="middle" class="t-muted">many, small steps — converges smoothly</text>
         <line x1="350" y1="128" x2="640" y2="128" stroke="#2a2f3e" stroke-width="1"/>
@@ -478,14 +463,10 @@ body {
         <circle cx="620" cy="126" r="5" fill="#0c2820" stroke="#38d4a4" stroke-width="1.5"/>
         <text font-family="Sora,sans-serif" font-size="10" x="623" y="146" class="t-teal">optimal</text>
         <text font-family="Sora,sans-serif" font-size="10" x="330" y="175" text-anchor="middle" class="caption">Start →</text>
-        <text font-family="Sora,sans-serif" font-size="10" x="330" y="175" text-anchor="middle" class="caption"></text>
       </svg>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       PART 2
-  ══════════════════════════════════════════ -->
   <div id="panel-p2" class="panel">
     <span class="badge badge-blue">Part 2 of 4</span>
     <div class="card">
@@ -496,9 +477,10 @@ body {
     <div class="section-label">Why residuals = the gradient</div>
     <div class="card">
       <div class="card-body">
-        Squared loss: <code>L = ½(y − F)²</code><br><br>
+        Squared loss: 
+        <div class="formula" style="margin-top: 10px;">$$ L = \frac{1}{2}(y - F)^2 $$</div>
         Its negative gradient with respect to prediction F:
-        <div class="formula">−∂L/∂F = y − F  =  the residual</div>
+        <div class="formula">$$ -\frac{\partial L}{\partial F} = y - F = \text{residual} $$</div>
         Fitting each new tree to the residuals is exactly <strong>gradient descent in function space</strong>.
       </div>
     </div>
@@ -507,44 +489,41 @@ body {
     <div class="steps">
       <div class="step-row">
         <div class="step-num">F₀</div>
-        <div class="step-text"><strong>Initialize.</strong> Find the constant γ minimizing total loss. For squared loss this is the mean of y.
-          <div class="formula">F₀(x) = argminᵧ Σ L(yᵢ, γ) = mean(y)</div>
+        <div class="step-text"><strong>Initialize.</strong> Find the constant $\gamma$ minimizing total loss. For squared loss this is the mean of $y$.
+          <div class="formula">$$ F_0(x) = \arg\min_\gamma \sum L(y_i, \gamma) = \bar{y} $$</div>
         </div>
       </div>
       <div class="step-row">
         <div class="step-num">2-1</div>
-        <div class="step-text"><strong>Compute pseudo-residuals</strong> for each sample at step m:
-          <div class="formula">rᵢₘ = −∂L(yᵢ, Fₘ₋₁(xᵢ)) / ∂Fₘ₋₁(xᵢ)  =  yᵢ − Fₘ₋₁(xᵢ)</div>
+        <div class="step-text"><strong>Compute pseudo-residuals</strong> for each sample at step $m$:
+          <div class="formula">$$ r_{im} = -\left[ \frac{\partial L(y_i, F_{m-1}(x_i))}{\partial F_{m-1}(x_i)} \right] = y_i - F_{m-1}(x_i) $$</div>
         </div>
       </div>
       <div class="step-row">
         <div class="step-num">2-2</div>
-        <div class="step-text"><strong>Fit a regression tree</strong> to the pseudo-residuals. This creates J terminal regions R₁ₘ … Rⱼₘ (leaves).</div>
+        <div class="step-text"><strong>Fit a regression tree</strong> to the pseudo-residuals. This creates $J_m$ terminal regions $R_{1m} \dots R_{Jm}$ (leaves).</div>
       </div>
       <div class="step-row">
         <div class="step-num">2-3</div>
-        <div class="step-text"><strong>Find the optimal output value</strong> for each leaf j. For squared loss this is the average of residuals in that leaf:
-          <div class="formula">γⱼₘ = mean { rᵢₘ : xᵢ ∈ Rⱼₘ }</div>
+        <div class="step-text"><strong>Find the optimal output value</strong> for each leaf $j$. For squared loss this is the average of residuals in that leaf:
+          <div class="formula">$$ \gamma_{jm} = \frac{1}{|R_{jm}|} \sum_{x_i \in R_{jm}} r_{im} $$</div>
         </div>
       </div>
       <div class="step-row">
         <div class="step-num">2-4</div>
-        <div class="step-text"><strong>Update the model.</strong> Add the new tree scaled by learning rate ν:
-          <div class="formula">Fₘ(x) = Fₘ₋₁(x) + ν · Σⱼ γⱼₘ · 1(x ∈ Rⱼₘ)</div>
+        <div class="step-text"><strong>Update the model.</strong> Add the new tree scaled by learning rate $\nu$:
+          <div class="formula">$$ F_m(x) = F_{m-1}(x) + \nu \sum_{j=1}^{J_m} \gamma_{jm} I(x \in R_{jm}) $$</div>
         </div>
       </div>
     </div>
 
     <div class="section-label">Final combined prediction</div>
-    <div class="formula">F_M(x) = F₀(x) + ν·tree₁(x) + ν·tree₂(x) + … + ν·treeM(x)</div>
+    <div class="formula">$$ F_M(x) = F_0(x) + \nu \cdot \text{tree}_1(x) + \nu \cdot \text{tree}_2(x) + \dots + \nu \cdot \text{tree}_M(x) $$</div>
     <div class="card">
       <div class="card-body">The prediction accumulates contributions from <em>all</em> trees. Because each tree corrects what all previous ones got wrong, the model progressively improves. The sum converges to a strong learner from many weak learners.</div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       PART 3
-  ══════════════════════════════════════════ -->
   <div id="panel-p3" class="panel">
     <span class="badge badge-green">Part 3 of 4</span>
     <div class="card">
@@ -556,11 +535,11 @@ body {
     <div class="vs-grid">
       <div class="vs-card blue">
         <div class="vs-card-title">Regression</div>
-        <div class="vs-card-body">Initial leaf = <strong>mean(y)</strong>.<br>Residuals = y − predicted value.<br>Leaf output = average of residuals.</div>
+        <div class="vs-card-body">Initial leaf = <strong>mean($y$)</strong>.<br>Residuals = $y -$ predicted value.<br>Leaf output = average of residuals.</div>
       </div>
       <div class="vs-card green">
         <div class="vs-card-title">Classification</div>
-        <div class="vs-card-body">Initial leaf = <strong>log(odds)</strong>.<br>Residuals = observed − predicted <em>probability</em>.<br>Leaf output uses a special formula.</div>
+        <div class="vs-card-body">Initial leaf = <strong>log(odds)</strong>.<br>Residuals = observed $-$ predicted <em>probability</em>.<br>Leaf output uses a special formula.</div>
       </div>
     </div>
 
@@ -569,14 +548,15 @@ body {
       <div class="step-row">
         <div class="step-num">1</div>
         <div class="step-text"><strong>Initialize with log(odds).</strong> Count positives and negatives. The initial prediction is:
-          <div class="formula">log(odds) = log( #positives / #negatives )</div>
-          Convert to probability: <span class="hl">p = e^log(odds) / (1 + e^log(odds))</span>
+          <div class="formula">$$ \text{log(odds)} = \ln\left( \frac{\text{# positives}}{\text{# negatives}} \right) $$</div>
+          Convert to probability: 
+          <div class="formula" style="margin-top: 8px;">$$ p = \frac{e^{\text{log(odds)}}}{1 + e^{\text{log(odds)}}} $$</div>
         </div>
       </div>
       <div class="step-row">
         <div class="step-num">2</div>
         <div class="step-text"><strong>Compute pseudo-residuals.</strong> For binary classification with log-loss:
-          <div class="formula">rᵢ = Observed − Predicted probability = yᵢ − pᵢ</div>
+          <div class="formula">$$ r_i = y_i - p_i $$</div>
           These residuals range from −1 to +1.
         </div>
       </div>
@@ -587,14 +567,14 @@ body {
       <div class="step-row">
         <div class="step-num">4</div>
         <div class="step-text"><strong>Compute leaf output values</strong> using the special formula (because residuals and log-odds live in different spaces):
-          <div class="formula">γⱼ = Σ residuals / Σ [pᵢ(1 − pᵢ)]</div>
+          <div class="formula">$$ \gamma_{j} = \frac{\sum \text{residuals}}{\sum p_i(1 - p_i)} $$</div>
           The denominator is the sum of predicted probability variances in that leaf.
         </div>
       </div>
       <div class="step-row">
         <div class="step-num">5</div>
         <div class="step-text"><strong>Update log(odds) prediction:</strong>
-          <div class="formula">log(odds)_new = log(odds)_old + ν × γⱼ</div>
+          <div class="formula">$$ \text{log(odds)}_{\text{new}} = \text{log(odds)}_{\text{old}} + \nu \cdot \gamma_{j} $$</div>
           Convert to probability with the logistic function for the next residual calculation.
         </div>
       </div>
@@ -604,7 +584,6 @@ body {
       </div>
     </div>
 
-    <!-- Classification pipeline diagram -->
     <div class="diagram-wrap">
       <svg width="100%" viewBox="0 0 660 150" role="img" xmlns="http://www.w3.org/2000/svg">
         <title>Classification prediction pipeline</title>
@@ -636,9 +615,6 @@ body {
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       PART 4
-  ══════════════════════════════════════════ -->
   <div id="panel-p4" class="panel">
     <span class="badge badge-coral">Part 4 of 4</span>
     <div class="card">
@@ -648,7 +624,7 @@ body {
 
     <div class="section-label">The problem with plain averaging</div>
     <div class="card">
-      <div class="card-body">In regression, the optimal leaf value is the mean of residuals — straightforward. In classification, residuals are probability-space quantities, but updates happen in log-odds space. We must find the γ that minimizes the <em>log-loss</em> for each leaf, not just average the residuals.</div>
+      <div class="card-body">In regression, the optimal leaf value is the mean of residuals — straightforward. In classification, residuals are probability-space quantities, but updates happen in log-odds space. We must find the $\gamma$ that minimizes the <em>log-loss</em> for each leaf, not just average the residuals.</div>
     </div>
 
     <div class="section-label">Deriving the leaf output formula</div>
@@ -656,30 +632,34 @@ body {
       <div class="step-row">
         <div class="step-num">1</div>
         <div class="step-text">The loss function for classification is <strong>log-loss</strong> (binary cross-entropy):
-          <div class="formula">L = −[y·log(p) + (1−y)·log(1−p)]</div>
+          <div class="formula">$$ L = -[y_i \log(p_i) + (1-y_i) \log(1-p_i)] $$</div>
         </div>
       </div>
       <div class="step-row">
         <div class="step-num">2</div>
-        <div class="step-text">To find the γ (leaf output, added to log-odds) that minimizes this loss, take the second-order Taylor expansion around the current prediction and solve to get:
-          <div class="formula">γⱼ = Σᵢ residuals / Σᵢ [pᵢ(1 − pᵢ)]</div>
+        <div class="step-text">To find the $\gamma$ (leaf output, added to log-odds) that minimizes this loss, take the second-order Taylor expansion around the current prediction and solve to get:
+          <div class="formula">$$ \gamma_{jm} = \frac{\sum_{x_i \in R_{jm}} r_{im}}{\sum_{x_i \in R_{jm}} p_i(1 - p_i)} $$</div>
           The denominator is the sum of <em>predicted probability variances</em> in that leaf.
         </div>
       </div>
       <div class="step-row">
         <div class="step-num">3</div>
-        <div class="step-text"><strong>Intuition.</strong> When pᵢ is near 0 or 1, the model is already confident — pᵢ(1−pᵢ) is small, so those samples get less influence. When pᵢ ≈ 0.5 (uncertain), pᵢ(1−pᵢ) ≈ 0.25, so uncertain samples pull harder on the update.</div>
+        <div class="step-text"><strong>Intuition.</strong> When $p_i$ is near 0 or 1, the model is already confident — $p_i(1-p_i)$ is small, so those samples get less influence. When $p_i \approx 0.5$ (uncertain), $p_i(1-p_i) \approx 0.25$, so uncertain samples pull harder on the update.</div>
       </div>
     </div>
 
     <div class="section-label">Full classification algorithm — summary</div>
-    <div class="formula">Step 1:  F₀ = log(odds) = log(#pos / #neg)
-Step 2:  rᵢ = yᵢ − sigmoid(Fₘ₋₁(xᵢ))       ← pseudo-residuals
-Step 3:  Fit regression tree → leaves R₁…Rⱼ
-Step 4:  γⱼ = Σ rᵢ / Σ [pᵢ(1−pᵢ)]           ← leaf values
-Step 5:  Fₘ = Fₘ₋₁ + ν · Σⱼ γⱼ · 1(x∈Rⱼ)  ← update log-odds
-Step 6:  p_final = sigmoid(F_M(x))
-Step 7:  class = 1 if p_final ≥ 0.5 else 0</div>
+    <div class="formula">
+      $$ \begin{aligned}
+      \text{Step 1: } & F_0(x) = \text{log(odds)} = \ln\left(\frac{\text{# pos}}{\text{# neg}}\right) \\
+      \text{Step 2: } & r_{im} = y_i - p_{i,m-1} \quad \text{(pseudo-residuals)} \\
+      \text{Step 3: } & \text{Fit regression tree} \rightarrow \text{leaves } R_{1m} \dots R_{Jm} \\
+      \text{Step 4: } & \gamma_{jm} = \frac{\sum_{x_i \in R_{jm}} r_{im}}{\sum_{x_i \in R_{jm}} p_{i,m-1}(1-p_{i,m-1})} \quad \text{(leaf values)} \\
+      \text{Step 5: } & F_m(x) = F_{m-1}(x) + \nu \sum_{j=1}^{J_m} \gamma_{jm} I(x \in R_{jm}) \\
+      \text{Step 6: } & p_{\text{final}} = \frac{e^{F_M(x)}}{1 + e^{F_M(x)}} \\
+      \text{Step 7: } & \text{class} = 1 \text{ if } p_{\text{final}} \ge 0.5 \text{ else } 0
+      \end{aligned} $$
+    </div>
 
     <div class="card">
       <div class="card-title">Key insight: same structure, different loss</div>
@@ -687,9 +667,6 @@ Step 7:  class = 1 if p_final ≥ 0.5 else 0</div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════
-       QUIZ
-  ══════════════════════════════════════════ -->
   <div id="panel-quiz" class="panel">
     <div class="card">
       <div class="card-title">Quick-check quiz</div>
@@ -700,9 +677,7 @@ Step 7:  class = 1 if p_final ≥ 0.5 else 0</div>
     <div id="quiz-container"></div>
   </div>
 
-</div><!-- /page -->
-
-<script>
+</div><script>
 function showPanel(id, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -713,15 +688,15 @@ function showPanel(id, btn) {
 const questions = [
   {
     q: "What is the very first prediction Gradient Boost makes for a regression problem?",
-    opts: ["Zero", "The median of y", "The mean of y", "A random value"],
+    opts: ["Zero", "The median of $y$", "The mean of $y$", "A random value"],
     ans: 2,
-    exp: "Correct. Gradient Boost initializes with a single leaf outputting mean(y). This is the constant predictor that minimizes squared loss."
+    exp: "Correct. Gradient Boost initializes with a single leaf outputting $\\bar{y}$. This is the constant predictor that minimizes squared loss."
   },
   {
     q: "In Gradient Boost for regression, what are 'pseudo-residuals'?",
-    opts: ["Randomly sampled data points", "The negative gradient of the loss — equal to (observed − predicted)", "The squared errors of the previous tree", "The predictions from the most recent tree only"],
+    opts: ["Randomly sampled data points", "The negative gradient of the loss — equal to (observed $-$ predicted)", "The squared errors of the previous tree", "The predictions from the most recent tree only"],
     ans: 1,
-    exp: "Pseudo-residuals equal observed − predicted = −∂L/∂F for squared loss. They are the negative gradient, giving direction and magnitude to improve the model."
+    exp: "Pseudo-residuals equal observed $-$ predicted = $-\\frac{\\partial L}{\\partial F}$ for squared loss. They are the negative gradient, giving direction and magnitude to improve the model."
   },
   {
     q: "Why does Gradient Boost use a learning rate?",
@@ -733,31 +708,31 @@ const questions = [
     q: "In Gradient Boost for regression, if multiple samples land in the same leaf, what does that leaf output?",
     opts: ["The maximum residual in the leaf", "The sum of all residuals in the leaf", "The average of residuals in the leaf", "Zero"],
     ans: 2,
-    exp: "When the number of leaves is capped below the number of samples, some share a leaf. That leaf outputs the average of their residuals, which is the optimal γ for squared loss."
+    exp: "When the number of leaves is capped below the number of samples, some share a leaf. That leaf outputs the average of their residuals, which is the optimal $\\gamma$ for squared loss."
   },
   {
     q: "What is the initial prediction for Gradient Boost classification?",
-    opts: ["0.5 probability for all samples", "log(odds) of the target class", "The mean of the binary labels (0s and 1s)", "One divided by the number of classes"],
+    opts: ["$0.5$ probability for all samples", "log(odds) of the target class", "The mean of the binary labels (0s and 1s)", "One divided by the number of classes"],
     ans: 1,
-    exp: "Classification starts with log(#positives / #negatives). This log-odds value is the optimal constant prediction under log-loss."
+    exp: "Classification starts with $\\ln(\\text{# positives} / \\text{# negatives})$. This log-odds value is the optimal constant prediction under log-loss."
   },
   {
     q: "Why can't we simply average residuals as the leaf output in classification?",
     opts: ["Because residuals are always negative", "Because predictions are in log-odds space but residuals are in probability space — a mismatch requiring a special formula", "Because there are too many samples per leaf", "Because the learning rate is applied before the leaf value is computed"],
     ans: 1,
-    exp: "Log-odds accumulate predictions, but residuals (observed − predicted probability) live in probability space. Directly averaging them is mathematically inconsistent. The correct formula is Σresiduals / Σ[p(1−p)]."
+    exp: "Log-odds accumulate predictions, but residuals (observed $-$ predicted probability) live in probability space. Directly averaging them is mathematically inconsistent. The correct formula incorporates the variance $\\sum p(1-p)$."
   },
   {
     q: "What is the leaf output formula for classification, derived from the second-order Taylor expansion?",
-    opts: ["Mean of residuals in the leaf", "Sum of residuals × learning rate", "Σ residuals / Σ [pᵢ(1−pᵢ)]", "Σ residuals / number of leaves in the tree"],
+    opts: ["Mean of residuals in the leaf", "Sum of residuals $\\times$ learning rate", "$\\frac{\\sum \\text{residuals}}{\\sum p_i(1-p_i)}$", "$\\sum \\text{residuals}$ / number of leaves in the tree"],
     ans: 2,
-    exp: "The denominator Σ[pᵢ(1−pᵢ)] accounts for the Hessian (second derivative) of the log-loss. Samples where the model is already confident contribute less to the update."
+    exp: "The denominator $\\sum p_i(1-p_i)$ accounts for the Hessian (second derivative) of the log-loss. Samples where the model is already confident contribute less to the update."
   },
   {
     q: "How is the final class label produced in Gradient Boost classification?",
     opts: ["Whichever tree had the most votes", "Convert the summed log-odds to a probability via the logistic function, then apply a 0.5 threshold", "Average the raw outputs of all trees directly", "Take the sign of the final accumulated log-odds"],
     ans: 1,
-    exp: "The accumulated log-odds are converted to a probability using sigmoid: p = e^log(odds) / (1 + e^log(odds)). If p ≥ 0.5, predict class 1; otherwise class 0."
+    exp: "The accumulated log-odds are converted to a probability using sigmoid: $p = \\frac{e^{\\text{log(odds)}}}{1 + e^{\\text{log(odds)}}}$. If $p \\geq 0.5$, predict class 1; otherwise class 0."
   }
 ];
 
@@ -768,7 +743,8 @@ let answered = false;
 function renderQuestion() {
   const q = questions[current];
   document.getElementById('qprogress').style.width = (current / questions.length * 100) + '%';
-  document.getElementById('quiz-container').innerHTML = `
+  const container = document.getElementById('quiz-container');
+  container.innerHTML = `
     <div class="card">
       <div class="quiz-counter">${current + 1} / ${questions.length}</div>
       <div class="quiz-q">${q.q}</div>
@@ -776,6 +752,8 @@ function renderQuestion() {
       <div class="quiz-feedback" id="qfb"></div>
       <button class="next-btn" id="qnext" onclick="nextQ()">${current < questions.length - 1 ? 'Next question →' : 'See results'}</button>
     </div>`;
+  
+  if (window.MathJax) { MathJax.typesetPromise([container]); }
   answered = false;
 }
 
@@ -791,9 +769,11 @@ function answer(i) {
     btn.disabled = true;
   });
   const fb = document.getElementById('qfb');
-  fb.textContent = q.exp;
+  fb.innerHTML = q.exp;
   fb.className = 'quiz-feedback show ' + (correct ? 'ok' : 'no');
   document.getElementById('qnext').classList.add('show');
+  
+  if (window.MathJax) { MathJax.typesetPromise([fb]); }
 }
 
 function nextQ() {
