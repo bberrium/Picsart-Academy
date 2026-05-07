@@ -1,304 +1,736 @@
-
-<h2 class="sr-only">AdaBoost interactive study guide covering the three main ideas, decision stumps, amount of say, and sample weight updates</h2>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdaBoost — Interactive Study Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  .ada-wrap { max-width: 680px; font-size: 14px; padding: 0 0 2rem; }
-  .section-pill { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; margin-bottom: 8px; background: var(--color-background-info); color: var(--color-text-info); }
-  .concept-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 12px; }
-  .concept-card h3 { font-size: 15px; font-weight: 500; margin: 0 0 6px; }
-  .concept-card p { font-size: 13px; color: var(--color-text-secondary); margin: 0; line-height: 1.6; }
-  .stepper-nav { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .step-btn { font-size: 12px; padding: 5px 12px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
-  .step-btn.active { background: var(--color-background-info); color: var(--color-text-info); border-color: transparent; font-weight: 500; }
-  .step-btn:hover:not(.active) { background: var(--color-background-secondary); }
-  .step-panel { display: none; }
-  .step-panel.active { display: block; }
-  .formula-box { background: var(--color-background-secondary); border-left: 3px solid var(--color-border-info); border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; padding: 10px 14px; font-family: var(--font-mono); font-size: 13px; color: var(--color-text-primary); margin: 12px 0; }
-  .highlight { color: var(--color-text-info); font-weight: 500; }
-  .warn { color: var(--color-text-warning); font-weight: 500; }
-  .good { color: var(--color-text-success); font-weight: 500; }
-  .metric-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 12px 0; }
-  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; text-align: center; }
-  .metric .val { font-size: 22px; font-weight: 500; margin-bottom: 2px; }
-  .metric .lbl { font-size: 11px; color: var(--color-text-secondary); }
-  .sample-row { display: flex; gap: 8px; align-items: center; margin: 6px 0; font-size: 13px; }
-  .sample-dot { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
-  .dot-correct { background: #EAF3DE; color: #3B6D11; }
-  .dot-wrong   { background: #FCEBEB; color: #A32D2D; }
-  .weight-bar { height: 8px; border-radius: 4px; background: var(--color-border-tertiary); flex: 1; overflow: hidden; }
-  .weight-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
-  .fill-hi { background: #E85D24; }
-  .fill-lo { background: #1D9E75; }
-  .fill-md { background: #378ADD; }
-  .interactive-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
-  .interactive-area { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1rem; margin: 12px 0; }
-  #say-output { font-size: 20px; font-weight: 500; margin: 8px 0 2px; }
-  #say-desc { font-size: 12px; color: var(--color-text-secondary); }
-  .key-insight { border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 10px 14px; margin: 10px 0; background: var(--color-background-primary); font-size: 13px; line-height: 1.6; }
-  .key-insight::before { content: "💡 "; }
-  .tab-divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 16px 0; }
-  .classifier-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; font-size: 13px; }
-  .stump-icon { width: 36px; height: 36px; border-radius: var(--border-radius-md); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; }
-  .s-blue { background: #E6F1FB; color: #0C447C; }
-  .s-amber { background: #FAEEDA; color: #633806; }
-  .s-teal { background: #E1F5EE; color: #085041; }
-  .vote-bar { display: flex; gap: 2px; align-items: center; flex: 1; }
-  .vote-seg { height: 10px; border-radius: 2px; transition: width 0.4s; }
-  .v-yes { background: #1D9E75; }
-  .v-no  { background: #E24B4A; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f3ee;
+    --surface: #ffffff;
+    --surface2: #eeece7;
+    --border: rgba(60,55,45,0.14);
+    --border-md: rgba(60,55,45,0.25);
+    --text: #1c1a16;
+    --text-muted: #6b6860;
+    --text-faint: #9b9890;
+    --blue: #1a5fb4;
+    --blue-bg: #e8f0fb;
+    --blue-text: #0d3a80;
+    --teal: #0a6740;
+    --teal-bg: #d9f5e8;
+    --teal-text: #074d30;
+    --amber: #8a5200;
+    --amber-bg: #fef3d8;
+    --amber-text: #6b3d00;
+    --red: #b01e1e;
+    --red-bg: #fde8e8;
+    --red-text: #881515;
+    --green: #2e7d32;
+    --green-bg: #e6f4ea;
+    --green-text: #1b5e20;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Syne', system-ui, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12110e;
+      --surface: #1e1c18;
+      --surface2: #2a2822;
+      --border: rgba(255,250,240,0.1);
+      --border-md: rgba(255,250,240,0.2);
+      --text: #f0ede5;
+      --text-muted: #9e9b93;
+      --text-faint: #6b6860;
+      --blue: #7ab3f5;
+      --blue-bg: #0d2545;
+      --blue-text: #aed0fa;
+      --teal: #4ecb8a;
+      --teal-bg: #052e1a;
+      --teal-text: #7de0aa;
+      --amber: #f0b840;
+      --amber-bg: #2e1e04;
+      --amber-text: #f5cc70;
+      --red: #f07878;
+      --red-bg: #2e0a0a;
+      --red-text: #f5a0a0;
+      --green: #66bb6a;
+      --green-bg: #0a2e0c;
+      --green-text: #90d494;
+    }
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .page-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  /* ── Header ── */
+  header { margin-bottom: 3rem; }
+  .eyebrow {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border: 1px solid var(--border-md);
+    border-radius: 20px;
+    padding: 3px 12px;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 560px;
+    line-height: 1.7;
+  }
+
+  /* ── Section headings ── */
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 12px;
+    margin-top: 3rem;
+  }
+
+  /* ── Concept cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 10px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  .card-body {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+  .card.accent-blue  { border-left: 3px solid var(--blue); }
+  .card.accent-amber { border-left: 3px solid var(--amber); }
+  .card.accent-teal  { border-left: 3px solid var(--teal); }
+
+  /* ── Tab nav ── */
+  .tab-nav {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .tab-btn {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border-md);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { background: var(--surface2); }
+  .tab-btn.active {
+    background: var(--blue-bg);
+    color: var(--blue-text);
+    border-color: transparent;
+    font-weight: 600;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Interactive area ── */
+  .ia {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+    margin: 10px 0;
+  }
+  .ia-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .ia-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 10px;
+  }
+
+  /* ── Formula ── */
+  .formula {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--bg);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 9px 14px;
+    margin: 10px 0;
+    color: var(--text);
+    overflow-x: auto;
+  }
+
+  /* ── Sliders & controls ── */
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+  }
+  .ctrl-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-width: 88px;
+    white-space: nowrap;
+  }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border-md);
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--blue);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    border: 2px solid var(--surface);
+  }
+
+  /* ── Big output numbers ── */
+  .big-out {
+    text-align: center;
+    padding: 10px 0 4px;
+  }
+  .big-num {
+    font-size: 26px;
+    font-weight: 600;
+    font-family: var(--mono);
+    transition: color 0.3s;
+  }
+  .big-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+  .mini-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .mini-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s, background 0.3s;
+  }
+
+  /* ── Sample weight rows ── */
+  .sw-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 5px 0;
+    font-size: 12px;
+  }
+  .sw-dot {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .dot-ok  { background: var(--green-bg);  color: var(--green-text); }
+  .dot-err { background: var(--red-bg);    color: var(--red-text); }
+  .sw-bar { flex: 1; height: 7px; border-radius: 3px; background: var(--border); overflow: hidden; }
+  .sw-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+  .fill-ok  { background: var(--teal); }
+  .fill-err { background: var(--red); }
+
+  /* ── Classifier rows ── */
+  .clf-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 7px 0;
+    font-size: 13px;
+  }
+  .stump-badge {
+    width: 34px; height: 34px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .sb-blue  { background: var(--blue-bg);  color: var(--blue-text); }
+  .sb-amber { background: var(--amber-bg); color: var(--amber-text); }
+  .sb-teal  { background: var(--teal-bg);  color: var(--teal-text); }
+  .vote-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+  .vp-yes { background: var(--green-bg); color: var(--green-text); }
+  .vp-no  { background: var(--red-bg);   color: var(--red-text); }
+
+  /* ── Tally bars ── */
+  .tally-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 7px 0;
+    font-size: 13px;
+  }
+  .tally-label { min-width: 80px; font-weight: 500; }
+  .tally-bar { flex: 1; height: 9px; border-radius: 4px; background: var(--border); overflow: hidden; }
+  .tally-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
+  .tf-yes { background: var(--teal); }
+  .tf-no  { background: var(--red); }
+
+  /* ── Key insight ── */
+  .insight {
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--text-muted);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin: 12px 0;
+  }
+  .insight::before { content: "💡 "; }
+
+  /* ── Divider ── */
+  hr.div { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* ── Compare grid ── */
+  .cmp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .cmp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+  }
+  .cmp-head { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .cmp-list { font-size: 12px; color: var(--text-muted); line-height: 2; padding-left: 14px; }
+
+  /* ── Algorithm steps ── */
+  .algo-steps {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 2;
+  }
+  .algo-steps span { color: var(--text); font-weight: 600; }
+
+  /* ── SVG diagram ── */
+  .diagram-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    overflow: hidden;
+  }
+  .diagram-wrap svg text { font-family: var(--mono); }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  footer a { color: var(--blue); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
 </style>
+</head>
+<body>
+<div class="page-wrap">
 
-<div class="ada-wrap">
-  <div style="margin-bottom: 20px;">
-    <div class="section-pill">StatQuest — AdaBoost</div>
-    <h1 style="font-size: 20px; font-weight: 500; margin: 4px 0 6px;">AdaBoost, clearly explained</h1>
-    <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0; line-height: 1.6;">Adaptive Boosting builds a strong classifier from many weak ones (decision stumps), by iteratively focusing on the hardest examples.</p>
+  <header>
+    <div class="eyebrow">StatQuest — Machine Learning</div>
+    <h1>AdaBoost, clearly explained</h1>
+    <p class="subtitle">Adaptive Boosting builds a strong classifier from many weak decision stumps, iteratively focusing on the hardest examples.</p>
+  </header>
+
+  <!-- 3 Core Ideas -->
+  <div class="section-label">The 3 core ideas</div>
+  <div class="card accent-blue">
+    <div class="card-title">1. Forest of stumps, not full trees</div>
+    <div class="card-body">AdaBoost uses <em>decision stumps</em> — trees with only one split. Each stump is a weak learner, slightly better than random guessing.</div>
+  </div>
+  <div class="card accent-amber">
+    <div class="card-title">2. Stumps have different amounts of say</div>
+    <div class="card-body">Unlike Random Forests (equal votes), each AdaBoost stump gets a weight called <strong>Amount of Say (α)</strong> based on accuracy. Better stumps influence the final answer more.</div>
+  </div>
+  <div class="card accent-teal">
+    <div class="card-title">3. Stumps are made sequentially — errors inform the next</div>
+    <div class="card-body">Each stump is built knowing what the previous one got wrong. Misclassified samples get higher weights so the next stump focuses on them.</div>
   </div>
 
-  <!-- Three Main Ideas -->
-  <div style="margin-bottom: 4px; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: 0.04em; text-transform: uppercase;">The 3 core ideas</div>
-  <div class="concept-card" style="border-left: 3px solid #378ADD;">
-    <h3><span class="highlight">1.</span> Use a forest of stumps, not trees</h3>
-    <p>AdaBoost uses decision stumps — trees with only one split (one question). Each stump is a <em>weak learner</em>, slightly better than random chance.</p>
-  </div>
-  <div class="concept-card" style="border-left: 3px solid #EF9F27;">
-    <h3><span class="warn">2.</span> Stumps have different amounts of say</h3>
-    <p>Unlike Random Forests where all trees vote equally, each AdaBoost stump gets a weight called <strong>Amount of Say</strong> based on how accurate it is. Better stumps get more influence.</p>
-  </div>
-  <div class="concept-card" style="border-left: 3px solid #1D9E75;">
-    <h3><span class="good">3.</span> Stumps are made sequentially, errors inform the next</h3>
-    <p>Each stump is built knowing what the previous one got wrong. Misclassified samples get higher weights, so the next stump focuses more on them.</p>
+  <!-- Pipeline diagram -->
+  <div class="section-label">Sequential boosting pipeline</div>
+  <div class="diagram-wrap">
+    <svg width="100%" viewBox="0 0 720 170" role="img" aria-label="AdaBoost pipeline: Dataset with equal weights feeds into Stump 1, then weight update, then Stump 2, continuing sequentially to Stump N, whose outputs are combined via weighted sum into final prediction">
+      <title>AdaBoost sequential pipeline</title>
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 2L8 5L2 8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <style>
+        .d-box { fill: var(--surface2); stroke: var(--border-md); stroke-width: 1; rx: 8; }
+        .d-blue  { fill: var(--blue-bg);  stroke: var(--blue);  stroke-width: 1; }
+        .d-amber { fill: var(--amber-bg); stroke: var(--amber); stroke-width: 1; }
+        .d-teal  { fill: var(--teal-bg);  stroke: var(--teal);  stroke-width: 1; }
+        .d-t  { font-size: 11px; font-weight: 600; fill: var(--text); }
+        .d-s  { font-size: 10px; fill: var(--text-muted); }
+        .d-arr{ stroke: var(--text-faint); stroke-width: 1.2; fill: none; marker-end: url(#arr); }
+      </style>
+
+      <!-- Dataset -->
+      <rect class="d-box" x="10" y="50" width="88" height="48" rx="8"/>
+      <text class="d-t" x="54" y="71" text-anchor="middle">Dataset</text>
+      <text class="d-s" x="54" y="87" text-anchor="middle">equal weights</text>
+      <line class="d-arr" x1="98" y1="74" x2="118" y2="74"/>
+
+      <!-- Stump 1 -->
+      <rect class="d-blue" x="120" y="50" width="88" height="48" rx="8"/>
+      <text class="d-t" x="164" y="71" text-anchor="middle" style="fill:var(--blue-text)">Stump 1</text>
+      <text class="d-s" x="164" y="87" text-anchor="middle" style="fill:var(--blue-text)">best Gini split</text>
+      <line class="d-arr" x1="208" y1="74" x2="228" y2="74"/>
+
+      <!-- Update 1 -->
+      <rect class="d-amber" x="230" y="50" width="88" height="48" rx="8"/>
+      <text class="d-t" x="274" y="67" text-anchor="middle" style="fill:var(--amber-text)">Update</text>
+      <text class="d-t" x="274" y="80" text-anchor="middle" style="fill:var(--amber-text)">weights</text>
+      <text class="d-s" x="274" y="94" text-anchor="middle" style="fill:var(--amber-text)">errors ↑ ok ↓</text>
+      <line class="d-arr" x1="318" y1="74" x2="338" y2="74"/>
+
+      <!-- Stump 2 -->
+      <rect class="d-blue" x="340" y="50" width="88" height="48" rx="8"/>
+      <text class="d-t" x="384" y="71" text-anchor="middle" style="fill:var(--blue-text)">Stump 2</text>
+      <text class="d-s" x="384" y="87" text-anchor="middle" style="fill:var(--blue-text)">weighted split</text>
+      <line class="d-arr" x1="428" y1="74" x2="448" y2="74"/>
+
+      <!-- Ellipsis + Stump N -->
+      <text class="d-s" x="458" y="78" text-anchor="middle">···</text>
+      <line class="d-arr" x1="470" y1="74" x2="488" y2="74"/>
+      <rect class="d-blue" x="490" y="50" width="80" height="48" rx="8"/>
+      <text class="d-t" x="530" y="71" text-anchor="middle" style="fill:var(--blue-text)">Stump N</text>
+      <text class="d-s" x="530" y="87" text-anchor="middle" style="fill:var(--blue-text)">weighted split</text>
+      <line class="d-arr" x1="570" y1="74" x2="590" y2="74"/>
+
+      <!-- Weighted sum -->
+      <rect class="d-teal" x="592" y="44" width="100" height="60" rx="8"/>
+      <text class="d-t" x="642" y="65" text-anchor="middle" style="fill:var(--teal-text)">Σ αₜhₜ(x)</text>
+      <text class="d-s" x="642" y="80" text-anchor="middle" style="fill:var(--teal-text)">weighted sum</text>
+      <text class="d-s" x="642" y="95" text-anchor="middle" style="fill:var(--teal-text)">sign → class</text>
+
+      <!-- Bottom label -->
+      <text class="d-s" x="360" y="138" text-anchor="middle">Each stump trains on the same data, but with updated sample weights — errors get more attention</text>
+    </svg>
   </div>
 
-  <hr class="tab-divider">
-
-  <!-- Tabbed deep dives -->
-  <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 10px;">Deep dives</div>
-  <div class="stepper-nav">
-    <button class="step-btn active" onclick="showStep('gini')">Gini index</button>
-    <button class="step-btn" onclick="showStep('say')">Amount of say</button>
-    <button class="step-btn" onclick="showStep('weights')">Weight update</button>
-    <button class="step-btn" onclick="showStep('classify')">Classification</button>
-    <button class="step-btn" onclick="showStep('vs')">vs Random Forest</button>
+  <!-- Deep dives -->
+  <div class="section-label">Deep dives</div>
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('gini',this)">Gini index</button>
+    <button class="tab-btn" onclick="showTab('say',this)">Amount of say</button>
+    <button class="tab-btn" onclick="showTab('weights',this)">Weight update</button>
+    <button class="tab-btn" onclick="showTab('classify',this)">Classification</button>
+    <button class="tab-btn" onclick="showTab('vs',this)">vs Random Forest</button>
   </div>
 
-  <!-- GINI -->
-  <div id="panel-gini" class="step-panel active">
-    <div class="interactive-area">
-      <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Building the first stump — Gini index</div>
-      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 10px; line-height: 1.6;">AdaBoost evaluates all possible features and picks the stump with the lowest Gini impurity as the first weak learner.</p>
-      <div class="formula-box">Gini = 1 − Σ(pᵢ)²</div>
-      <p style="font-size: 12px; color: var(--color-text-secondary); margin: 6px 0 12px; line-height: 1.6;">A Gini of <strong>0</strong> = perfect purity (all same class). A Gini of <strong>0.5</strong> = maximum impurity (50/50 split).</p>
-      <div class="interactive-label">Adjust correct/incorrect in a leaf to see Gini:</div>
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-        <span style="font-size: 12px; min-width: 70px;">✅ Correct: <span id="gini-c-val">3</span></span>
-        <input type="range" min="0" max="8" value="3" id="gini-c" style="flex:1" oninput="updateGini()">
+  <!-- GINI TAB -->
+  <div id="tab-gini" class="tab-panel active">
+    <div class="ia">
+      <div class="ia-title">Building the first stump — Gini impurity</div>
+      <div class="ia-text">AdaBoost evaluates all features and picks the stump with the lowest weighted Gini impurity as the first weak learner.</div>
+      <div class="formula">Gini = 1 − Σ(pᵢ)²</div>
+      <div class="ia-text">Gini = <strong>0</strong> → perfect purity (all same class)&nbsp;&nbsp;|&nbsp;&nbsp;Gini = <strong>0.5</strong> → max impurity (50/50 split)</div>
+      <div class="ctrl-row">
+        <span class="ctrl-label">✅ Correct: <strong id="gc-val">3</strong></span>
+        <input type="range" min="0" max="8" value="3" id="gc-sl" oninput="updateGini()">
       </div>
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-        <span style="font-size: 12px; min-width: 70px;">❌ Wrong: <span id="gini-w-val">1</span></span>
-        <input type="range" min="0" max="8" value="1" id="gini-w" style="flex:1" oninput="updateGini()">
+      <div class="ctrl-row">
+        <span class="ctrl-label">❌ Wrong: <strong id="gw-val">1</strong></span>
+        <input type="range" min="0" max="8" value="1" id="gw-sl" oninput="updateGini()">
       </div>
-      <div style="text-align: center;">
-        <div id="gini-output" style="font-size: 22px; font-weight: 500;">Gini = 0.375</div>
-        <div id="gini-label" style="font-size: 12px; color: var(--color-text-secondary);">Somewhat impure</div>
-      </div>
-    </div>
-    <div class="key-insight">The stump with the lowest weighted Gini impurity (using sample weights) is selected as the first weak learner.</div>
-  </div>
-
-  <!-- AMOUNT OF SAY -->
-  <div id="panel-say" class="step-panel">
-    <div class="interactive-area">
-      <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Amount of Say (α) — stump influence weight</div>
-      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 10px; line-height: 1.6;">After a stump is built, we compute how much it should influence the final prediction:</p>
-      <div class="formula-box">α = ½ × log( (1 − Total Error) / Total Error )</div>
-      <p style="font-size: 12px; color: var(--color-text-secondary); margin: 6px 0 12px; line-height: 1.6;">Total Error = sum of weights of misclassified samples. For the first stump, all weights start at 1/N.</p>
-      <div class="interactive-label">Drag Total Error to see Amount of Say change:</div>
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-        <span style="font-size: 12px; min-width: 90px;">Error: <span id="err-val">0.30</span></span>
-        <input type="range" min="1" max="99" value="30" id="err-slider" style="flex:1" oninput="updateSay()">
-      </div>
-      <div style="text-align: center; padding: 8px 0;">
-        <div id="say-output">α = 0.42</div>
-        <div id="say-desc">Good classifier — has positive say</div>
-        <div style="margin-top: 8px; height: 6px; border-radius: 3px; background: var(--color-border-tertiary); overflow: hidden;">
-          <div id="say-bar" style="height: 100%; border-radius: 3px; background: #1D9E75; width: 60%; transition: width 0.3s, background 0.3s;"></div>
-        </div>
+      <div class="big-out">
+        <div class="big-num" id="gini-out">Gini = 0.375</div>
+        <div class="big-desc" id="gini-lbl">Somewhat impure</div>
       </div>
     </div>
-    <div class="key-insight">When error = 0.5 (random guessing), α = 0. When error > 0.5, α goes negative — AdaBoost can still use it by flipping its prediction!</div>
+    <div class="insight">The stump with the lowest <em>weighted</em> Gini impurity (using current sample weights) is selected each round.</div>
   </div>
 
-  <!-- WEIGHT UPDATE -->
-  <div id="panel-weights" class="step-panel">
-    <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Updating sample weights</div>
-    <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 10px; line-height: 1.6;">After each stump, weights are updated so the next stump pays more attention to hard cases.</p>
-    <div class="formula-box" style="margin-bottom: 6px;">Misclassified: new w = w × e^α   <span style="color: #E24B4A;">↑ higher</span></div>
-    <div class="formula-box" style="margin-bottom: 12px;">Correctly classified: new w = w × e^(−α)   <span style="color: #1D9E75;">↓ lower</span></div>
-    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 10px; line-height: 1.6;">Then all weights are normalized so they sum to 1. Visualize 8 samples, α = 0.42:</p>
-    <div id="weight-samples"></div>
-    <div class="interactive-label" style="margin-top: 10px;">Change α to see weight redistribution:</div>
-    <div style="display: flex; align-items: center; gap: 10px; margin: 4px 0 10px;">
-      <span style="font-size: 12px; min-width: 60px;">α: <span id="alpha-val">0.42</span></span>
-      <input type="range" min="1" max="200" value="42" id="alpha-slider" style="flex:1" oninput="updateWeights()">
+  <!-- AMOUNT OF SAY TAB -->
+  <div id="tab-say" class="tab-panel">
+    <div class="ia">
+      <div class="ia-title">Amount of Say (α) — stump influence weight</div>
+      <div class="ia-text">After building a stump, compute how much it should influence the final prediction:</div>
+      <div class="formula">α = ½ × log( (1 − Total Error) / Total Error )</div>
+      <div class="ia-text">Total Error = sum of weights of misclassified samples. On the first stump, all sample weights = 1/N.</div>
+      <div class="ctrl-row">
+        <span class="ctrl-label">Error: <strong id="err-val">0.30</strong></span>
+        <input type="range" min="1" max="99" value="30" id="err-sl" oninput="updateSay()">
+      </div>
+      <div class="big-out">
+        <div class="big-num" id="say-out">α = 0.423</div>
+        <div class="big-desc" id="say-desc">Good classifier — positive say</div>
+        <div class="mini-bar"><div class="mini-fill" id="say-bar" style="width:60%;background:var(--teal)"></div></div>
+      </div>
     </div>
-    <div class="key-insight">Normalization ensures the weights always sum to 1, so they can be used as probabilities when resampling the dataset for the next stump.</div>
+    <div class="insight">When error = 0.5 (random guessing), α = 0. When error &gt; 0.5, α goes <em>negative</em> — AdaBoost flips the stump's predictions and still uses it!</div>
   </div>
 
-  <!-- CLASSIFICATION -->
-  <div id="panel-classify" class="step-panel">
-    <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Making final classifications</div>
-    <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 12px; line-height: 1.6;">Each stump votes for a class, weighted by its α. The final prediction is the class with the highest total α-weighted votes.</p>
-    <div id="classifiers"></div>
-    <hr class="tab-divider">
-    <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">Tally for sample X:</div>
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px;">
-      <span style="color: var(--color-text-success); font-weight: 500; min-width: 80px;">✅ Yes votes</span>
-      <div class="weight-bar" style="flex:1"><div class="weight-fill fill-lo" id="yes-bar" style="width: 68%"></div></div>
-      <span id="yes-sum" style="min-width: 40px; font-size: 13px;">0.68</span>
+  <!-- WEIGHT UPDATE TAB -->
+  <div id="tab-weights" class="tab-panel">
+    <div class="ia">
+      <div class="ia-title">Updating sample weights after each stump</div>
+      <div class="ia-text">Misclassified samples get higher weight; correctly classified get lower weight. Then all weights are normalized to sum to 1.</div>
+      <div class="formula">Misclassified: w_new = w × e^α &nbsp;↑ higher</div>
+      <div class="formula" style="border-color: var(--teal);">Correct: w_new = w × e^(−α) &nbsp;↓ lower</div>
+      <div class="ctrl-row" style="margin-top:12px;">
+        <span class="ctrl-label">α: <strong id="alpha-val">0.42</strong></span>
+        <input type="range" min="1" max="200" value="42" id="alpha-sl" oninput="updateWeights()">
+      </div>
+      <div id="sw-container" style="margin-top:10px;"></div>
     </div>
-    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 13px;">
-      <span style="color: var(--color-text-danger); font-weight: 500; min-width: 80px;">❌ No votes</span>
-      <div class="weight-bar" style="flex:1"><div class="weight-fill fill-hi" id="no-bar" style="width: 32%"></div></div>
-      <span id="no-sum" style="min-width: 40px; font-size: 13px;">0.32</span>
-    </div>
-    <div style="background: var(--color-background-info); border-radius: var(--border-radius-md); padding: 10px 14px; font-size: 13px; color: var(--color-text-info); font-weight: 500;">
-      → Final prediction: <span id="final-pred">YES</span> (sum of α: YES = 0.68, NO = 0.32)
-    </div>
-    <div class="key-insight">Unlike a simple majority vote, stumps with higher accuracy (higher α) count more — a single great stump can outweigh several mediocre ones.</div>
+    <div class="insight">Normalization ensures weights always sum to 1, so they can serve as sampling probabilities when building the next stump.</div>
   </div>
 
-  <!-- VS RANDOM FOREST -->
-  <div id="panel-vs" class="step-panel">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-      <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem;">
-        <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #185FA5;">Random Forest</div>
-        <ul style="font-size: 12px; color: var(--color-text-secondary); line-height: 2; margin: 0; padding-left: 16px;">
+  <!-- CLASSIFY TAB -->
+  <div id="tab-classify" class="tab-panel">
+    <div class="ia">
+      <div class="ia-title">Making the final prediction</div>
+      <div class="ia-text">Each stump votes for a class, weighted by α. The class with the highest total α-weighted votes wins.</div>
+      <div id="clf-list"></div>
+      <hr class="div" style="margin:14px 0;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Vote tally for sample X:</div>
+      <div class="tally-row">
+        <span class="tally-label" style="color:var(--teal)">✅ Yes</span>
+        <div class="tally-bar"><div class="tally-fill tf-yes" id="yes-bar" style="width:68%"></div></div>
+        <span id="yes-sum" style="font-size:13px;min-width:38px;text-align:right;font-family:var(--mono)">0.68</span>
+      </div>
+      <div class="tally-row">
+        <span class="tally-label" style="color:var(--red)">❌ No</span>
+        <div class="tally-bar"><div class="tally-fill tf-no" id="no-bar" style="width:32%"></div></div>
+        <span id="no-sum" style="font-size:13px;min-width:38px;text-align:right;font-family:var(--mono)">0.32</span>
+      </div>
+      <div style="background:var(--teal-bg);border-radius:var(--radius-sm);padding:9px 14px;font-size:13px;color:var(--teal-text);font-weight:600;margin-top:12px;">
+        → Final prediction: <span id="final-pred">YES</span>
+      </div>
+    </div>
+    <div class="insight">Unlike a majority vote, a single highly-accurate stump (high α) can outweigh several mediocre ones.</div>
+  </div>
+
+  <!-- VS TAB -->
+  <div id="tab-vs" class="tab-panel">
+    <div class="cmp-grid">
+      <div class="cmp-card" style="border-left:3px solid var(--blue)">
+        <div class="cmp-head" style="color:var(--blue-text)">Random Forest</div>
+        <ul class="cmp-list">
           <li>Full decision trees</li>
-          <li>Trees built independently</li>
+          <li>Built independently</li>
           <li>All trees vote equally</li>
-          <li>Bagging (bootstrap samples)</li>
+          <li>Bagging (bootstrap)</li>
           <li>Reduces variance</li>
           <li>Parallel training ✓</li>
         </ul>
       </div>
-      <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem;">
-        <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px; color: #0F6E56;">AdaBoost</div>
-        <ul style="font-size: 12px; color: var(--color-text-secondary); line-height: 2; margin: 0; padding-left: 16px;">
-          <li>Decision stumps (1 split)</li>
-          <li>Sequential, each depends on last</li>
+      <div class="cmp-card" style="border-left:3px solid var(--teal)">
+        <div class="cmp-head" style="color:var(--teal-text)">AdaBoost</div>
+        <ul class="cmp-list">
+          <li>Decision stumps only</li>
+          <li>Sequential — depend on last</li>
           <li>Weighted votes (α)</li>
-          <li>Boosting (re-weight samples)</li>
+          <li>Boosting (re-weight)</li>
           <li>Reduces bias</li>
           <li>Sequential only ✗</li>
         </ul>
       </div>
     </div>
-    <div class="key-insight">AdaBoost is a <em>boosting</em> method — it converts many weak classifiers into one strong one. Random Forests use <em>bagging</em> to reduce the variance of strong classifiers.</div>
-    <hr class="tab-divider">
-    <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px;">The AdaBoost algorithm — step by step</div>
-    <div style="font-size: 13px; line-height: 1.9; color: var(--color-text-secondary);">
-      <span style="color: var(--color-text-primary); font-weight: 500;">1.</span> Initialize sample weights: w = 1/N<br>
-      <span style="color: var(--color-text-primary); font-weight: 500;">2.</span> Find best stump using weighted Gini<br>
-      <span style="color: var(--color-text-primary); font-weight: 500;">3.</span> Compute Total Error = Σw of misclassified<br>
-      <span style="color: var(--color-text-primary); font-weight: 500;">4.</span> Compute α = ½ log((1−ε)/ε)<br>
-      <span style="color: var(--color-text-primary); font-weight: 500;">5.</span> Update weights: ↑ misclassified, ↓ correct<br>
-      <span style="color: var(--color-text-primary); font-weight: 500;">6.</span> Normalize weights to sum to 1<br>
-      <span style="color: var(--color-text-primary); font-weight: 500;">7.</span> Repeat from step 2 until done<br>
-      <span style="color: var(--color-text-primary); font-weight: 500;">8.</span> Final class = sign(Σ αₜ × hₜ(x))
+    <div class="insight">AdaBoost is a <em>boosting</em> method — converts weak classifiers into one strong one. Random Forests use <em>bagging</em> to reduce variance of strong classifiers.</div>
+    <hr class="div">
+    <div style="font-size:12px;font-weight:600;color:var(--text-faint);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;">Full algorithm</div>
+    <div class="algo-steps">
+      <span>1.</span> Initialize: w = 1/N for all samples<br>
+      <span>2.</span> Find best stump using weighted Gini<br>
+      <span>3.</span> Compute Total Error = Σw of misclassified samples<br>
+      <span>4.</span> Compute α = ½ log((1−ε)/ε)<br>
+      <span>5.</span> Update weights: ↑ misclassified × e^α, ↓ correct × e^(−α)<br>
+      <span>6.</span> Normalize all weights to sum to 1<br>
+      <span>7.</span> Repeat from step 2 for T rounds<br>
+      <span>8.</span> Final: sign(Σ αₜ × hₜ(x)) → class
     </div>
+    <div class="formula" style="margin-top:14px;">Note: For Chest Pain stump, α = ½·log(5/3) ≈ 0.25 (not 0.42 — see video correction at 10:18)</div>
   </div>
+
+  <footer>
+    <span>Source: <a href="https://youtu.be/LsK-xG1cLYA" target="_blank" rel="noopener">StatQuest with Josh Starmer — AdaBoost</a></span>
+    <span>Original paper: Schapire &amp; Freund (1999)</span>
+  </footer>
 </div>
 
 <script>
-function showStep(id) {
-  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('panel-'+id).classList.add('active');
-  event.target.classList.add('active');
-}
+  function showTab(id, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
 
-function updateGini() {
-  const c = +document.getElementById('gini-c').value;
-  const w = +document.getElementById('gini-w').value;
-  document.getElementById('gini-c-val').textContent = c;
-  document.getElementById('gini-w-val').textContent = w;
-  const n = c + w;
-  if (n === 0) { document.getElementById('gini-output').textContent = 'Gini = N/A'; return; }
-  const pc = c/n, pw = w/n;
-  const g = 1 - pc*pc - pw*pw;
-  document.getElementById('gini-output').textContent = 'Gini = ' + g.toFixed(3);
-  const lbl = g < 0.05 ? 'Very pure!' : g < 0.2 ? 'Fairly pure' : g < 0.4 ? 'Somewhat impure' : g < 0.48 ? 'Quite impure' : 'Maximum impurity';
-  document.getElementById('gini-label').textContent = lbl;
-}
+  function updateGini() {
+    const c = +document.getElementById('gc-sl').value;
+    const w = +document.getElementById('gw-sl').value;
+    document.getElementById('gc-val').textContent = c;
+    document.getElementById('gw-val').textContent = w;
+    const n = c + w;
+    if (n === 0) { document.getElementById('gini-out').textContent = 'Gini = N/A'; return; }
+    const g = 1 - (c/n)**2 - (w/n)**2;
+    document.getElementById('gini-out').textContent = 'Gini = ' + g.toFixed(3);
+    const lbl = g < 0.05 ? 'Very pure!' : g < 0.2 ? 'Fairly pure' : g < 0.35 ? 'Somewhat impure' : g < 0.48 ? 'Quite impure' : 'Maximum impurity (50/50)';
+    document.getElementById('gini-lbl').textContent = lbl;
+  }
 
-function updateSay() {
-  const e = +document.getElementById('err-slider').value / 100;
-  document.getElementById('err-val').textContent = e.toFixed(2);
-  if (e <= 0 || e >= 1) return;
-  const alpha = 0.5 * Math.log((1-e)/e);
-  document.getElementById('say-output').textContent = 'α = ' + alpha.toFixed(3);
-  const barPct = Math.min(100, Math.max(0, (alpha + 3) / 6 * 100));
-  document.getElementById('say-bar').style.width = barPct + '%';
-  const color = alpha > 0 ? '#1D9E75' : alpha < 0 ? '#E24B4A' : '#888780';
-  document.getElementById('say-bar').style.background = color;
-  const desc = alpha > 1.5 ? 'Very accurate — strong influence' : alpha > 0.3 ? 'Good classifier — has positive say' : alpha > 0 ? 'Slightly better than random' : alpha === 0 ? 'Random — no say (error = 0.5)' : 'Worse than random — negative say (gets flipped!)';
-  document.getElementById('say-desc').textContent = desc;
-}
+  function updateSay() {
+    const e = +document.getElementById('err-sl').value / 100;
+    document.getElementById('err-val').textContent = e.toFixed(2);
+    const alpha = 0.5 * Math.log((1 - e) / e);
+    document.getElementById('say-out').textContent = 'α = ' + alpha.toFixed(3);
+    const pct = Math.min(100, Math.max(0, (alpha + 3) / 6 * 100));
+    const bar = document.getElementById('say-bar');
+    bar.style.width = pct + '%';
+    bar.style.background = alpha > 0 ? 'var(--teal)' : alpha < 0 ? 'var(--red)' : 'var(--text-faint)';
+    const el = document.getElementById('say-out');
+    el.style.color = alpha > 0 ? 'var(--teal)' : alpha < 0 ? 'var(--red)' : 'var(--text-muted)';
+    const desc = alpha > 1.5 ? 'Very accurate — strong influence'
+               : alpha > 0.3 ? 'Good classifier — positive say'
+               : alpha > 0   ? 'Slightly better than random'
+               : alpha === 0 ? 'Random — zero say'
+               : 'Worse than random — negative say (gets flipped!)';
+    document.getElementById('say-desc').textContent = desc;
+  }
 
-const sampleLabels = ['P1','P2','P3','N1','N2','N3','P4','N4'];
-const correct = [true,true,false,true,true,false,true,true];
+  const samples = ['P1','P2','P3','N1','N2','N3','P4','N4'];
+  const correct  = [true, true, false, true, true, false, true, true];
 
-function updateWeights() {
-  const a = +document.getElementById('alpha-slider').value / 100;
-  document.getElementById('alpha-val').textContent = a.toFixed(2);
-  const rawW = correct.map(ok => ok ? Math.exp(-a) : Math.exp(a));
-  const sum = rawW.reduce((s,v)=>s+v,0);
-  const normW = rawW.map(v => v/sum);
-  const maxW = Math.max(...normW);
-  const container = document.getElementById('weight-samples');
-  container.innerHTML = sampleLabels.map((lbl,i) => {
-    const pct = Math.round(normW[i]/maxW*100);
-    const cls = correct[i] ? 'dot-correct' : 'dot-wrong';
-    const fillCls = correct[i] ? 'fill-lo' : 'fill-hi';
-    return `<div class="sample-row">
-      <div class="sample-dot ${cls}">${lbl}</div>
-      <div class="weight-bar"><div class="weight-fill ${fillCls}" style="width:${pct}%"></div></div>
-      <span style="font-size:12px;min-width:46px;text-align:right">${normW[i].toFixed(3)}</span>
-      <span style="font-size:11px;color:var(--color-text-secondary);min-width:16px">${correct[i] ? '✓' : '✗'}</span>
-    </div>`;
-  }).join('');
-}
+  function updateWeights() {
+    const a = +document.getElementById('alpha-sl').value / 100;
+    document.getElementById('alpha-val').textContent = a.toFixed(2);
+    const raw  = correct.map(ok => ok ? Math.exp(-a) : Math.exp(a));
+    const sum  = raw.reduce((s,v) => s+v, 0);
+    const norm = raw.map(v => v/sum);
+    const maxW = Math.max(...norm);
+    document.getElementById('sw-container').innerHTML = samples.map((lbl, i) => {
+      const pct = Math.round(norm[i] / maxW * 100);
+      const cls = correct[i] ? 'dot-ok' : 'dot-err';
+      const fill = correct[i] ? 'fill-ok' : 'fill-err';
+      return `<div class="sw-row">
+        <div class="sw-dot ${cls}">${lbl}</div>
+        <div class="sw-bar"><div class="sw-fill ${fill}" style="width:${pct}%"></div></div>
+        <span style="font-family:var(--mono);min-width:46px;text-align:right">${norm[i].toFixed(3)}</span>
+        <span style="color:var(--text-faint);min-width:14px">${correct[i] ? '✓' : '✗'}</span>
+      </div>`;
+    }).join('');
+  }
 
-function buildClassifiers() {
-  const stumps = [
-    {name:'Stump 1', feature:'Chest pain', vote:'Yes', alpha:0.42, side:'yes'},
-    {name:'Stump 2', feature:'Blocked artery', vote:'Yes', alpha:0.65, side:'yes'},
-    {name:'Stump 3', feature:'Patient weight', vote:'No', alpha:0.28, side:'no'},
-    {name:'Stump 4', feature:'Age > 50', vote:'Yes', alpha:0.31, side:'yes'},
-  ];
-  const icons = ['s-blue','s-amber','s-teal','s-blue'];
-  document.getElementById('classifiers').innerHTML = stumps.map((s,i) => `
-    <div class="classifier-row">
-      <div class="stump-icon ${icons[i]}">${i+1}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:500">${s.name} — ${s.feature}</div>
-        <div style="font-size:11px;color:var(--color-text-secondary)">votes ${s.vote} · α=${s.alpha}</div>
-      </div>
-      <div style="font-size:12px;padding:3px 8px;border-radius:12px;background:${s.side==='yes'?'var(--color-background-success)':'var(--color-background-danger)'};color:${s.side==='yes'?'var(--color-text-success)':'var(--color-text-danger)'};">${s.vote}</div>
-    </div>`).join('');
-  const yes = stumps.filter(s=>s.side==='yes').reduce((a,s)=>a+s.alpha,0);
-  const no  = stumps.filter(s=>s.side==='no' ).reduce((a,s)=>a+s.alpha,0);
-  const total = yes+no;
-  document.getElementById('yes-bar').style.width = (yes/total*100)+'%';
-  document.getElementById('no-bar').style.width  = (no/total*100)+'%';
-  document.getElementById('yes-sum').textContent = yes.toFixed(2);
-  document.getElementById('no-sum').textContent  = no.toFixed(2);
-  document.getElementById('final-pred').textContent = yes > no ? 'YES' : 'NO';
-}
+  function buildClassifiers() {
+    const stumps = [
+      { n:'Stump 1', f:'Chest pain',     vote:'Yes', a:0.25, side:'yes', badge:'sb-blue'  },
+      { n:'Stump 2', f:'Blocked artery', vote:'Yes', a:0.65, side:'yes', badge:'sb-amber' },
+      { n:'Stump 3', f:'Patient weight', vote:'No',  a:0.28, side:'no',  badge:'sb-teal'  },
+      { n:'Stump 4', f:'Age > 50',       vote:'Yes', a:0.31, side:'yes', badge:'sb-blue'  },
+    ];
+    document.getElementById('clf-list').innerHTML = stumps.map(s => `
+      <div class="clf-row">
+        <div class="stump-badge ${s.badge}">${s.n.split(' ')[1]}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${s.n} — ${s.f}</div>
+          <div style="font-size:11px;color:var(--text-muted)">α = ${s.a}</div>
+        </div>
+        <div class="vote-pill ${s.side==='yes'?'vp-yes':'vp-no'}">${s.vote}</div>
+      </div>`).join('');
+    const yes = stumps.filter(s => s.side==='yes').reduce((a,s) => a+s.a, 0);
+    const no  = stumps.filter(s => s.side==='no' ).reduce((a,s) => a+s.a, 0);
+    const tot = yes + no;
+    document.getElementById('yes-bar').style.width = (yes/tot*100)+'%';
+    document.getElementById('no-bar' ).style.width = (no /tot*100)+'%';
+    document.getElementById('yes-sum').textContent = yes.toFixed(2);
+    document.getElementById('no-sum' ).textContent = no.toFixed(2);
+    document.getElementById('final-pred').textContent = yes > no ? 'YES' : 'NO';
+  }
 
-updateGini();
-updateSay();
-updateWeights();
-buildClassifiers();
+  updateGini();
+  updateSay();
+  updateWeights();
+  buildClassifiers();
 </script>
+</body>
+</html>
