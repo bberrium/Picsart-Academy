@@ -1,0 +1,403 @@
+
+<style>
+  h2.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-sans,sans-serif)}
+  .wrap{padding:1.5rem 0;max-width:680px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.5rem}
+  .tab{padding:7px 14px;font-size:13px;border:0.5px solid var(--color-border-secondary,#ccc);border-radius:var(--border-radius-md,8px);background:transparent;color:var(--color-text-secondary);cursor:pointer;transition:all .15s}
+  .tab:hover{background:var(--color-background-secondary)}
+  .tab.active{background:var(--color-background-info,#e6f1fb);border-color:var(--color-border-info,#378add);color:var(--color-text-info,#185fa5);font-weight:500}
+  .panel{display:none}
+  .panel.active{display:block}
+  .card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg,12px);padding:1rem 1.25rem;margin-bottom:1rem}
+  .card-title{font-size:15px;font-weight:500;color:var(--color-text-primary);margin-bottom:.5rem}
+  .card-body{font-size:14px;color:var(--color-text-secondary);line-height:1.7}
+  .badge{display:inline-block;padding:2px 10px;font-size:12px;border-radius:var(--border-radius-md,8px);font-weight:500;margin-bottom:.5rem}
+  .badge-blue{background:var(--color-background-info);color:var(--color-text-info)}
+  .badge-green{background:var(--color-background-success);color:var(--color-text-success)}
+  .badge-amber{background:var(--color-background-warning);color:var(--color-text-warning)}
+  .badge-coral{background:#FAECE7;color:#993C1D}
+  .step-row{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:start;margin-bottom:.75rem}
+  .step-num{width:32px;height:32px;border-radius:50%;background:var(--color-background-info);color:var(--color-text-info);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;flex-shrink:0}
+  .step-text{font-size:14px;color:var(--color-text-secondary);line-height:1.7;padding-top:6px}
+  .formula{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md,8px);padding:.6rem 1rem;font-family:var(--font-mono,monospace);font-size:13px;color:var(--color-text-primary);margin:.5rem 0 1rem}
+  .vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:.75rem 0}
+  .vs-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md,8px);padding:.75rem 1rem}
+  .vs-card-title{font-size:13px;font-weight:500;margin-bottom:.4rem}
+  .vs-card-body{font-size:13px;color:var(--color-text-secondary);line-height:1.6}
+  .kv{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px}
+  .kv:last-child{border-bottom:none}
+  .kv-k{color:var(--color-text-secondary)}
+  .kv-v{font-weight:500;color:var(--color-text-primary)}
+  .quiz-q{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:.75rem}
+  .quiz-opt{width:100%;text-align:left;padding:8px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md,8px);background:transparent;color:var(--color-text-secondary);cursor:pointer;font-size:13px;margin-bottom:6px;transition:all .15s}
+  .quiz-opt:hover{background:var(--color-background-secondary)}
+  .quiz-opt.correct{background:var(--color-background-success);border-color:var(--color-border-success);color:var(--color-text-success)}
+  .quiz-opt.wrong{background:var(--color-background-danger);border-color:var(--color-border-danger);color:var(--color-text-danger)}
+  .quiz-feedback{font-size:13px;margin-top:.5rem;padding:.5rem .75rem;border-radius:var(--border-radius-md,8px);display:none}
+  .quiz-feedback.show{display:block}
+  .quiz-feedback.ok{background:var(--color-background-success);color:var(--color-text-success)}
+  .quiz-feedback.no{background:var(--color-background-danger);color:var(--color-text-danger)}
+  .next-btn{margin-top:.75rem;padding:7px 18px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md,8px);background:transparent;color:var(--color-text-primary);cursor:pointer;font-size:13px;display:none}
+  .next-btn.show{display:inline-block}
+  .progress-bar{width:100%;height:4px;background:var(--color-background-secondary);border-radius:2px;margin-bottom:1rem}
+  .progress-fill{height:4px;background:var(--color-text-info);border-radius:2px;transition:width .3s}
+  .section-label{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-tertiary);margin:.75rem 0 .4rem}
+  .highlight{background:var(--color-background-warning);color:var(--color-text-warning);padding:1px 5px;border-radius:3px;font-size:13px}
+  .svg-wrap{margin:.75rem 0}
+</style>
+<h2 class="sr-only">Gradient Boost study guide covering all four StatQuest videos: regression main ideas, regression details, classification main ideas, and classification details.</h2>
+<div class="wrap">
+  <div style="margin-bottom:1rem">
+    <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--color-text-tertiary);margin-bottom:.3rem">StatQuest — Gradient Boost series</div>
+    <div style="font-size:22px;font-weight:500;color:var(--color-text-primary);line-height:1.25">Gradient Boost study guide</div>
+    <div style="font-size:14px;color:var(--color-text-secondary);margin-top:.3rem">Parts 1–4 · Regression & classification</div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showPanel('overview')">Overview</button>
+    <button class="tab" onclick="showPanel('p1')">Part 1 — Regression ideas</button>
+    <button class="tab" onclick="showPanel('p2')">Part 2 — Regression details</button>
+    <button class="tab" onclick="showPanel('p3')">Part 3 — Classification ideas</button>
+    <button class="tab" onclick="showPanel('p4')">Part 4 — Classification details</button>
+    <button class="tab" onclick="showPanel('quiz')">Quiz</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="panel-overview" class="panel active">
+    <div class="card">
+      <div class="card-title">What is Gradient Boost?</div>
+      <div class="card-body">Gradient Boost is an ensemble method that builds many small decision trees <em>sequentially</em>, each one correcting the errors of the previous. It is one of the most widely used algorithms for tabular data, powering many winning solutions in machine learning competitions.</div>
+    </div>
+    <div class="svg-wrap">
+      <svg width="100%" viewBox="0 0 680 180" role="img">
+        <title>Gradient Boost high-level flow</title>
+        <desc>Diagram showing: initial leaf (average), then tree 1 on residuals, then tree 2 on new residuals, all combined into final prediction.</desc>
+        <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <g class="c-gray"><rect x="20" y="68" width="110" height="44" rx="8" stroke-width="0.5"/><text class="th" x="75" y="90" text-anchor="middle" dominant-baseline="central">Initial leaf</text><text class="ts" x="75" y="106" text-anchor="middle" dominant-baseline="central">mean(y)</text></g>
+        <line x1="130" y1="90" x2="155" y2="90" class="arr" marker-end="url(#arr)" stroke="var(--color-border-secondary)"/>
+        <g class="c-blue"><rect x="156" y="60" width="120" height="60" rx="8" stroke-width="0.5"/><text class="th" x="216" y="82" text-anchor="middle" dominant-baseline="central">Tree 1</text><text class="ts" x="216" y="98" text-anchor="middle" dominant-baseline="central">fit residuals r₁</text><text class="ts" x="216" y="112" text-anchor="middle" dominant-baseline="central">× learning rate</text></g>
+        <line x1="276" y1="90" x2="301" y2="90" class="arr" marker-end="url(#arr)" stroke="var(--color-border-secondary)"/>
+        <g class="c-blue"><rect x="302" y="60" width="120" height="60" rx="8" stroke-width="0.5"/><text class="th" x="362" y="82" text-anchor="middle" dominant-baseline="central">Tree 2</text><text class="ts" x="362" y="98" text-anchor="middle" dominant-baseline="central">fit residuals r₂</text><text class="ts" x="362" y="112" text-anchor="middle" dominant-baseline="central">× learning rate</text></g>
+        <text class="ts" x="445" y="94" text-anchor="middle">· · ·</text>
+        <line x1="458" y1="90" x2="483" y2="90" class="arr" marker-end="url(#arr)" stroke="var(--color-border-secondary)"/>
+        <g class="c-teal"><rect x="484" y="60" width="148" height="60" rx="8" stroke-width="0.5"/><text class="th" x="558" y="82" text-anchor="middle" dominant-baseline="central">Final prediction</text><text class="ts" x="558" y="98" text-anchor="middle" dominant-baseline="central">sum of all trees</text><text class="ts" x="558" y="112" text-anchor="middle" dominant-baseline="central">+ initial leaf</text></g>
+        <text class="ts" x="340" y="158" text-anchor="middle">Each new tree corrects what all previous trees got wrong</text>
+      </svg>
+    </div>
+    <div class="card">
+      <div class="card-title">Gradient Boost vs. AdaBoost</div>
+      <div class="vs-grid">
+        <div class="vs-card">
+          <div class="vs-card-title" style="color:var(--color-text-primary)">AdaBoost</div>
+          <div class="vs-card-body">Builds <strong>stumps</strong> (1-split trees). Each stump has a different <em>amount of say</em>. Adjusts sample weights after each stump.</div>
+        </div>
+        <div class="vs-card">
+          <div class="vs-card-title" style="color:var(--color-text-primary)">Gradient Boost</div>
+          <div class="vs-card-body">Starts with a <strong>single leaf</strong> (the mean). Builds trees up to 8–32 leaves. Scales every tree by the <em>same</em> learning rate.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Key terms at a glance</div>
+      <div class="kv"><span class="kv-k">Pseudo-residual</span><span class="kv-v">Observed − Predicted (the error to fix)</span></div>
+      <div class="kv"><span class="kv-k">Learning rate (ν)</span><span class="kv-v">Scales each tree's contribution (0 to 1)</span></div>
+      <div class="kv"><span class="kv-k">Number of leaves</span><span class="kv-v">Controls tree size; typically 8–32</span></div>
+      <div class="kv"><span class="kv-k">Log(odds)</span><span class="kv-v">Initial prediction for classification</span></div>
+      <div class="kv"><span class="kv-k">Logistic function</span><span class="kv-v">Converts log(odds) → probability</span></div>
+    </div>
+  </div>
+
+  <!-- PART 1 -->
+  <div id="panel-p1" class="panel">
+    <span class="badge badge-blue">Part 1 of 4</span>
+    <div class="card">
+      <div class="card-title">Gradient Boost for Regression — main ideas</div>
+      <div class="card-body">These are the conceptual steps Josh Starmer walks through before introducing the math. The goal is to build intuition.</div>
+    </div>
+    <div class="section-label">Algorithm steps (regression)</div>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Make an initial prediction.</strong> The first "tree" is a single leaf that outputs the average of all target values. This is the starting point for every sample.</div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Compute pseudo-residuals.</strong> For each sample, calculate the difference between the observed value and the current prediction. These residuals capture what the model got wrong.</div></div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Fit a small tree to the residuals.</strong> Build a regression tree (capped at 8–32 leaves) using the original features, but with residuals as the target. When multiple samples land in the same leaf, use their <em>average residual</em> as the leaf's output value.</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>Update the prediction using the learning rate.</strong> The new prediction for each sample is the old prediction plus the learning rate times the tree's output for that sample.
+      <div class="formula">New prediction = prev. prediction + ν × (tree output)</div>
+      The learning rate keeps steps small to avoid overfitting.</div>
+    </div>
+    <div class="step-row"><div class="step-num">5</div><div class="step-text"><strong>Repeat.</strong> Compute new residuals from the updated predictions and build another tree. Continue until you hit the maximum number of trees or residuals stop shrinking meaningfully.</div></div>
+    <div class="section-label">Why does the learning rate help?</div>
+    <div class="card">
+      <div class="card-body">Friedman's original paper showed that taking many <em>small</em> steps — rather than one big step — leads to better generalization on test data. A low learning rate reduces variance at the cost of needing more trees. Typical values: 0.05–0.1.</div>
+    </div>
+    <div class="svg-wrap">
+      <svg width="100%" viewBox="0 0 680 200" role="img">
+        <title>Learning rate intuition</title>
+        <desc>Two scenarios: high learning rate overshoots, low learning rate converges slowly but accurately.</desc>
+        <defs><marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <text class="th" x="170" y="28" text-anchor="middle">High learning rate</text>
+        <text class="ts" x="170" y="44" text-anchor="middle">fewer, bigger steps</text>
+        <circle cx="40" cy="130" r="6" fill="var(--color-background-info)" stroke="var(--color-border-info)" stroke-width="1.5"/>
+        <line x1="46" y1="124" x2="115" y2="90" stroke="#E24B4A" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <line x1="117" y1="93" x2="185" y2="145" stroke="#E24B4A" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <line x1="187" y1="142" x2="245" y2="108" stroke="#E24B4A" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <line x1="40" y1="130" x2="300" y2="130" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+        <text class="ts" x="320" y="130" text-anchor="start">optimal</text>
+        <circle cx="290" cy="130" r="6" fill="var(--color-background-success)" stroke="var(--color-border-success)" stroke-width="1.5"/>
+        <text class="th" x="520" y="28" text-anchor="middle">Low learning rate</text>
+        <text class="ts" x="520" y="44" text-anchor="middle">many, small steps — better fit</text>
+        <circle cx="370" cy="130" r="6" fill="var(--color-background-info)" stroke="var(--color-border-info)" stroke-width="1.5"/>
+        <line x1="376" y1="130" x2="415" y2="128" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <line x1="417" y1="128" x2="455" y2="127" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <line x1="457" y1="127" x2="495" y2="126" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <line x1="497" y1="126" x2="535" y2="126" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <line x1="537" y1="126" x2="575" y2="126" stroke="#1D9E75" stroke-width="1.5" marker-end="url(#arr2)"/>
+        <line x1="370" y1="126" x2="640" y2="126" stroke="var(--color-border-tertiary)" stroke-width="0.5"/>
+        <circle cx="620" cy="126" r="6" fill="var(--color-background-success)" stroke="var(--color-border-success)" stroke-width="1.5"/>
+        <text class="ts" x="340" y="180" text-anchor="middle">oscillates around optimum → can overfit</text>
+        <text class="ts" x="508" y="180" text-anchor="middle">approaches optimum smoothly → lower variance</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- PART 2 -->
+  <div id="panel-p2" class="panel">
+    <span class="badge badge-blue">Part 2 of 4</span>
+    <div class="card">
+      <div class="card-title">Gradient Boost for Regression — the math</div>
+      <div class="card-body">Part 2 dives into the formal algorithm. The loss function used is squared loss. Residuals turn out to be the negative gradient of this loss, which is why the algorithm is called "gradient" boost.</div>
+    </div>
+    <div class="section-label">Why are residuals the gradient?</div>
+    <div class="card">
+      <div class="card-body">
+        The squared loss is: <code>L = ½(y − F)²</code><br><br>
+        Its negative gradient with respect to the prediction F is:<br>
+        <div class="formula">−∂L/∂F = y − F  =  the residual</div>
+        So fitting each new tree to the residuals is exactly performing <em>gradient descent in function space</em>.
+      </div>
+    </div>
+    <div class="section-label">Formal algorithm (Friedman, 1999)</div>
+    <div class="step-row"><div class="step-num">F₀</div><div class="step-text"><strong>Initialize.</strong> Find the constant γ that minimizes the total loss. For squared loss, this is the mean of y.
+      <div class="formula">F₀(x) = argminᵧ Σ L(yᵢ, γ) = mean(y)</div></div></div>
+    <div class="step-row"><div class="step-num">2-1</div><div class="step-text"><strong>Compute pseudo-residuals</strong> for each sample at step m:
+      <div class="formula">rᵢₘ = −[∂L(yᵢ, F(xᵢ)) / ∂F(xᵢ)]  =  yᵢ − Fₘ₋₁(xᵢ)</div></div></div>
+    <div class="step-row"><div class="step-num">2-2</div><div class="step-text"><strong>Fit a regression tree</strong> to the pseudo-residuals. This creates J terminal regions Rⱼₘ (leaves).</div></div>
+    <div class="step-row"><div class="step-num">2-3</div><div class="step-text"><strong>Find the optimal output value</strong> for each leaf j. For squared loss this is simply the average of the residuals that fall into that leaf:
+      <div class="formula">γⱼₘ = mean of rᵢₘ for xᵢ ∈ Rⱼₘ</div></div></div>
+    <div class="step-row"><div class="step-num">2-4</div><div class="step-text"><strong>Update the model.</strong> Add the new tree scaled by learning rate ν:
+      <div class="formula">Fₘ(x) = Fₘ₋₁(x) + ν · Σⱼ γⱼₘ · 1(x ∈ Rⱼₘ)</div></div></div>
+    <div class="section-label">Final prediction</div>
+    <div class="formula">F_M(x) = F₀(x) + ν·tree₁(x) + ν·tree₂(x) + … + ν·treeM(x)</div>
+    <div class="card">
+      <div class="card-body">The prediction accumulates contributions from ALL trees. Because each tree corrects the errors left by the previous ones, the combined model progressively fits the training data more closely.</div>
+    </div>
+  </div>
+
+  <!-- PART 3 -->
+  <div id="panel-p3" class="panel">
+    <span class="badge badge-green">Part 3 of 4</span>
+    <div class="card">
+      <div class="card-title">Gradient Boost for Classification — main ideas</div>
+      <div class="card-body">Classification follows the same broad structure as regression, but works in <em>log-odds space</em> instead of raw value space. Predictions are then converted to probabilities through the logistic function.</div>
+    </div>
+    <div class="section-label">Key difference from regression</div>
+    <div class="vs-grid">
+      <div class="vs-card">
+        <div class="vs-card-title" style="color:var(--color-text-primary)">Regression</div>
+        <div class="vs-card-body">Initial leaf = <strong>mean(y)</strong>. Residuals = y − predicted value. Leaf output = average of residuals.</div>
+      </div>
+      <div class="vs-card">
+        <div class="vs-card-title" style="color:var(--color-text-primary)">Classification</div>
+        <div class="vs-card-body">Initial leaf = <strong>log(odds)</strong>. Residuals = observed − predicted probability. Leaf output uses a special formula.</div>
+      </div>
+    </div>
+    <div class="section-label">Algorithm steps (classification)</div>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text"><strong>Initialize with log(odds).</strong> Count the positives (class = 1) and negatives. The initial prediction for all samples is:
+      <div class="formula">log(odds) = log( #positives / #negatives )</div>
+      Convert to probability with the logistic function: p = eˡᵒᵍ⁽ᵒᵈᵈˢ⁾ / (1 + eˡᵒᵍ⁽ᵒᵈᵈˢ⁾)</div>
+    </div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text"><strong>Compute pseudo-residuals.</strong> For binary classification with log-loss:
+      <div class="formula">rᵢ = Observed − Predicted probability = yᵢ − pᵢ</div>
+      These residuals range from −1 to +1.</div>
+    </div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Fit a regression tree to the residuals.</strong> Even though this is a classification problem, the residuals are continuous, so we use a <em>regression</em> tree. Limit leaves to 8–32.</div></div>
+    <div class="step-row"><div class="step-num">4</div><div class="step-text"><strong>Compute leaf output values.</strong> The raw leaf average can't be used directly because predictions live in log-odds space while residuals live in probability space. Use:
+      <div class="formula">γⱼ = Σ residuals / Σ [pᵢ(1 − pᵢ)]</div>
+      where the sum is over all samples in that leaf.</div>
+    </div>
+    <div class="step-row"><div class="step-num">5</div><div class="step-text"><strong>Update log(odds) prediction:</strong>
+      <div class="formula">log(odds)_new = log(odds)_old + ν × γⱼ</div>
+      Convert to probability with logistic function for the next residual calculation.</div>
+    </div>
+    <div class="step-row"><div class="step-num">6</div><div class="step-text"><strong>Repeat</strong> until max trees reached. Final probability is produced by converting the accumulated log-odds through the logistic function, then comparing to a threshold (usually 0.5).</div></div>
+    <div class="svg-wrap">
+      <svg width="100%" viewBox="0 0 680 160" role="img">
+        <title>Classification prediction flow</title>
+        <desc>Shows log-odds → logistic function → probability → class label pipeline</desc>
+        <defs><marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+        <g class="c-gray"><rect x="20" y="58" width="120" height="44" rx="8" stroke-width="0.5"/><text class="th" x="80" y="76" text-anchor="middle" dominant-baseline="central">Sum log-odds</text><text class="ts" x="80" y="92" text-anchor="middle" dominant-baseline="central">all trees + leaf</text></g>
+        <line x1="140" y1="80" x2="165" y2="80" class="arr" marker-end="url(#arr3)" stroke="var(--color-border-secondary)"/>
+        <g class="c-purple"><rect x="166" y="50" width="148" height="60" rx="8" stroke-width="0.5"/><text class="th" x="240" y="73" text-anchor="middle" dominant-baseline="central">Logistic function</text><text class="ts" x="240" y="89" text-anchor="middle" dominant-baseline="central">p = eˡᵒᵍ⁽ᵒᵈᵈˢ⁾ / (1 + e…)</text><text class="ts" x="240" y="103" text-anchor="middle" dominant-baseline="central">→ probability 0–1</text></g>
+        <line x1="314" y1="80" x2="339" y2="80" class="arr" marker-end="url(#arr3)" stroke="var(--color-border-secondary)"/>
+        <g class="c-amber"><rect x="340" y="58" width="130" height="44" rx="8" stroke-width="0.5"/><text class="th" x="405" y="76" text-anchor="middle" dominant-baseline="central">Threshold</text><text class="ts" x="405" y="92" text-anchor="middle" dominant-baseline="central">p ≥ 0.5 → class 1</text></g>
+        <line x1="470" y1="80" x2="495" y2="80" class="arr" marker-end="url(#arr3)" stroke="var(--color-border-secondary)"/>
+        <g class="c-teal"><rect x="496" y="58" width="120" height="44" rx="8" stroke-width="0.5"/><text class="th" x="556" y="76" text-anchor="middle" dominant-baseline="central">Class label</text><text class="ts" x="556" y="92" text-anchor="middle" dominant-baseline="central">0 or 1</text></g>
+      </svg>
+    </div>
+  </div>
+
+  <!-- PART 4 -->
+  <div id="panel-p4" class="panel">
+    <span class="badge badge-coral">Part 4 of 4</span>
+    <div class="card">
+      <div class="card-title">Classification — the math behind leaf values</div>
+      <div class="card-body">Part 4 derives why the leaf output formula uses a second-order Taylor expansion. This is the "hard part" — but the intuition is that we can't simply average probability-space residuals when predictions are in log-odds space.</div>
+    </div>
+    <div class="section-label">The problem with plain averaging</div>
+    <div class="card">
+      <div class="card-body">In regression, the optimal leaf value is the mean of residuals — easy. In classification, the residuals are in probability space, but adding them to the prediction happens in log-odds space. A direct average would be mathematically inconsistent. We need to find the γ that minimizes the log-loss for each leaf.</div>
+    </div>
+    <div class="section-label">Deriving the leaf output formula</div>
+    <div class="step-row"><div class="step-num">1</div><div class="step-text">The loss function for classification is <strong>log-loss</strong> (cross-entropy):
+      <div class="formula">L = −[y·log(p) + (1−y)·log(1−p)]</div>
+    </div></div>
+    <div class="step-row"><div class="step-num">2</div><div class="step-text">We want to find γ (leaf output, added to log-odds) that minimizes this loss. Taking the second-order Taylor expansion around the current prediction and solving gives:
+      <div class="formula">γⱼ = Σᵢ residuals / Σᵢ [pᵢ(1 − pᵢ)]</div>
+      The denominator is the sum of <em>variances</em> of the predicted probabilities in that leaf.</div>
+    </div>
+    <div class="step-row"><div class="step-num">3</div><div class="step-text"><strong>Intuition:</strong> When the predicted probability is near 0 or 1, pᵢ(1−pᵢ) is small — meaning the model is already confident. Those samples get less influence on the leaf update. When pᵢ ≈ 0.5 (uncertain), pᵢ(1−pᵢ) ≈ 0.25 — those samples pull harder.</div></div>
+    <div class="section-label">Full classification algorithm summary</div>
+    <div class="formula">
+Step 1:  F₀ = log(odds) = log(#pos / #neg)
+Step 2:  rᵢ = yᵢ − sigmoid(Fₘ₋₁(xᵢ))       [pseudo-residuals]
+Step 3:  Fit regression tree → leaves R₁…Rⱼ
+Step 4:  γⱼ = Σ rᵢ / Σ [pᵢ(1−pᵢ)]            [leaf values]
+Step 5:  Fₘ = Fₘ₋₁ + ν·Σⱼ γⱼ·1(x∈Rⱼ)       [update log-odds]
+Step 6:  p_final = sigmoid(F_M(x))
+Step 7:  class = 1 if p_final ≥ 0.5 else 0
+    </div>
+    <div class="card">
+      <div class="card-title">Key insight: same structure, different loss</div>
+      <div class="card-body">The beauty of Gradient Boost is that the overall algorithm is <em>identical</em> for regression and classification. What changes is only the loss function and the resulting leaf-value formula. You can swap in any differentiable loss and the framework still works — this is why libraries like XGBoost and LightGBM can handle so many problem types.</div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="panel-quiz" class="panel">
+    <div class="card">
+      <div class="card-title">Quick-check quiz</div>
+      <div class="card-body">Test yourself on the four videos. Select an answer and get instant feedback.</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="qprogress" style="width:0%"></div></div>
+    <div id="quiz-container"></div>
+  </div>
+</div>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+const questions = [
+  {
+    q: "What is the very first prediction Gradient Boost makes for a regression problem?",
+    opts: ["Zero", "The median of y", "The mean of y", "A random value"],
+    ans: 2,
+    exp: "Gradient Boost initializes with a single leaf outputting the mean of all target values. This minimizes the squared loss for a constant predictor."
+  },
+  {
+    q: "In Gradient Boost for regression, what are 'pseudo-residuals'?",
+    opts: ["Randomly chosen data points", "The negative gradient of the loss — which equals (observed − predicted)", "The squared errors", "The predictions from the previous tree only"],
+    ans: 1,
+    exp: "Pseudo-residuals = observed − predicted = −∂L/∂F for squared loss. They are the negative gradient, giving direction and magnitude to improve the model."
+  },
+  {
+    q: "Why does Gradient Boost use a learning rate?",
+    opts: ["To make the model faster", "To ensure every tree has the same number of leaves", "To take small steps and reduce the risk of overfitting", "To initialize the log-odds"],
+    ans: 2,
+    exp: "A learning rate scales down each tree's contribution. Many small steps generalize better than a few large ones, reducing variance on test data."
+  },
+  {
+    q: "In Gradient Boost for regression, if multiple samples land in the same leaf, what value does that leaf output?",
+    opts: ["The maximum residual in the leaf", "The sum of residuals in the leaf", "The average of residuals in the leaf", "Zero"],
+    ans: 2,
+    exp: "When the number of leaves is less than the number of samples, some samples share a leaf. The leaf outputs the average of the residuals of those samples."
+  },
+  {
+    q: "What is the initial prediction for Gradient Boost classification (not regression)?",
+    opts: ["0.5 probability", "log(odds) of the target class", "The mean of the binary labels", "One divided by the number of classes"],
+    ans: 1,
+    exp: "Classification starts with log(#positives / #negatives). This log-odds value is the optimal constant prediction under log-loss."
+  },
+  {
+    q: "Why can't we simply average residuals as the leaf output value in classification?",
+    opts: ["Because residuals are negative", "Because the model works in log-odds space but residuals are in probability space — a mismatch requiring a special formula", "Because there are too many samples", "Because the learning rate is applied first"],
+    ans: 1,
+    exp: "Predictions are accumulated in log-odds space, but the residuals (observed − probability) live in probability space. Directly averaging them would be inconsistent. The correct formula: Σresiduals / Σ[p(1−p)]."
+  },
+  {
+    q: "What is the leaf output formula for classification, derived from the second-order Taylor expansion?",
+    opts: ["Mean of residuals", "Sum of residuals × learning rate", "Σ residuals / Σ [pᵢ(1−pᵢ)]", "Σ residuals / number of leaves"],
+    ans: 2,
+    exp: "The denominator Σ[pᵢ(1−pᵢ)] accounts for the Hessian of the log-loss. Samples where the model is already confident (p near 0 or 1) have low variance and less influence on the update."
+  },
+  {
+    q: "How is the final class label produced in Gradient Boost classification?",
+    opts: ["Whichever tree voted most often", "Convert the final summed log-odds to a probability via the logistic function, then apply a threshold (usually 0.5)", "Average the outputs of all trees directly", "Take the sign of the final log-odds"],
+    ans: 1,
+    exp: "The summed log-odds are converted to a probability via sigmoid/logistic: p = e^log(odds) / (1 + e^log(odds)). If p ≥ 0.5, predict class 1."
+  }
+];
+
+let current = 0;
+let answered = false;
+
+function renderQuestion() {
+  const q = questions[current];
+  const c = document.getElementById('quiz-container');
+  document.getElementById('qprogress').style.width = (current / questions.length * 100) + '%';
+  c.innerHTML = `
+    <div class="card">
+      <div class="quiz-q">${current + 1}/${questions.length} — ${q.q}</div>
+      ${q.opts.map((o, i) => `<button class="quiz-opt" onclick="answer(${i})" id="opt-${i}">${o}</button>`).join('')}
+      <div class="quiz-feedback" id="qfb"></div>
+      <button class="next-btn" id="qnext" onclick="nextQ()">${current < questions.length - 1 ? 'Next question →' : 'See results'}</button>
+    </div>
+  `;
+  answered = false;
+}
+
+function answer(i) {
+  if (answered) return;
+  answered = true;
+  const q = questions[current];
+  const opts = document.querySelectorAll('.quiz-opt');
+  opts.forEach((btn, idx) => {
+    if (idx === q.ans) btn.classList.add('correct');
+    else if (idx === i && i !== q.ans) btn.classList.add('wrong');
+    btn.disabled = true;
+  });
+  const fb = document.getElementById('qfb');
+  fb.textContent = (i === q.ans ? '✓ Correct! ' : '✗ Not quite. ') + q.exp;
+  fb.className = 'quiz-feedback show ' + (i === q.ans ? 'ok' : 'no');
+  document.getElementById('qnext').classList.add('show');
+}
+
+function nextQ() {
+  if (current < questions.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    document.getElementById('qprogress').style.width = '100%';
+    document.getElementById('quiz-container').innerHTML = `
+      <div class="card">
+        <div class="card-title">Quiz complete!</div>
+        <div class="card-body">You've reviewed all the key concepts from the four Gradient Boost videos. Head back to any part tab to revisit the material.</div>
+        <button class="quiz-opt" style="margin-top:.75rem" onclick="current=0;renderQuestion()">Restart quiz</button>
+      </div>`;
+  }
+}
+
+renderQuestion();
+</script>
