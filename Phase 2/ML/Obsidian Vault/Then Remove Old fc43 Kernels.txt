@@ -1,0 +1,21 @@
+Then Remove Old fc43 Kernels
+
+After rebooting into the new kernel:
+
+sudo dnf remove kernel-*fc43*
+
+To View the Boot Entries
+
+Your glob expansion failed because sudo doesn't expand *. Do this instead:
+
+sudo bash -c 'cat /boot/loader/entries/*.conf'
+
+Or:
+
+sudo cat /boot/loader/entries/f8039b650e194ca7aea174a7c2e437b9-6.19.14-200.fc43.x86_64.conf
+
+After Installing New Kernel
+
+Reboot and you should see Fedora 44 with fc44 kernels in the boot menu.
+
+

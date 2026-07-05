@@ -4,48 +4,119 @@
     "type": "split",
     "children": [
       {
-        "id": "27897f85f30ad9a3",
+        "id": "a2bf2a641d0182ce",
         "type": "tabs",
         "children": [
           {
-            "id": "27c902b812494f65",
-            "type": "leaf",
-            "state": {
-              "type": "pdf",
-              "state": {
-                "file": "ML/lections/14. Ensemble Methods.pdf"
-              },
-              "icon": "lucide-file-text",
-              "title": "14. Ensemble Methods"
-            }
-          },
-          {
-            "id": "dad0fdb2ae42948e",
+            "id": "26bce54975ae4e1a",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "ML/Obsidian Vault/ml/12. Optimization methods.md",
+                "file": "ffffffff/Regularization and Evaluation.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "12. Optimization methods"
+              "title": "Regularization and Evaluation"
             }
           },
           {
-            "id": "397468f03af456c5",
+            "id": "aadfb006bff73cb2",
             "type": "leaf",
             "state": {
-              "type": "pdf",
+              "type": "markdown",
               "state": {
-                "file": "ML/lections/13. Lagrange Multipliers.pdf"
+                "file": "ffffffff/Clustering.md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-file-text",
-              "title": "13. Lagrange Multipliers"
+              "icon": "lucide-file",
+              "title": "Clustering"
+            }
+          },
+          {
+            "id": "36466551fa514f8b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "DBSCAN.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "DBSCAN"
+            }
+          },
+          {
+            "id": "ea521fc75390697a",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "ffffffff/Generative Modeling.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Generative Modeling"
+            }
+          },
+          {
+            "id": "b56e5c10a34fcf23",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "DL/DL1.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "DL1"
+            }
+          },
+          {
+            "id": "5812e21c480fe746",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "DL/DL2.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "DL2"
+            }
+          },
+          {
+            "id": "fcb42c327dc6d9ec",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "DS 1 2 3.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "DS 1 2 3"
+            }
+          },
+          {
+            "id": "411f3cb14b05ce85",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
             }
           }
-        ]
+        ],
+        "currentTab": 7
       }
     ],
     "direction": "vertical"
@@ -204,8 +275,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -221,52 +291,52 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "27c902b812494f65",
+  "active": "411f3cb14b05ce85",
   "lastOpenFiles": [
-    "ML/lections/13. Lagrange Multipliers.pdf",
-    "ML/Obsidian Vault/ml/12. Optimization methods.md",
-    "ML/lections/17. Gaussian Mixture Modeling.pdf",
-    "ML/lections/16. Clustering.pdf",
-    "ML/lections/15. (Generative Modeling) Naive Bayes & Gaussian Discriminant Analysis.pdf",
-    "ML/lections/14. Ensemble Methods.pdf",
-    "ML/lections/Naive Bayes & Gaussian Discriminant Analysis.pdf",
-    "ML/lections/Gaussian Mixture Modeling.pdf",
-    "ML/lections/Ensemble Methods.pdf",
-    "ML/lections/Clustering.pdf",
-    "ML/lections/13. Advanced SVMs.pdf",
-    "ML/Obsidian Vault/ml/13. Lagrange multipliers, Advanced SVM.md",
-    "ML/Obsidian Vault/ml/11. Logistic Regression.md",
-    "ML/Obsidian Vault/Pasted image 20260401180346.png",
-    "ML/Obsidian Vault/Pasted image 20260401180256.png",
-    "ML/Obsidian Vault/Pasted image 20260401011012.png",
-    "ML/Obsidian Vault/Pasted image 20260330225203.png",
-    "assets/Pasted image 20260403005820.png",
-    "assets/Pasted image 20260416222017.png",
-    "assets/Pasted image 20260416185518.png",
-    "Math/Calculus/image-2.png",
-    "assets/Pasted image 20260402200221.png",
-    "empty files.md",
-    "broken links output.md",
-    "assets/Pasted image 20260430104538.png",
+    "Phase 3/DL/DL2.md",
+    "Phase 3/DL/DL1.md",
+    "Phase 3/DS/DS 1 2 3.md",
+    "Phase 3",
+    "Phase 2/final-exam-recap-ML/Clustering.md",
+    "Phase 3/DS/project_house_prices_explained.md",
+    "Phase 2",
+    "Phase 3/DS",
+    "Phase 2/assets/Pasted image 20260625204529.png",
+    "Phase 2/assets/Pasted image 20260625204238.png",
+    "Phase 2/assets/Pasted image 20260625204224.png",
+    "Phase 2/assets/Pasted image 20260625204210.png",
+    "Phase 2/assets/Pasted image 20260625204157.png",
+    "Phase 2/assets/Pasted image 20260625204114.png",
+    "Phase 2/assets/Pasted image 20260625204105.png",
+    "Phase 2/assets/Pasted image 20260625204056.png",
+    "Phase 2/assets/Pasted image 20260625204044.png",
+    "Phase 2/assets/Pasted image 20260625204038.png",
+    "Phase 2/final-exam-recap-ML/Generative Modeling.md",
+    "Phase 3/DL",
+    "pashlivjopuvse.md",
+    "Modul2 Matstat.md",
     "ml.md",
-    "ML/Obsidian Vault/ml/9. Generalized Linear Regression & Maximum Likelihood.md",
-    "ML/practice/Bayes_Theorem_3B1B.md",
-    "ML/Obsidian Vault/ml/8. Linear Regression.md",
-    "Untitled 1.md",
-    "Untitled.md",
-    "Likelihood.md",
-    "Normal Distribution.md",
-    "ML/Obsidian Vault/ml/10. Regularization and Evaluation.md",
-    "ML/practice/Central_Limit_Theorem_3B1B.md",
-    "ML/practice/practice materials.md",
-    "ML/practice/Polynomial Regression.md",
-    "ML/Obsidian Vault/ml/Midterm Quiz.md",
-    "ML/Obsidian Vault/ml/R-squared.md",
-    "ML/Obsidian Vault/ml/p-values.md",
-    "ML/Obsidian Vault/ml/Bias, Variance, Overfitting.md",
-    "ML/Obsidian Vault/ml/7. Perceptron algorithm, Support Vector Machines (SVM), and Kernel functions.md",
-    "ML/ObsidianVault/ml/Perceptron algorithm, Support Vector Machines (SVM), and Kernel functions.md",
-    "ML/ObsidianVault/ml/Linear Regression.md",
-    "ML/ObsidianVault/ml/Generalized Linear Regression & Maximum Likelihood.md"
+    "GMM.md",
+    "Drone Control with Voice.md",
+    "ФУНКЦИОНАЛЬНЫЙ АНАЛИЗ.md",
+    "Мкртумян_Анаит_Курсовая_QR.md",
+    "Вопрос 15. Метод Фурье для волнового уравнения.md",
+    "Вопрос 18. Принцип максимума для уравнения теплопроводности.md",
+    "Вопрос 19. Принцип максимума для уравнения теплопроводности в полосе.md",
+    "Вопрос 20. Следствия принципа максимума для уравнения теплопроводности в полосе.md",
+    "Вопрос 21. Функция Пуассона удовлетворяет уравнению теплопроводности.md",
+    "17. Бесконечная дифференцируемость решения уравнения теплопроводности.md",
+    "16. Метод Фурье для уравнения теплопроводности.md",
+    "Вопрос 14. Задача Гурса и её решение.md",
+    "Phase 2/final-exam-recap-ML/Generalized Linear Regression.md",
+    "Phase 2/final-exam-recap-ML/Logistic Regression.md",
+    "Phase 2/final-exam-recap-ML/Optimization Techniques in ML.md",
+    "Phase 2/final-exam-recap-ML/Regularization and Evaluation.md",
+    "Phase 2/final-exam-recap-ML",
+    "advanced_svms_exhaustive_test.html",
+    "AdaBoost/advanced_svms_exhaustive_test.html",
+    "Phase 2/ML/lections/13. Lagrange Multipliers.pdf",
+    "Phase 2/ML/lections/14. Ensemble Methods.pdf",
+    "Phase 2/ML/lections/17. Gaussian Mixture Modeling.pdf"
   ]
 }

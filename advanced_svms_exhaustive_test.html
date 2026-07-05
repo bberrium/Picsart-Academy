@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; padding: 16px; font-size: 14px; background: #fff; color: #111; }
+h1 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+.sub { font-size: 12px; color: #666; margin-bottom: 16px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.tab { padding: 6px 14px; border-radius: 20px; border: 1.5px solid #ccc; background: #f5f5f5; cursor: pointer; font-size: 12px; font-weight: 500; }
+.tab.active { background: #111; color: #fff; border-color: #111; }
+.section { display: none; }
+.section.active { display: block; }
+.q { border: 1px solid #e0e0e0; border-radius: 10px; padding: 14px; margin-bottom: 16px; }
+.q-head { font-size: 11px; color: #999; margin-bottom: 5px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+.q-title { font-size: 14px; font-weight: 500; margin-bottom: 10px; line-height: 1.5; }
+.part { padding: 7px 0 3px 12px; border-left: 2px solid #e0e0e0; margin: 7px 0; font-size: 13px; line-height: 1.55; }
+textarea { width: 100%; min-height: 55px; border: 1px solid #ddd; border-radius: 6px; padding: 7px 9px; font-size: 13px; font-family: inherit; resize: vertical; background: #fafafa; margin-top: 5px; display: block; }
+.btn { margin-top: 10px; padding: 6px 16px; border-radius: 6px; border: 1.5px solid #aaa; background: #f0f0f0; cursor: pointer; font-size: 12px; font-weight: 500; }
+.btn:hover { background: #e0e0e0; }
+.ans { display: none; margin-top: 10px; background: #f0faf0; border: 1px solid #b2dfb2; border-radius: 8px; padding: 11px 13px; font-size: 13px; line-height: 1.7; }
+.ans.open { display: block; }
+code { background: #e8e8e8; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+hr { border: none; border-top: 1px solid #eee; margin: 8px 0; }
+</style>
+</head>
+<body>
+<h1>Advanced SVMs — Exhaustive Exam Prep</h1>
+<div class="sub">Every testable concept from the lecture · 6 topic sections · Write your answer then reveal</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab(0)">1. Max Margin</div>
+  <div class="tab" onclick="showTab(1)">2. Soft Margin</div>
+  <div class="tab" onclick="showTab(2)">3. Kernel Trick</div>
+  <div class="tab" onclick="showTab(3)">4. Mercer + RBF</div>
+  <div class="tab" onclick="showTab(4)">5. Multiclass</div>
+  <div class="tab" onclick="showTab(5)">6. SVR</div>
+</div>
+
+<!-- ===== SECTION 1: MAXIMUM MARGIN ===== -->
+<div class="section active" id="s0">
+
+<div class="q">
+  <div class="q-head">Concept 1.1 — The Margin</div>
+  <div class="q-title">Explain the core idea behind Maximum Margin Classification.</div>
+  <hr>
+  <div class="part"><b>1.</b> When multiple hyperplanes correctly separate the data, why should we prefer the maximum margin one? What does a larger margin protect against?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> Write the formula for the perpendicular distance from a point x to the hyperplane y(x)=0. Why must we require t_n·y(x_n) > 0 for all training points?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> All hyperplanes achieve zero training error, so we need a criterion for generalization. The maximum margin boundary is as far as possible from all training points — small perturbations in test data (noise, distribution shift) are unlikely to cross the boundary. A larger margin gives greater robustness to unseen data. Geometrically: the wider the gap, the harder it is for a new point to fall on the wrong side.<br><br>
+    <b>2.</b> Distance = <code>|y(x)| / ||w||</code>. We require <code>t_n · y(x_n) > 0</code> because t_n ∈ {-1,+1} and we want y(x_n) to have the same sign as t_n — meaning the point is on the correct side of the boundary. If t_n=+1 we need y(x_n)>0; if t_n=-1 we need y(x_n)<0. The product t_n·y(x_n)>0 captures both cases in one inequality.
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 1.2 — Canonical Representation</div>
+  <div class="q-title">What is the canonical representation of the decision hyperplane and why is it needed?</div>
+  <hr>
+  <div class="part"><b>1.</b> The distance formula t_n·y(x_n)/||w|| is scale-invariant — if you multiply w and b by κ, distance is unchanged. How does the canonical representation exploit this freedom?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> After applying the canonical representation, write the final optimization problem. What happened to the bias b and why?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> We use the freedom to rescale w→κw and b→κb (which doesn't change any distance) to fix the scale by requiring: <code>t_n · y(x_n) = 1</code> for the closest point(s). Now the margin is exactly <code>1/||w||</code>. All other points satisfy <code>t_n · y(x_n) ≥ 1</code>. This eliminates the scale ambiguity and converts the max-distance problem into a clean constrained optimization.<br><br>
+    <b>2.</b> Maximize <code>1/||w||</code> ≡ minimize <code>½||w||²</code> subject to <code>t_n(wᵀφ(x_n)+b) ≥ 1</code> for all n. b disappears from the objective function but is implicitly determined by the constraints — changing w must be compensated by changing b to keep the constraints satisfied. b is recovered after solving for w.
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 1.3 — Lagrangian Dual & Support Vectors</div>
+  <div class="q-title">The SVM is solved via its Lagrangian dual formulation.</div>
+  <hr>
+  <div class="part"><b>1.</b> Write the Lagrangian for the hard-margin SVM. Why do we use Lagrange multipliers here, and why must a_n ≥ 0?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> After solving, what defines a support vector? Why do all non-support-vector points have a_n = 0, and what does this mean for model sparsity?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>3.</b> Write the prediction rule y(x) using the dual variables {a_n} and a kernel k(x,x'). Why is this kernel formulation powerful?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> <code>L(w,b,a) = ½||w||² − Σ_n a_n{t_n(wᵀφ(x_n)+b) − 1}</code>. We use Lagrange multipliers because the optimization has inequality constraints <code>t_n·y(x_n) ≥ 1</code> — we can't simply set the gradient to zero. a_n ≥ 0 because KKT conditions require multipliers for ≥ constraints to be non-negative (the constraint can only "push back," not pull).<br><br>
+    <b>2.</b> A support vector is a point where <code>t_n·y(x_n) = 1</code> — it lies exactly on the margin boundary. By complementary slackness (KKT): <code>a_n(t_n·y(x_n)−1) = 0</code>. For inactive points (not on the margin), <code>t_n·y(x_n) > 1</code> → the bracket ≠ 0 → a_n must = 0. These points don't contribute to w or predictions. Sparsity: the model depends only on the small subset of support vectors; all other training points can be discarded after training.<br><br>
+    <b>3.</b> <code>y(x) = Σ_n a_n t_n k(x_n, x) + b</code> where <code>k(x,x') = φ(x)ᵀφ(x')</code>. Power: the prediction is expressed as a sum over support vectors using kernel evaluations — we never need to explicitly compute φ(x). This allows efficient classification in very high (or infinite) dimensional feature spaces, since k(x,x') is computed directly from the original inputs.
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 1.4 — Dual Problem & Computational Complexity</div>
+  <div class="q-title">Why is the dual formulation preferred over the primal?</div>
+  <hr>
+  <div class="part"><b>1.</b> The primal optimization has M variables (dimension of feature space). The dual has N variables (number of training points). When is the dual advantageous, and when is it not?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> What does it mean for the kernel to be positive definite, and why does this matter for the Lagrangian?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> Dual has N variables; QP complexity is O(N³). If feature dimension M >> N (e.g., infinite-dimensional RBF kernel), the dual is far better — M is effectively infinite but N is fixed. If M < N (e.g., simple linear SVM with few features, many data points), the primal is preferable. The critical advantage of the dual: it allows kernels, enabling infinite-dimensional feature spaces at no computational extra cost.<br><br>
+    <b>2.</b> The kernel matrix K (where K_ij = k(x_i,x_j)) must be Positive Semi-Definite: all eigenvalues ≥ 0. This ensures the dual Lagrangian <code>Σ_n a_n − ½Σ_n Σ_m a_n a_m t_n t_m k(x_n,x_m)</code> is bounded above — i.e., the quadratic term is concave in a. A non-PSD kernel makes the Lagrangian unbounded → no maximum exists → optimization is undefined. PSD guarantees a well-defined, solvable QP.
+  </div>
+</div>
+
+</div>
+
+<!-- ===== SECTION 2: SOFT MARGIN ===== -->
+<div class="section" id="s1">
+
+<div class="q">
+  <div class="q-head">Concept 2.1 — Slack Variables</div>
+  <div class="q-title">Real data overlaps — exact separation causes poor generalization. We introduce slack variables.</div>
+  <hr>
+  <div class="part"><b>1.</b> Define slack variable ξ_n. Precisely describe what ξ_n=0, 0&lt;ξ_n≤1, and ξ_n&gt;1 mean geometrically for a data point.</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> The hard-margin SVM uses an error function E_∞(z) — zero if z≥0, infinity otherwise. What does this become in the soft-margin version and why is a linear penalty chosen?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> ξ_n = 0: point is correctly classified AND on or outside the margin — fully satisfied constraint, no violation. 0 &lt; ξ_n ≤ 1: point is correctly classified but falls inside the margin — the constraint is violated slightly, but the point is still on the correct side of the decision boundary. ξ_n &gt; 1: point is on the wrong side of the decision boundary — misclassified. Note: a point on the decision boundary itself has ξ_n = 1.<br><br>
+    <b>2.</b> The hard-margin E_∞ cannot tolerate any violation — one outlier breaks the entire model. The soft-margin replaces it with a linear (hinge) penalty: ξ_n for each violated point. Linear is chosen because: (1) it's convex → tractable optimization; (2) it creates the hinge loss Σξ_n which upper-bounds the number of misclassifications; (3) it keeps the QP structure. Quadratic penalty would also work but concentrates too much penalty on a few extreme violations.
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 2.2 — The C Parameter</div>
+  <div class="q-title">The soft-margin SVM minimizes ½||w||² + C·Σξ_n.</div>
+  <hr>
+  <div class="part"><b>1.</b> What does C control conceptually? What happens at C→∞ and C→0?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> C is described as analogous to the inverse of a regularization coefficient. Explain this analogy — how is it similar to λ in Ridge regression?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>3.</b> You observe that your SVM has many support vectors and poor test accuracy. Would you increase or decrease C? Explain.</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> C controls the trade-off between margin width and training error tolerance. C→∞: violations are infinitely costly → model tolerates zero misclassifications → recovers hard-margin SVM with the narrowest possible margin around the data. C→0: violations are free → model ignores training errors entirely → margin maximized to infinity (boundary could misclassify everything — useless).<br><br>
+    <b>2.</b> In Ridge: <code>L = Σ(y−ŷ)² + λ||w||²</code>. Higher λ → smaller weights → simpler model → more regularization. In SVM: <code>L = ½||w||² + C·Σξ_n</code>. Higher C → more weight on fitting data → less margin → less regularization. C ∝ 1/λ: small C = large λ = heavy regularization (wide margin, many violations OK). Large C = small λ = light regularization (narrow margin, violations costly).<br><br>
+    <b>3.</b> Decrease C. Many support vectors and poor test accuracy indicates overfitting — the boundary is too complex, trying to fit every training point. Decreasing C increases the regularization, allowing more margin violations, widening the margin and creating a simpler decision boundary that generalizes better. Fewer support vectors → simpler, more robust model.
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 2.3 — KKT Conditions & Box Constraints</div>
+  <div class="q-title">The soft-margin dual introduces box constraints 0 ≤ a_n ≤ C.</div>
+  <hr>
+  <div class="part"><b>1.</b> In the hard-margin case, a_n ≥ 0 only. Why does the soft-margin case add an upper bound a_n ≤ C? Where does this come from mathematically?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> Interpret the three cases: a_n=0, 0&lt;a_n&lt;C, a_n=C. What is the geometric position of each type of point?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> The soft-margin Lagrangian introduces slack multipliers μ_n ≥ 0 for the constraints ξ_n ≥ 0. From stationarity w.r.t. ξ_n: <code>C − a_n − μ_n = 0</code> → <code>a_n = C − μ_n</code>. Since μ_n ≥ 0, we get a_n ≤ C. Combined with a_n ≥ 0: the box constraint <code>0 ≤ a_n ≤ C</code>. The upper bound C comes directly from the penalty weight in the objective — it caps how much any single point can influence the boundary.<br><br>
+    <b>2.</b> a_n = 0: point is correctly classified outside or on the margin, not a support vector — plays no role in the model. 0 &lt; a_n &lt; C: implies μ_n > 0 → ξ_n = 0 (from complementary slackness) → point lies exactly on the margin boundary (ξ_n=0, t_n·y(x_n)=1). These are the "clean" support vectors. a_n = C: implies μ_n = 0 → no constraint on ξ_n — the point either lies inside the margin (0 &lt; ξ_n ≤ 1, correctly classified) or is misclassified (ξ_n &gt; 1).
+  </div>
+</div>
+
+</div>
+
+<!-- ===== SECTION 3: KERNEL TRICK ===== -->
+<div class="section" id="s2">
+
+<div class="q">
+  <div class="q-head">Concept 3.1 — Why Explicit Feature Mapping Fails</div>
+  <div class="q-title">We want to handle non-linear data by mapping to a higher-dimensional space.</div>
+  <hr>
+  <div class="part"><b>1.</b> A 100-dimensional input with 5th-degree polynomial features produces ~75 million dimensions. Why is computing φ(x) explicitly for every training pair catastrophic, and what is the computational cost of computing all pairwise dot products φ(x_i)ᵀφ(x_j) naively?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> The SVM dual only needs dot products, not individual feature vectors. Write the key insight: what does the Kernel Trick replace and what does it save?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> Computing φ(x) for one data point requires storing and computing ~75M values. For N training points, storing all φ(x_n) requires 75M × N memory. Computing all N² pairwise dot products φ(x_i)ᵀφ(x_j) costs O(N² × 75M) operations — for N=10,000 that's 7.5 × 10¹³ operations. Completely infeasible.<br><br>
+    <b>2.</b> The dual objective <code>Σa_n − ½Σ_n Σ_m a_n a_m t_n t_m φ(x_n)ᵀφ(x_m)</code> only needs φ(x_n)ᵀφ(x_m). The Kernel Trick replaces this dot product with <code>k(x_n,x_m)</code> — a function computed directly from the original inputs. Instead of O(M) per dot product (M = feature dimension), k(x,z) costs O(D) where D is the original dimension. For the 5th-degree polynomial example: O(D) instead of O(75M). For RBF: O(D) instead of O(∞).
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 3.2 — Kernel Trick Proof</div>
+  <div class="q-title">Prove mathematically that the polynomial kernel K(x,z) = (xᵀz)² corresponds to a dot product in feature space for 2D inputs x=[x₁,x₂].</div>
+  <hr>
+  <div class="part"><b>1.</b> Define the mapping φ(x) = [x₁², x₂², √2·x₁x₂]ᵀ. Compute φ(x)ᵀφ(z) explicitly and show it equals (xᵀz)².</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> What does this prove about what K(x,z) = (xᵀz)² is computing implicitly? What is the computational saving?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> φ(x)ᵀφ(z) = (x₁²)(z₁²) + (x₂²)(z₂²) + (√2·x₁x₂)(√2·z₁z₂)<br>= x₁²z₁² + x₂²z₂² + 2x₁x₂z₁z₂<br>Now compute (xᵀz)²: xᵀz = x₁z₁ + x₂z₂, so (xᵀz)² = x₁²z₁² + x₂²z₂² + 2x₁x₂z₁z₂ ✓<br>They are identical.<br><br>
+    <b>2.</b> This proves K(x,z) = (xᵀz)² is computing the dot product in a 3D feature space without ever constructing the 3D vectors. To compute the 3D dot product explicitly costs 3 multiplications + 2 additions. Using the kernel: 2 multiplications + 1 addition + 1 squaring — O(D) instead of O(D²). The saving compounds dramatically as degree increases: degree-p kernel costs O(D) while explicit φ(x)ᵀφ(z) would cost O(Dᵖ).
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 3.3 — Kernel Algebra</div>
+  <div class="q-title">Building new kernels from old ones.</div>
+  <hr>
+  <div class="part"><b>1.</b> State the three kernel combination rules (scaling, addition, multiplication). For each, explain intuitively what the new kernel measures.</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> Give a real-world application where the data is not a numerical vector but a kernel can still be defined. What property must the function satisfy?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> If K₁ and K₂ are valid kernels:<br>• <b>Scaling</b>: c·K₁(x,z) for c>0 is valid — same similarity structure, just rescaled magnitude. Equivalent to rescaling the feature space.<br>• <b>Addition</b>: K₁+K₂ is valid — combines two different notions of similarity (e.g., linear + quadratic features). The resulting feature space is the concatenation of both feature spaces.<br>• <b>Multiplication</b>: K₁×K₂ is valid — captures conjoint similarity: points must be similar under BOTH kernels. Feature space is the tensor product of both spaces.<br><br>
+    <b>2.</b> DNA strings: define K(s₁,s₂) = number of common k-length subsequences. Text: K(d₁,d₂) = number of common words/bigrams. Graphs: K(G₁,G₂) = number of common subgraphs (random walk kernel). The function must produce a PSD Gram matrix for any finite dataset — then it's a valid kernel and the SVM can accept raw strings/graphs without any explicit vectorization.
+  </div>
+</div>
+
+</div>
+
+<!-- ===== SECTION 4: MERCER + RBF ===== -->
+<div class="section" id="s3">
+
+<div class="q">
+  <div class="q-head">Concept 4.1 — Mercer's Theorem</div>
+  <div class="q-title">Can you invent any similarity function and use it as an SVM kernel?</div>
+  <hr>
+  <div class="part"><b>1.</b> State Mercer's Theorem precisely. What is the Gram matrix and what condition must it satisfy?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> Intuitively, why does a non-PSD kernel break the SVM? What goes wrong geometrically?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>3.</b> K(x,z) = sin(xᵀz). Is this a valid kernel? How would you check?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> Mercer's Theorem: K(x,z) is a valid kernel iff for any finite dataset {x₁,...,x_N}, the N×N Gram matrix K where K_ij = K(x_i,x_j) is Positive Semi-Definite: all eigenvalues ≥ 0, equivalently vᵀKv ≥ 0 for all v ∈ ℝᴺ. This is equivalent to K corresponding to an inner product ⟨φ(x),φ(z)⟩ in some legitimate Hilbert space.<br><br>
+    <b>2.</b> The SVM dual objective is <code>Σa_n − ½aᵀMa</code> where M_nm = t_n t_m K(x_n,x_m). For this to have a maximum (bounded above), ½aᵀMa must be convex in a — requiring M to be PSD. A non-PSD K makes M possibly indefinite → the objective is unbounded above → the optimization diverges → no solution. Geometrically: K(x,z) measures "similarity" as a dot product; non-PSD implies some pairs have "negative similarity" — like negative squared distances — which is geometrically meaningless in any real feature space.<br><br>
+    <b>3.</b> You cannot determine validity analytically from inspection alone. Construct the N×N Gram matrix K_ij = sin(x_iᵀx_j) for a specific finite dataset. Compute its eigenvalues. If any eigenvalue is negative, it fails Mercer → not a valid kernel. sin(xᵀz) is NOT generally a valid kernel — it can produce negative K values (since sin oscillates through negative values), which can make the Gram matrix indefinite.
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 4.2 — RBF Kernel & Infinite Dimensions</div>
+  <div class="q-title">K(x,z) = exp(−γ||x−z||²) — the most widely used kernel.</div>
+  <hr>
+  <div class="part"><b>1.</b> How does the RBF kernel implicitly map data to an infinite-dimensional feature space? Sketch the argument using the Taylor/Maclaurin series expansion.</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> What does the parameter γ control geometrically? What happens when γ is very large vs very small?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>3.</b> Why is it remarkable that we can find an optimal hyperplane in infinite-dimensional space using only O(1) operations per pair of points?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> Consider the simplified 1D kernel K(x,z) = e^(xz). By Maclaurin series: e^(xz) = 1 + xz + (xz)²/2! + (xz)³/3! + ... = (1)(1) + (x)(z) + (x²/√2!)(z²/√2!) + ... This is an infinite sum of polynomial kernels — it computes the dot product of φ(x) = [1, x, x²/√2!, x³/√3!, ...] which has infinitely many components. The RBF K(x,z) = e^(−γ||x−z||²) expands similarly, encoding all polynomial degrees of all features simultaneously.<br><br>
+    <b>2.</b> γ controls the width of the Gaussian. Large γ: kernel value drops rapidly to 0 as ||x−z|| increases → only very nearby points have similar kernel values → decision boundary can be very complex/wiggly, fitting small local patterns → high variance, risk of overfitting. Small γ: kernel value remains high even for distant points → boundary is smoother → effectively similar to linear kernel in the limit → high bias, underfitting. γ is a critical hyperparameter tuned via cross-validation.<br><br>
+    <b>3.</b> Working directly in infinite-dimensional space would require infinite memory and computation. The Kernel Trick computes K(x_i,x_j) = exp(−γ||x_i−x_j||²) in O(D) time (one distance computation + one exp call). The SVM finds the optimal maximum-margin hyperplane in ∞-dimensional space without ever representing a single point in that space. This is computationally impossible by any other means — the kernel trick is the only way to do this.
+  </div>
+</div>
+
+</div>
+
+<!-- ===== SECTION 5: MULTICLASS ===== -->
+<div class="section" id="s4">
+
+<div class="q">
+  <div class="q-head">Concept 5.1 — One-vs-Rest</div>
+  <div class="q-title">SVMs are fundamentally binary. Extending to K classes using One-vs-Rest.</div>
+  <hr>
+  <div class="part"><b>1.</b> Describe the One-vs-Rest approach. How many SVMs are trained and how is prediction made?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> What are the two key problems with One-vs-Rest? Be specific about the scale problem and the class imbalance problem.</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> Train K separate binary SVMs. For class k: positive examples = all samples from class k; negative examples = all samples from all other K-1 classes. Prediction: evaluate all K classifiers on new input x; assign the class k with the highest y_k(x): <code>class = argmax_k y_k(x)</code>.<br><br>
+    <b>2.</b> <b>Scale problem</b>: each of the K classifiers is trained on a different task with different data distributions. There's no guarantee y_k(x) values from different classifiers are on comparable scales — classifier 1 might output 5.0 and classifier 2 might output 0.3, even if class 2 is actually more probable. The argmax comparison is meaningless if scales differ. <b>Class imbalance</b>: with K=10 equal classes, each binary SVM trains on 10% positive vs 90% negative — highly imbalanced. The boundary is biased toward predicting "not class k." The original class symmetry is destroyed; some classes will be systematically underdetected.
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 5.2 — One-vs-One</div>
+  <div class="q-title">Alternative multiclass strategy: train all pairwise classifiers.</div>
+  <hr>
+  <div class="part"><b>1.</b> How many classifiers does One-vs-One require for K classes? How is the final prediction made?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> Compare One-vs-One vs One-vs-Rest on: number of classifiers, training set size per classifier, and class balance. Which is generally preferred?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> K(K-1)/2 classifiers — one for every pair of classes. Each classifier k_ij is trained only on examples from class i and class j. Prediction: run all K(K-1)/2 classifiers on new x; each "votes" for one of its two classes; the class with the most total votes wins ("tournament voting").<br><br>
+    <b>2.</b> <b>Number</b>: OvO = K(K-1)/2 (e.g., K=10 → 45 classifiers); OvR = K (10 classifiers). <b>Training set size</b>: OvO uses only the ~2N/K samples from two classes → much smaller training sets, faster training per classifier. OvR uses all N samples each time. <b>Balance</b>: OvO is perfectly balanced (50%/50%) since only two classes are used each time. OvR is severely imbalanced. <b>Preference</b>: OvO is generally preferred — each classifier is trained on a balanced problem, produces more reliable boundaries, and despite more classifiers, each trains faster.
+  </div>
+</div>
+
+</div>
+
+<!-- ===== SECTION 6: SVR ===== -->
+<div class="section" id="s5">
+
+<div class="q">
+  <div class="q-head">Concept 6.1 — ε-Insensitive Loss</div>
+  <div class="q-title">SVM extended to regression (SVR) using the ε-insensitive error function.</div>
+  <hr>
+  <div class="part"><b>1.</b> Write the ε-insensitive error function. How does it differ from squared error (MSE)? Why does it produce sparsity?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> What does the ε-tube represent geometrically? Which data points are support vectors in SVR and which are not?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> <code>E_ε(y(x)−t) = max(0, |y(x)−t| − ε)</code>. It is zero when prediction is within ε of the target — any prediction within the "tube" contributes no loss at all. Beyond ε, loss increases linearly. MSE penalizes every prediction (even good ones) and squares errors (penalizing outliers heavily). ε-insensitive: (1) predictions within ε cost nothing → only boundary/outside points matter for the solution → those points become support vectors → sparsity. (2) linear penalty outside → more robust to outliers than MSE.<br><br>
+    <b>2.</b> The ε-tube is the region y(x_n) − ε ≤ t_n ≤ y(x_n) + ε around the regression function. Points inside the tube (|y(x_n) − t_n| ≤ ε): a_n = â_n = 0 → not support vectors → don't contribute to the model at all. Points on or outside the tube boundaries: either a_n ≠ 0 (point at or above the upper boundary) or â_n ≠ 0 (point at or below the lower boundary) → support vectors. Sparsity: if ε is large enough, most training points fall inside the tube and the model depends on only a fraction of them.
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 6.2 — SVR Slack Variables & Dual</div>
+  <div class="q-title">SVR needs two slack variables per data point, unlike the classification SVM.</div>
+  <hr>
+  <div class="part"><b>1.</b> Why does SVR need two slack variables ξ_n and ξ̂_n per point instead of one? What does each represent?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> Write the SVR objective function. What do the box constraints 0 ≤ a_n ≤ C and 0 ≤ â_n ≤ C become in the dual? Why can't both a_n and â_n be nonzero simultaneously?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> In regression, a point can violate the tube from either side. ξ_n ≥ 0: slack for points above the tube — t_n > y(x_n) + ε (target is above the upper boundary). ξ̂_n ≥ 0: slack for points below the tube — t_n &lt; y(x_n) − ε (target is below the lower boundary). You need separate variables because violations in opposite directions are independent. In classification, there's only one direction to be wrong (one side of the boundary).<br><br>
+    <b>2.</b> Objective: <code>min ½||w||² + C·Σ(ξ_n + ξ̂_n)</code>. Dual has separate multipliers a_n (for upper boundary) and â_n (for lower boundary). Box constraints: <code>0 ≤ a_n ≤ C</code> and <code>0 ≤ â_n ≤ C</code>. They cannot both be nonzero simultaneously because the KKT conditions give: the two active constraints ε+ξ_n+y_n−t_n=0 and ε+ξ̂_n−y_n+t_n=0 cannot both hold — adding them gives 2ε+ξ_n+ξ̂_n=0, which requires both slacks to be negative (impossible since ξ≥0 and ε>0). So for each point, at most one of {a_n, â_n} is nonzero.
+  </div>
+</div>
+
+<div class="q">
+  <div class="q-head">Concept 6.3 — SVR vs OLS Comparison</div>
+  <div class="q-title">Comparing SVR to standard linear regression.</div>
+  <hr>
+  <div class="part"><b>1.</b> Standard regression minimizes MSE — every point contributes to the solution. SVR with ε>0 ignores points inside the tube. What are the practical advantages and disadvantages of this?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <div class="part"><b>2.</b> How does ε affect the sparsity of the SVR solution? What is the trade-off in choosing ε?</div>
+  <textarea placeholder="Your answer..."></textarea>
+  <button class="btn" onclick="tog(this)">Show Answer</button>
+  <div class="ans">
+    <b>1.</b> <b>Advantages of SVR</b>: (1) Sparsity — model depends on only support vectors (boundary points), making prediction fast and storage efficient after training. (2) Robustness — outliers far outside the tube are penalized linearly (not quadratically like MSE), so they don't catastrophically distort the model. (3) Kernel-compatible — inherits all kernel trick benefits for nonlinear regression. <b>Disadvantages</b>: ε is an extra hyperparameter requiring tuning; if ε is too small, more points become support vectors (dense model, slow); if too large, the model is too insensitive to data (high bias).<br><br>
+    <b>2.</b> Small ε: tight tube → many points fall outside → many support vectors → dense model (similar to OLS). Large ε: wide tube → most points inside → few support vectors → very sparse model. Trade-off: large ε = higher compression/sparsity but potentially higher bias (if the tube is so wide the regression function ignores real signal). Small ε = captures fine structure but loses the sparsity advantage. ε should be chosen based on the expected noise level in the target variable.
+  </div>
+</div>
+
+</div>
+
+<script>
+function showTab(n) {
+  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i===n));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n));
+}
+function tog(btn) {
+  var a = btn.nextElementSibling;
+  var open = a.classList.toggle('open');
+  btn.textContent = open ? 'Hide Answer' : 'Show Answer';
+}
+</script>
+</body>
+</html>

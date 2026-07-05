@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Upupa Travel — Discover Armenia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ─────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;color:#111;background:#fff;-webkit-font-smoothing:antialiased;line-height:1.6}
+a{text-decoration:none;color:inherit}
+img{display:block;max-width:100%}
+button{font-family:inherit;cursor:pointer}
+
+/* ── TOKENS ──────────────────────────────────────── */
+:root{
+  --blue:#0A42A5;
+  --blue-dark:#072e7a;
+  --blue-deep:#041d52;
+  --orange:#F38345;
+  --ink:#111;
+  --stone:#888;
+  --mist:#f6f5f3;
+  --border:#e8e8e6;
+  --radius:10px;
+}
+
+/* ── TYPE ────────────────────────────────────────── */
+.serif{font-family:'Playfair Display',Georgia,serif}
+
+/* ── NAV ─────────────────────────────────────────── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:300;
+  transition:background .35s,box-shadow .35s;
+}
+#nav.clear{background:transparent}
+#nav.solid{background:rgba(255,255,255,.97);backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--border)}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{display:flex;align-items:center;gap:.75rem}
+.logo-img{width:38px;height:38px;border-radius:50%;overflow:hidden;border:1.5px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);flex-shrink:0;transition:border-color .3s}
+#nav.solid .logo-img{border-color:var(--blue);background:#e8eef9}
+.logo-img img{width:100%;height:100%;object-fit:cover}
+.logo-text{font-family:'Playfair Display',serif;font-size:.9rem;font-weight:700;letter-spacing:.06em;color:rgba(255,255,255,.9);transition:color .3s}
+.logo-sub{font-size:.55rem;letter-spacing:.18em;color:var(--orange);font-weight:500;text-transform:uppercase;margin-top:1px}
+#nav.solid .logo-text{color:var(--blue)}
+.nav-links{display:flex;align-items:center;gap:2rem}
+.nav-a{font-size:.75rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.75);transition:color .2s;position:relative}
+.nav-a::after{content:'';position:absolute;bottom:-3px;left:0;right:0;height:1px;background:var(--orange);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.nav-a:hover{color:var(--orange)}
+.nav-a:hover::after{transform:scaleX(1)}
+#nav.solid .nav-a{color:var(--blue)}
+#nav.solid .nav-a:hover{color:var(--orange)}
+.nav-cta{font-size:.75rem;font-weight:500;letter-spacing:.05em;color:#fff;background:var(--orange);border:none;border-radius:6px;padding:.45rem 1rem;transition:background .2s}
+.nav-cta:hover{background:#d96a28}
+#hamburger{display:none;background:none;border:none;padding:.3rem;color:rgba(255,255,255,.9)}
+#nav.solid #hamburger{color:var(--blue)}
+#mobile-nav{display:none;position:absolute;top:100%;left:0;right:0;background:rgba(255,255,255,.98);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:1rem 1.5rem;flex-direction:column;gap:.25rem}
+#mobile-nav.open{display:flex}
+#mobile-nav .nav-a{color:var(--blue);padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.85rem}
+#mobile-nav .nav-a:last-of-type{border-bottom:none}
+#mobile-nav .nav-cta{margin-top:.75rem;text-align:center;display:block;padding:.65rem 1rem}
+
+/* ── HERO ────────────────────────────────────────── */
+.hero{min-height:100svh;position:relative;display:flex;flex-direction:column;justify-content:flex-end}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(160deg,var(--blue-deep) 0%,var(--blue) 60%,#1a5cd4 100%)}
+.hero-photo{position:absolute;inset:0}
+.hero-photo img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s}
+.hero-photo img.loaded{opacity:1}
+.hero-vignette{position:absolute;inset:0;background:linear-gradient(to top,rgba(4,29,82,.9) 0%,rgba(4,29,82,.4) 50%,rgba(4,29,82,.15) 100%)}
+.hero-body{position:relative;z-index:2;max-width:1200px;margin:0 auto;width:100%;padding:0 1.5rem 4.5rem}
+.hero-tag{display:inline-block;font-size:.65rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.7);margin-bottom:1.25rem;border:1px solid rgba(255,255,255,.2);border-radius:4px;padding:.3rem .7rem}
+.hero-h1{font-family:'Playfair Display',serif;font-size:clamp(2.6rem,6vw,4.5rem);font-weight:700;color:#fff;line-height:1.05;letter-spacing:-.01em;margin-bottom:1.25rem}
+.hero-h1 em{font-style:italic;color:var(--orange)}
+.hero-sub{font-size:.95rem;font-weight:300;color:rgba(255,255,255,.72);max-width:42ch;line-height:1.75;margin-bottom:2rem}
+.hero-actions{display:flex;flex-wrap:wrap;gap:.75rem}
+.btn-primary{display:inline-flex;align-items:center;gap:.5rem;background:var(--orange);color:#fff;border:none;border-radius:7px;padding:.65rem 1.4rem;font-size:.82rem;font-weight:500;letter-spacing:.02em;transition:background .2s,transform .15s}
+.btn-primary:hover{background:#d96a28;transform:translateY(-1px)}
+.btn-secondary{display:inline-flex;align-items:center;gap:.5rem;background:transparent;color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.35);border-radius:7px;padding:.65rem 1.4rem;font-size:.82rem;font-weight:400;transition:border-color .2s,background .2s}
+.btn-secondary:hover{border-color:rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
+
+/* stat strip */
+.stat-strip{position:relative;z-index:2;border-top:1px solid rgba(255,255,255,.1);background:rgba(0,0,0,.18);backdrop-filter:blur(4px)}
+.stat-strip-inner{max-width:1200px;margin:0 auto;padding:1.5rem;display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.stat-box{text-align:center}
+.stat-n{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:#fff;line-height:1}
+.stat-l{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:.3rem}
+@media(max-width:600px){.stat-strip-inner{grid-template-columns:repeat(2,1fr)}.hero-h1{font-size:2.4rem}}
+
+/* ── SECTION HELPERS ─────────────────────────────── */
+.section{padding:5rem 1.5rem}
+.section-inner{max-width:1200px;margin:0 auto}
+.section-header{margin-bottom:3rem}
+.eyebrow{font-size:.65rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:.6rem}
+.section-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,3.5vw,2.4rem);font-weight:700;color:var(--blue);line-height:1.15}
+.section-rule{width:32px;height:2px;background:var(--orange);margin:.85rem 0 1.1rem;border-radius:2px}
+.section-rule.center{margin-left:auto;margin-right:auto}
+.section-lead{font-size:.9rem;color:var(--stone);max-width:48ch;line-height:1.8}
+
+/* reveal */
+.r{opacity:0;transform:translateY(18px);transition:opacity .55s ease,transform .55s ease}
+.r.on{opacity:1;transform:none}
+
+/* ── TOURS ───────────────────────────────────────── */
+.tours-section{background:var(--mist)}
+.filter-row{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2.5rem}
+.ftab{font-size:.72rem;font-weight:500;letter-spacing:.05em;padding:.38rem .9rem;border-radius:999px;border:1px solid rgba(10,66,165,.25);color:var(--blue);background:transparent;cursor:pointer;transition:all .2s}
+.ftab:hover{background:#e8eef9}
+.ftab.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
+.card{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .25s,transform .25s}
+.card:hover{box-shadow:0 8px 32px rgba(10,66,165,.1);transform:translateY(-3px)}
+.card-img{height:190px;overflow:hidden;position:relative;background:linear-gradient(135deg,#c8d8f0,#a8c0e8)}
+.card-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.card:hover .card-img img{transform:scale(1.04)}
+.card-img-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(7,46,122,.35) 0%,transparent 55%)}
+.card-tags{position:absolute;bottom:.75rem;left:.75rem;display:flex;gap:.35rem}
+.tag{font-size:.62rem;font-weight:600;letter-spacing:.03em;padding:2px 8px;border-radius:999px}
+.tag-blue{background:rgba(10,66,165,.85);color:#fff}
+.tag-orange{background:rgba(243,131,69,.9);color:#fff}
+.tag-green{background:rgba(22,101,52,.85);color:#fff}
+.tag-red{background:rgba(192,21,27,.85);color:#fff}
+.card-body{padding:1.1rem 1.1rem .9rem;display:flex;flex-direction:column;flex:1}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.6rem}
+.card-title{font-family:'Playfair Display',serif;font-size:.97rem;font-weight:700;color:var(--ink);line-height:1.3;flex:1}
+.card-price{font-family:'Playfair Display',serif;font-size:.97rem;font-weight:700;color:var(--blue);white-space:nowrap;text-align:right;flex-shrink:0}
+.card-price-sub{font-size:.6rem;color:var(--stone);text-align:right}
+.card-desc{font-size:.78rem;color:var(--stone);line-height:1.7;flex:1;margin-bottom:.9rem}
+.card-btn{font-size:.72rem;font-weight:500;letter-spacing:.03em;color:var(--blue);border:1px solid rgba(10,66,165,.3);border-radius:6px;padding:.45rem .9rem;background:transparent;width:100%;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s}
+.card-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.card-btn svg.chev{transition:transform .3s}
+
+/* accordion */
+.itin-panel{max-height:0;overflow:hidden;opacity:0;transition:max-height .5s cubic-bezier(.4,0,.2,1),opacity .3s}
+.itin-panel.open{max-height:1800px;opacity:1}
+.itin-body{padding:.9rem 1.1rem 1rem;border-top:1px solid var(--border)}
+.itin-label{font-size:.6rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);margin-bottom:.75rem}
+.day-badge{display:inline-block;font-size:.6rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:999px;margin-bottom:.6rem}
+.day-badge.b{background:#e8eef9;color:var(--blue)}
+.day-badge.o{background:#fef1e8;color:#d96a28}
+.tl{position:relative;padding-left:1.6rem;margin-bottom:.75rem}
+.tl::before{content:'';position:absolute;left:.47rem;top:1.2rem;bottom:-.3rem;width:1.5px;background:#e8e8e6}
+.tl:last-child::before{display:none}
+.tl-dot{position:absolute;left:0;top:.25rem;width:.95rem;height:.95rem;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tl-dot::after{content:'';width:4px;height:4px;border-radius:50%;background:#fff}
+.tl-t{font-size:.75rem;font-weight:600;color:var(--ink);margin-bottom:.15rem}
+.tl-d{font-size:.72rem;color:var(--stone);line-height:1.6}
+
+/* deposit */
+.deposit{background:var(--blue-deep);border-radius:8px;padding:1rem 1.1rem;margin-top:1rem;display:flex;flex-direction:column;gap:.5rem}
+.deposit-title{font-size:.8rem;font-weight:600;color:#fff;text-align:center}
+.deposit-sub{font-size:.65rem;color:rgba(255,255,255,.5);text-align:center}
+.deposit-btn{display:flex;align-items:center;justify-content:center;gap:.4rem;background:var(--orange);color:#fff;border:none;border-radius:6px;padding:.55rem 1rem;font-size:.78rem;font-weight:500;cursor:pointer;transition:background .2s}
+.deposit-btn:hover{background:#d96a28}
+
+/* ── EXPERIENCE ──────────────────────────────────── */
+.exp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.exp-cell{background:#fff;padding:2rem 1.75rem;position:relative}
+.exp-num{font-family:'Playfair Display',serif;font-size:4rem;font-weight:700;color:#f0efed;line-height:1;position:absolute;top:.75rem;right:1.25rem;user-select:none}
+.exp-icon{width:40px;height:40px;border-radius:10px;background:#f0f4fc;display:flex;align-items:center;justify-content:center;margin-bottom:1.1rem}
+.exp-icon svg{width:20px;height:20px;stroke:var(--blue);fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.exp-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--blue);margin-bottom:.6rem}
+.exp-text{font-size:.8rem;color:var(--stone);line-height:1.75}
+.exp-foot{margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--orange)}
+
+/* ── REVIEWS ─────────────────────────────────────── */
+.reviews-section{background:var(--mist)}
+.reviews-grid{display:grid;gap:1rem}
+@media(min-width:640px){.reviews-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:900px){.reviews-grid{grid-template-columns:repeat(3,1fr)}}
+.review-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;display:flex;flex-direction:column;gap:.75rem}
+.stars{color:var(--orange);font-size:.9rem;letter-spacing:.05em}
+.review-text{font-size:.82rem;color:var(--stone);line-height:1.75;font-style:italic;flex:1}
+.reviewer{display:flex;align-items:center;gap:.6rem}
+.reviewer-avatar{width:32px;height:32px;border-radius:50%;background:#e8eef9;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:var(--blue);flex-shrink:0}
+.reviewer-name{font-size:.78rem;font-weight:500;color:var(--ink)}
+.reviewer-meta{font-size:.65rem;color:var(--stone)}
+
+/* write review */
+.write-review{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:1.75rem}
+.wr-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--blue);margin-bottom:.3rem}
+.wr-sub{font-size:.78rem;color:var(--stone);margin-bottom:1.25rem}
+.star-pick{display:flex;gap:.3rem;margin-bottom:1.25rem}
+.star-pick button{background:none;border:none;font-size:1.4rem;color:#ddd;cursor:pointer;line-height:1;transition:color .1s;padding:0}
+.star-pick button.active,.star-pick button:hover,.star-pick button:hover~button{color:var(--orange)}/* handled in JS */
+.wr-fields{display:grid;gap:.75rem}
+.wr-input{width:100%;padding:.65rem .85rem;border:1px solid var(--border);border-radius:7px;font-size:.82rem;font-family:inherit;color:var(--ink);outline:none;transition:border-color .2s}
+.wr-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,66,165,.07)}
+.wr-textarea{min-height:80px;resize:vertical}
+.wr-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-top:.85rem}
+.wr-note{font-size:.65rem;color:var(--stone)}
+#wr-success{display:none;text-align:center;padding:1.5rem;color:var(--blue);font-size:.85rem}
+
+/* sort/filter bar */
+.reviews-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;margin-bottom:1.75rem}
+.reviews-count{font-size:.78rem;color:var(--stone)}
+.reviews-sort{font-size:.75rem;color:var(--stone);border:1px solid var(--border);border-radius:6px;padding:.35rem .7rem;background:#fff;font-family:inherit;outline:none;cursor:pointer}
+
+/* ── CONTACT ─────────────────────────────────────── */
+.contact-section{background:var(--blue-deep);position:relative;overflow:hidden}
+.contact-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(10,66,165,.6) 0%,transparent 70%)}
+.contact-inner{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:5rem 1.5rem;display:grid;gap:3rem}
+@media(min-width:768px){.contact-inner{grid-template-columns:1fr 1fr;align-items:start}}
+.contact-copy .eyebrow{color:var(--orange)}
+.contact-title{font-family:'Playfair Display',serif;font-size:clamp(1.7rem,3vw,2.2rem);font-weight:700;color:#fff;line-height:1.2;margin:1rem 0 .5rem}
+.contact-sub{font-size:.85rem;color:rgba(255,255,255,.6);line-height:1.8;margin-bottom:2rem}
+.contact-steps{display:flex;flex-direction:column;gap:1.1rem;margin-bottom:2.25rem}
+.c-step{display:flex;gap:.9rem;align-items:flex-start}
+.c-step-num{width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Playfair Display',serif;font-size:.78rem;font-weight:700;color:rgba(255,255,255,.7)}
+.c-step-t{font-size:.8rem;font-weight:500;color:#fff;margin-bottom:.15rem}
+.c-step-d{font-size:.72rem;color:rgba(255,255,255,.5);line-height:1.6}
+.contact-direct{border-top:1px solid rgba(255,255,255,.1);padding-top:1.5rem}
+.contact-direct-label{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:.5rem}
+.contact-direct a{display:block;font-size:.85rem;font-weight:400;color:rgba(255,255,255,.75);transition:color .2s;margin-bottom:.25rem}
+.contact-direct a:hover{color:var(--orange)}
+.form-card{background:#fff;border-radius:var(--radius);padding:1.75rem}
+.form-card-title{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--blue);margin-bottom:1.25rem}
+.form-fields{display:flex;flex-direction:column;gap:.9rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.flabel{display:block;font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);margin-bottom:.35rem}
+.finput{width:100%;padding:.65rem .85rem;border:1px solid var(--border);border-radius:7px;font-size:.82rem;font-family:inherit;color:var(--ink);outline:none;transition:border-color .2s,box-shadow .2s}
+.finput:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(10,66,165,.07)}
+.fselect{width:100%;padding:.65rem .85rem;border:1px solid var(--border);border-radius:7px;font-size:.82rem;font-family:inherit;color:var(--ink);background:#fff;outline:none;cursor:pointer;transition:border-color .2s}
+.fselect:focus{border-color:var(--blue)}
+.ftextarea{width:100%;min-height:90px;resize:vertical;padding:.65rem .85rem;border:1px solid var(--border);border-radius:7px;font-size:.82rem;font-family:inherit;color:var(--ink);outline:none;transition:border-color .2s}
+.ftextarea:focus{border-color:var(--blue)}
+.form-note{font-size:.65rem;color:var(--stone);text-align:center;margin-top:.4rem}
+
+/* ── FOOTER ─────────────────────────────────────── */
+footer{background:#0c0c0c;padding:2rem 1.5rem}
+.footer-inner{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:1rem}
+@media(min-width:640px){.footer-inner{flex-direction:row;align-items:center;justify-content:space-between}}
+.footer-brand{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.05em}
+.footer-meta{font-size:.65rem;color:rgba(255,255,255,.3)}
+.footer-links{display:flex;gap:1.25rem}
+.footer-links a{font-size:.7rem;color:rgba(255,255,255,.4);transition:color .2s}
+.footer-links a:hover{color:var(--orange)}
+
+@media(max-width:600px){.form-row{grid-template-columns:1fr}.hero-actions{flex-direction:column}.exp-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- NAV ──────────────────────────────────────────── -->
+<nav id="nav" class="clear">
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-img">
+        <!-- 📷 REPLACE src with your logo file -->
+        <img src="upupa.png" alt="Upupa" onerror="this.parentElement.style.background='#e8eef9'"/>
+      </div>
+      <div>
+        <div class="logo-text" id="logo-text">UPUPA TRAVEL</div>
+        <div class="logo-sub">discover armenia</div>
+      </div>
+    </a>
+
+    <div class="nav-links" id="nav-links" style="display:none"><!-- shown on desktop via JS -->
+      <a href="#tours" class="nav-a">Tours</a>
+      <a href="#experience" class="nav-a">Experience</a>
+      <a href="#reviews" class="nav-a">Reviews</a>
+      <a href="#contact" class="nav-a">Contact</a>
+      <a href="#contact" class="nav-cta">Book a Call</a>
+    </div>
+
+    <button id="hamburger" onclick="toggleMobile()" aria-label="Menu">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div id="mobile-nav">
+    <a href="#tours" class="nav-a" onclick="closeMobile()">Tours</a>
+    <a href="#experience" class="nav-a" onclick="closeMobile()">Experience</a>
+    <a href="#reviews" class="nav-a" onclick="closeMobile()">Reviews</a>
+    <a href="#contact" class="nav-a" onclick="closeMobile()">Contact</a>
+    <a href="#contact" class="nav-cta" onclick="closeMobile()">Book a Call</a>
+  </div>
+</nav>
+
+<!-- HERO ─────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-photo">
+    <!-- 📷 REPLACE with real photo, e.g. images/hero.jpg -->
+    <img src="/api/placeholder/1600/900" alt="Armenia" id="hero-img"/>
+  </div>
+  <div class="hero-vignette"></div>
+
+  <div class="hero-body">
+    <!-- 📝 EDIT hero text below -->
+    <div class="hero-tag">Private guide service · Yerevan, Armenia</div>
+    <h1 class="hero-h1">
+      Armenia,<br/>
+      <em>Unhurried</em><br/>
+      &amp; Unforgettable.
+    </h1>
+    <p class="hero-sub">Handcrafted private tours across ancient monasteries, volcanic highlands, and vine-draped valleys — designed by locals who know every hidden road.</p>
+    <div class="hero-actions">
+      <a href="#tours" class="btn-primary">
+        Explore Tours
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#contact" class="btn-secondary">Talk to a Guide</a>
+    </div>
+  </div>
+
+  <!-- 📝 EDIT stat values -->
+  <div class="stat-strip">
+    <div class="stat-strip-inner">
+      <div class="stat-box"><div class="stat-n">100%</div><div class="stat-l">Tailored &amp; Private</div></div>
+      <div class="stat-box"><div class="stat-n" style="font-size:1rem">All-Inclusive</div><div class="stat-l">Transport &amp; Fees</div></div>
+      <div class="stat-box"><div class="stat-n" style="font-size:1rem">Off-Grid</div><div class="stat-l">Hidden Gems</div></div>
+      <div class="stat-box"><div class="stat-n" style="font-size:1rem">Anytime</div><div class="stat-l">Flexible Dates</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TOURS ────────────────────────────────────────── -->
+<section id="tours" class="section tours-section">
+  <div class="section-inner">
+    <div class="section-header r">
+      <div class="eyebrow">Curated Experiences</div>
+      <h2 class="section-title">Tours &amp; Packages</h2>
+      <div class="section-rule"></div>
+      <p class="section-lead">Built around your pace — not a bus schedule. Private transport, expert guides, and places most tourists never find.</p>
+    </div>
+
+    <div class="filter-row r">
+      <button class="ftab on" onclick="filterCards('all',this)">All</button>
+      <button class="ftab" onclick="filterCards('daily',this)">Day Trips</button>
+      <button class="ftab" onclick="filterCards('multi',this)">Multi-Day</button>
+    </div>
+
+    <div class="cards">
+
+      <!-- CARD 1 ─────────────────────────────────── -->
+      <div class="card r" data-cat="daily">
+        <div class="card-img">
+          <!-- 📷 EDIT IMAGE: images/garni.jpg -->
+          <img src="/api/placeholder/600/190" alt="Garni Temple"/>
+          <div class="card-img-overlay"></div>
+          <div class="card-tags">
+            <span class="tag tag-blue">Day Trip</span>
+            <span class="tag tag-green">8 hrs</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-row">
+            <!-- 📝 EDIT title -->
+            <div class="card-title">Garni, Geghard &amp; Symphony of Stones</div>
+            <div>
+              <!-- 💰 EDIT price -->
+              <div class="card-price">from $XX</div>
+              <div class="card-price-sub">per person</div>
+            </div>
+          </div>
+          <!-- 📝 EDIT description -->
+          <p class="card-desc">Hellenistic temple, UNESCO cave monastery, and the dramatic basalt columns of the Azat gorge — Armenia's greatest day trip.</p>
+          <button class="card-btn" onclick="toggleItin('i1',this)">
+            <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            View Itinerary
+          </button>
+        </div>
+        <div class="itin-panel" id="i1">
+          <div class="itin-body">
+            <div class="itin-label">Day Schedule</div>
+            <!-- ⏱️ EDIT timeline steps -->
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">08:30 — Hotel Pickup</div><div class="tl-d">Private vehicle, water provided.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">09:30 — Garni Temple</div><div class="tl-d">Armenia's only Greco-Roman temple, 1st c. AD.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">11:00 — Symphony of Stones</div><div class="tl-d">Hexagonal basalt columns, Azat river gorge.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">14:00 — Geghard Monastery (UNESCO)</div><div class="tl-d">Cave-carved 4th-c. monastery, extraordinary acoustics.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">16:30 — Return to Yerevan</div></div>
+            <!-- 💳 DEPOSIT: replace href="#" with your Stripe link -->
+            <div class="deposit">
+              <div class="deposit-title">Secure Your Date — $50 Deposit</div>
+              <div class="deposit-sub">Balance due on the day · Full refund 48 hrs before</div>
+              <a href="#" class="deposit-btn">Pay Deposit &amp; Confirm →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2 ─────────────────────────────────── -->
+      <div class="card r" data-cat="daily" style="transition-delay:.08s">
+        <div class="card-img">
+          <!-- 📷 EDIT IMAGE: images/khor-virap.jpg -->
+          <img src="/api/placeholder/600/190" alt="Khor Virap and Mount Ararat"/>
+          <div class="card-img-overlay"></div>
+          <div class="card-tags">
+            <span class="tag tag-blue">Day Trip</span>
+            <span class="tag tag-green">9 hrs</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-row">
+            <div class="card-title">Khor Virap, Areni Cave &amp; Noravank</div>
+            <div>
+              <!-- 💰 EDIT price -->
+              <div class="card-price">from $XX</div>
+              <div class="card-price-sub">per person</div>
+            </div>
+          </div>
+          <p class="card-desc">Monastery at Ararat's feet, the world's oldest winery, and rust-red canyon cliffs. A journey through myth and geology.</p>
+          <button class="card-btn" onclick="toggleItin('i2',this)">
+            <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            View Itinerary
+          </button>
+        </div>
+        <div class="itin-panel" id="i2">
+          <div class="itin-body">
+            <div class="itin-label">Day Schedule</div>
+            <!-- ⏱️ EDIT timeline steps -->
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">08:00 — Departure</div><div class="tl-d">South through the Ararat plain.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">09:00 — Khor Virap Monastery</div><div class="tl-d">Best Ararat views. Gregory the Illuminator's dungeon.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">11:00 — Areni-1 Cave + Wine Tasting</div><div class="tl-d">6,100-year-old winery. Tasting at a local producer.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">14:30 — Noravank Monastery</div><div class="tl-d">13th-c. double-church complex in rust-red cliffs.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">17:00 — Return to Yerevan</div></div>
+            <!-- 💳 DEPOSIT -->
+            <div class="deposit">
+              <div class="deposit-title">Secure Your Date — $50 Deposit</div>
+              <div class="deposit-sub">Balance due on the day · Full refund 48 hrs before</div>
+              <a href="#" class="deposit-btn">Pay Deposit &amp; Confirm →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3 ─────────────────────────────────── -->
+      <div class="card r" data-cat="multi" style="transition-delay:.16s">
+        <div class="card-img">
+          <!-- 📷 EDIT IMAGE: images/tatev.jpg -->
+          <img src="/api/placeholder/600/190" alt="Tatev Monastery and Wings cable car"/>
+          <div class="card-img-overlay"></div>
+          <div class="card-tags">
+            <span class="tag tag-red">⭐ Bestseller</span>
+            <span class="tag tag-orange">2 Days</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-row">
+            <div class="card-title">Tatev &amp; Syunik South Expedition</div>
+            <div>
+              <!-- 💰 EDIT price -->
+              <div class="card-price">from $XXX</div>
+              <div class="card-price-sub">per person</div>
+            </div>
+          </div>
+          <p class="card-desc">World's longest cable car over the Vorotan gorge, medieval Tatev Monastery, Armenia's Stonehenge. Overnight in canyon-town Goris.</p>
+          <button class="card-btn" onclick="toggleItin('i3',this)">
+            <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            View Itinerary
+          </button>
+        </div>
+        <div class="itin-panel" id="i3">
+          <div class="itin-body">
+            <div class="day-badge b">Day 1 — Yerevan → Goris</div>
+            <!-- ⏱️ EDIT Day 1 steps -->
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">08:00 — Depart Yerevan</div><div class="tl-d">~3.5 hr scenic drive, Vayots Dzor highlands.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">12:00 — Wings of Tatev Cable Car</div><div class="tl-d">5.7 km over the Vorotan gorge. Guinness Record.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">13:00 — Tatev Monastery</div><div class="tl-d">9th-c. complex, frescoes and canyon panoramas.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">18:00 — Overnight, Goris</div><div class="tl-d">Boutique guesthouse. Dinner included.</div></div>
+            <div class="day-badge o" style="margin-top:1rem">Day 2 — Carahunge → Yerevan</div>
+            <!-- ⏱️ EDIT Day 2 steps -->
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">09:00 — Zorats Karer (Carahunge)</div><div class="tl-d">Armenia's Stonehenge, 7,500 yrs old.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">12:00 — Selim Caravanserai</div><div class="tl-d">14th-c. Silk Road waystation, 2,400 m altitude.</div></div>
+            <div class="tl"><div class="tl-dot"></div><div class="tl-t">17:30 — Back in Yerevan</div></div>
+            <!-- 💳 DEPOSIT -->
+            <div class="deposit">
+              <div class="deposit-title">Secure Your Date — $100 Deposit</div>
+              <div class="deposit-sub">Balance due on the day · Full refund 48 hrs before</div>
+              <a href="#" class="deposit-btn">Pay Deposit &amp; Confirm →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /cards -->
+  </div>
+</section>
+
+<!-- EXPERIENCE ───────────────────────────────────── -->
+<section id="experience" class="section" style="background:#fff">
+  <div class="section-inner">
+    <div class="section-header r" style="text-align:center">
+      <div class="eyebrow">How We Travel</div>
+      <h2 class="section-title" style="margin:0 auto">The Upupa Experience</h2>
+      <div class="section-rule center"></div>
+      <p class="section-lead" style="margin:0 auto">Why experienced travellers choose a boutique private guide over a crowded bus.</p>
+    </div>
+
+    <!-- 📝 EDIT the 3 experience cards below -->
+    <div class="exp-grid r">
+      <div class="exp-cell">
+        <div class="exp-num">01</div>
+        <div class="exp-icon">
+          <svg viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21 3 6"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+        </div>
+        <div class="exp-title">Beyond the Guidebooks</div>
+        <p class="exp-text">Hidden viewpoints, village lunch spots, canyon trails only shepherds know. Every itinerary has at least one moment you'll never find online.</p>
+        <div class="exp-foot">Zero tourist traps</div>
+      </div>
+      <div class="exp-cell">
+        <div class="exp-num">02</div>
+        <div class="exp-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="exp-title">Your Pace, Your Rules</div>
+        <p class="exp-text">No rigid schedules. Stop for coffee over a canyon. Linger at a monastery. If a roadside vendor is selling the season's best pomegranates, we stop.</p>
+        <div class="exp-foot">Fully flexible itineraries</div>
+      </div>
+      <div class="exp-cell">
+        <div class="exp-num">03</div>
+        <div class="exp-icon">
+          <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <div class="exp-title">Local Storytelling</div>
+        <p class="exp-text">Our guides grew up with these legends, studied these monasteries, debated this history over dinner. Every crumbling wall has a story they actually know.</p>
+        <div class="exp-foot">Native guides only</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS ──────────────────────────────────────── -->
+<section id="reviews" class="section reviews-section">
+  <div class="section-inner">
+    <div class="section-header r">
+      <div class="eyebrow">Traveller Stories</div>
+      <h2 class="section-title">What Our Guests Say</h2>
+      <div class="section-rule"></div>
+      <p class="section-lead">Real experiences from real travellers. Read them, then add yours.</p>
+    </div>
+
+    <!-- Sort / count bar -->
+    <div class="reviews-bar r">
+      <div class="reviews-count" id="review-count">Showing all reviews</div>
+      <select class="reviews-sort" onchange="sortReviews(this.value)">
+        <option value="newest">Newest first</option>
+        <option value="highest">Highest rated</option>
+        <option value="lowest">Lowest rated</option>
+      </select>
+    </div>
+
+    <!-- Reviews grid — seeded with 3 starter reviews, new ones appear via JS -->
+    <div class="reviews-grid r" id="reviews-grid">
+
+      <!-- 📝 EDIT or REMOVE these placeholder reviews — replace with real ones -->
+      <div class="review-card" data-stars="5" data-date="2024-10-15">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"The Tatev trip was the highlight of our entire Caucasus journey. Our guide brought history alive in a way no audio guide ever could. The cable car alone is worth the trip to Armenia."</p>
+        <div class="reviewer">
+          <div class="reviewer-avatar">JK</div>
+          <div>
+            <div class="reviewer-name">James K.</div>
+            <div class="reviewer-meta">London, UK · October 2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-card" data-stars="5" data-date="2024-06-20">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"We came for a genealogy trip — Upupa found my grandmother's village on old Soviet maps, arranged a meeting with the local historian, and we found family we didn't know we had. Life-changing."</p>
+        <div class="reviewer">
+          <div class="reviewer-avatar" style="background:#fef1e8;color:#d96a28">SD</div>
+          <div>
+            <div class="reviewer-name">Susan D.</div>
+            <div class="reviewer-meta">Boston, USA · June 2024</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-card" data-stars="5" data-date="2024-05-08">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"As a birder I was specific: I wanted Caucasian Grouse and the Arapan wetlands. Upupa found both. They understood exactly what I needed and didn't try to sell me a generic package."</p>
+        <div class="reviewer">
+          <div class="reviewer-avatar">RV</div>
+          <div>
+            <div class="reviewer-name">Rens V.</div>
+            <div class="reviewer-meta">Amsterdam, NL · May 2024</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /reviews-grid -->
+
+    <!-- Write a review -->
+    <div class="write-review r" id="write-review" style="margin-top:2.5rem">
+      <div class="wr-title">Share Your Experience</div>
+      <p class="wr-sub">Travelled with us? We'd love to hear about it — your story helps other travellers decide.</p>
+
+      <div id="wr-success">
+        <div style="font-size:1.5rem;margin-bottom:.5rem">🙏</div>
+        Thank you! Your review will appear here shortly.
+      </div>
+
+      <div id="wr-form">
+        <!-- Star picker -->
+        <div style="margin-bottom:.5rem;font-size:.65rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)">Your Rating</div>
+        <div class="star-pick" id="star-pick">
+          <button type="button" data-val="1" onclick="pickStar(1)">★</button>
+          <button type="button" data-val="2" onclick="pickStar(2)">★</button>
+          <button type="button" data-val="3" onclick="pickStar(3)">★</button>
+          <button type="button" data-val="4" onclick="pickStar(4)">★</button>
+          <button type="button" data-val="5" onclick="pickStar(5)">★</button>
+        </div>
+
+        <div class="wr-fields">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+            <div>
+              <label class="flabel" for="wr-name">Your Name</label>
+              <input class="wr-input" id="wr-name" type="text" placeholder="Jane Smith" maxlength="60"/>
+            </div>
+            <div>
+              <label class="flabel" for="wr-location">City / Country</label>
+              <input class="wr-input" id="wr-location" type="text" placeholder="Paris, France" maxlength="60"/>
+            </div>
+          </div>
+          <div>
+            <label class="flabel" for="wr-tour">Tour Taken</label>
+            <select class="wr-input" id="wr-tour" style="cursor:pointer">
+              <option value="">Select a tour…</option>
+              <option>Garni, Geghard &amp; Symphony of Stones</option>
+              <option>Khor Virap, Areni Cave &amp; Noravank</option>
+              <option>Tatev &amp; Syunik South Expedition</option>
+              <option>Custom Itinerary</option>
+            </select>
+          </div>
+          <div>
+            <label class="flabel" for="wr-text">Your Review</label>
+            <textarea class="wr-input wr-textarea" id="wr-text" placeholder="Tell future travellers what made your trip memorable…" maxlength="600"></textarea>
+          </div>
+        </div>
+
+        <div class="wr-footer">
+          <p class="wr-note">Reviews are stored locally in your browser and visible to you immediately.<br>They'll appear for everyone once we approve them.</p>
+          <button class="btn-primary" onclick="submitReview()" style="flex-shrink:0">
+            Post Review
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT ──────────────────────────────────────── -->
+<section id="contact" class="contact-section">
+  <div class="contact-inner">
+
+    <!-- Left copy -->
+    <div class="contact-copy">
+      <div class="eyebrow">Ready to explore?</div>
+      <h2 class="contact-title">Let's plan your Armenia trip.</h2>
+      <p class="contact-sub">Tell us your dates, interests, and group size. We reply within hours with availability — then a small deposit locks your date instantly.</p>
+
+      <div class="contact-steps">
+        <div class="c-step"><div class="c-step-num">1</div><div><div class="c-step-t">Send your enquiry</div><div class="c-step-d">Takes 2 minutes. No account needed.</div></div></div>
+        <div class="c-step"><div class="c-step-num">2</div><div><div class="c-step-t">We confirm availability</div><div class="c-step-d">Typically within a few hours.</div></div></div>
+        <div class="c-step"><div class="c-step-num">3</div><div><div class="c-step-t">Pay a deposit to lock your date</div><div class="c-step-d">Secure and instant. Balance on the day.</div></div></div>
+      </div>
+
+      <!-- 📝 EDIT contact details -->
+      <div class="contact-direct">
+        <div class="contact-direct-label">Or reach us directly</div>
+        <a href="mailto:hello@upupatravel.com">hello@upupatravel.com</a>
+        <a href="https://wa.me/37400000000">WhatsApp: +374 XX XXX XXX</a>
+      </div>
+    </div>
+
+    <!-- Right form -->
+    <div>
+      <div class="form-card">
+        <div class="form-card-title">Request a Tour or Custom Itinerary</div>
+        <!-- 🔌 Add action="https://formspree.io/f/YOUR_ID" when ready -->
+        <form name="booking" method="POST" data-netlify="true" class="form-fields">
+          <div class="form-row">
+            <div>
+              <label class="flabel" for="f-name">Full Name</label>
+              <input class="finput" id="f-name" name="name" type="text" placeholder="Jane Smith" required/>
+            </div>
+            <div>
+              <label class="flabel" for="f-contact">Email or WhatsApp</label>
+              <input class="finput" id="f-contact" name="contact" type="text" placeholder="email or +1…" required/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label class="flabel" for="f-tour">Tour</label>
+              <!-- 📝 EDIT tour options -->
+              <select class="fselect" id="f-tour" name="tour">
+                <option value="">Choose…</option>
+                <option>Garni, Geghard &amp; Symphony</option>
+                <option>Khor Virap, Areni &amp; Noravank</option>
+                <option>Tatev &amp; Syunik (2-Day)</option>
+                <option>Custom Itinerary</option>
+              </select>
+            </div>
+            <div>
+              <label class="flabel" for="f-date">Desired Date</label>
+              <input class="finput" id="f-date" name="date" type="date"/>
+            </div>
+          </div>
+          <div>
+            <label class="flabel" for="f-msg">Group Size &amp; Notes</label>
+            <textarea class="ftextarea" id="f-msg" name="message" placeholder="How many people? Dietary needs, interests…"></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%;justify-content:center;padding:.8rem">
+            Send Enquiry
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+          <p class="form-note">No payment now. We confirm availability first.</p>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER ───────────────────────────────────────── -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <!-- 📝 EDIT footer brand name and copyright -->
+      <div class="footer-brand">UPUPA TRAVEL</div>
+      <div class="footer-meta" style="margin-top:.3rem">© 2026 · Yerevan, Armenia · Ministry of Tourism Licensed</div>
+    </div>
+    <div class="footer-links">
+      <!-- 📝 EDIT social links -->
+      <a href="#">Instagram</a>
+      <a href="#">TripAdvisor</a>
+      <a href="#">Facebook</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── NAV ──────────────────────────────────────── */
+const navEl = document.getElementById('nav');
+const logoText = document.getElementById('logo-text');
+const hamburger = document.getElementById('hamburger');
+const navLinks = document.getElementById('nav-links');
+
+// show desktop links only on wider screens
+function setDesktopLinks(){
+  navLinks.style.display = window.innerWidth >= 768 ? 'flex' : 'none';
+  hamburger.style.display = window.innerWidth >= 768 ? 'none' : 'block';
+}
+setDesktopLinks();
+window.addEventListener('resize', setDesktopLinks);
+
+function updateNav(){
+  const solid = window.scrollY > 40;
+  navEl.classList.toggle('solid', solid);
+  navEl.classList.toggle('clear', !solid);
+}
+window.addEventListener('scroll', updateNav, {passive:true});
+updateNav();
+
+function toggleMobile(){ document.getElementById('mobile-nav').classList.toggle('open'); }
+function closeMobile(){ document.getElementById('mobile-nav').classList.remove('open'); }
+
+/* ── TOUR FILTER ──────────────────────────────── */
+function filterCards(cat, btn){
+  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.card[data-cat]').forEach(c => {
+    c.style.display = (cat === 'all' || c.dataset.cat === cat) ? 'flex' : 'none';
+  });
+}
+
+/* ── ACCORDION ────────────────────────────────── */
+function toggleItin(id, btn){
+  const panel = document.getElementById(id);
+  const open = panel.classList.contains('open');
+  document.querySelectorAll('.itin-panel').forEach(p => p.classList.remove('open'));
+  document.querySelectorAll('.chev').forEach(c => c.style.transform = '');
+  if(!open){
+    panel.classList.add('open');
+    const chev = btn.querySelector('.chev');
+    if(chev){ chev.style.transform = 'rotate(90deg)'; }
+    setTimeout(() => panel.scrollIntoView({behavior:'smooth',block:'nearest'}), 80);
+  }
+}
+
+/* ── SCROLL REVEAL ────────────────────────────── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('on'); observer.unobserve(e.target); }});
+}, {threshold: 0.08});
+document.querySelectorAll('.r').forEach(el => observer.observe(el));
+
+/* ── HERO IMAGE ───────────────────────────────── */
+const hi = document.getElementById('hero-img');
+if(hi){ hi.addEventListener('load', () => hi.classList.add('loaded')); if(hi.complete) hi.classList.add('loaded'); }
+
+/* ── STAR PICKER ──────────────────────────────── */
+let selectedStars = 0;
+function pickStar(n){
+  selectedStars = n;
+  document.querySelectorAll('#star-pick button').forEach((b,i) => {
+    b.style.color = i < n ? 'var(--orange)' : '#ddd';
+  });
+}
+
+/* ── REVIEWS ──────────────────────────────────── */
+// Load any saved reviews from localStorage
+function loadSavedReviews(){
+  const saved = JSON.parse(localStorage.getItem('upupa_reviews') || '[]');
+  saved.forEach(r => appendReviewCard(r));
+  updateReviewCount();
+}
+
+function appendReviewCard(r){
+  const grid = document.getElementById('reviews-grid');
+  const stars = '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars);
+  const initials = r.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+  const card = document.createElement('div');
+  card.className = 'review-card';
+  card.dataset.stars = r.stars;
+  card.dataset.date = r.date;
+  card.innerHTML = `
+    <div class="stars" style="color:var(--orange)">${stars}</div>
+    <p class="review-text">"${escHtml(r.text)}"</p>
+    <div class="reviewer">
+      <div class="reviewer-avatar">${initials}</div>
+      <div>
+        <div class="reviewer-name">${escHtml(r.name)}</div>
+        <div class="reviewer-meta">${escHtml(r.location)}${r.tour ? ' · ' + escHtml(r.tour) : ''} · ${r.dateLabel}</div>
+      </div>
+    </div>`;
+  grid.prepend(card);
+}
+
+function updateReviewCount(){
+  const n = document.querySelectorAll('#reviews-grid .review-card').length;
+  document.getElementById('review-count').textContent = `${n} review${n !== 1 ? 's' : ''}`;
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function submitReview(){
+  const name = document.getElementById('wr-name').value.trim();
+  const location = document.getElementById('wr-location').value.trim();
+  const tour = document.getElementById('wr-tour').value;
+  const text = document.getElementById('wr-text').value.trim();
+
+  if(!name){ alert('Please enter your name.'); return; }
+  if(!selectedStars){ alert('Please pick a star rating.'); return; }
+  if(text.length < 20){ alert('Please write at least 20 characters.'); return; }
+
+  const now = new Date();
+  const r = {
+    name, location, tour, text,
+    stars: selectedStars,
+    date: now.toISOString().slice(0,10),
+    dateLabel: now.toLocaleDateString('en-GB',{month:'long',year:'numeric'})
+  };
+
+  // Save to localStorage
+  const saved = JSON.parse(localStorage.getItem('upupa_reviews') || '[]');
+  saved.unshift(r);
+  localStorage.setItem('upupa_reviews', JSON.stringify(saved));
+
+  appendReviewCard(r);
+  updateReviewCount();
+
+  // Show success, hide form
+  document.getElementById('wr-form').style.display = 'none';
+  document.getElementById('wr-success').style.display = 'block';
+
+  // Reset form silently
+  setTimeout(() => {
+    document.getElementById('wr-name').value = '';
+    document.getElementById('wr-location').value = '';
+    document.getElementById('wr-tour').value = '';
+    document.getElementById('wr-text').value = '';
+    selectedStars = 0;
+    pickStar(0);
+    document.getElementById('wr-form').style.display = 'block';
+    document.getElementById('wr-success').style.display = 'none';
+  }, 4000);
+}
+
+function sortReviews(method){
+  const grid = document.getElementById('reviews-grid');
+  const cards = Array.from(grid.querySelectorAll('.review-card'));
+  cards.sort((a,b) => {
+    if(method === 'newest') return (b.dataset.date || '').localeCompare(a.dataset.date || '');
+    if(method === 'highest') return parseInt(b.dataset.stars||0) - parseInt(a.dataset.stars||0);
+    if(method === 'lowest') return parseInt(a.dataset.stars||0) - parseInt(b.dataset.stars||0);
+    return 0;
+  });
+  cards.forEach(c => grid.appendChild(c));
+}
+
+loadSavedReviews();
+</script>
+</body>
+</html>

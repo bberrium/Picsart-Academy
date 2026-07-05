@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>QR-разложение и QR-алгоритм</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0a0a1a;
+      color: #e8e8f0;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .presentation {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 50px 70px;
+      position: absolute;
+      top: 0; left: 0;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .slide.active { display: flex; flex-direction: column; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── SLIDE 1: Title ── */
+    .slide-title {
+      background: linear-gradient(135deg, #0d1b3e 0%, #0a0a1a 60%, #0d2a1a 100%);
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .slide-title .uni-block {
+      border: 1px solid rgba(100,160,255,0.3);
+      border-radius: 4px;
+      padding: 10px 30px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #7aaaff;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .slide-title h1 {
+      font-size: 52px;
+      font-weight: 700;
+      margin: 30px 0 20px;
+      background: linear-gradient(90deg, #4a9eff, #00e5a0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.15;
+    }
+
+    .slide-title .subtitle {
+      font-size: 15px;
+      color: #8899bb;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 50px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+      max-width: 800px;
+    }
+
+    .meta-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 14px 18px;
+      text-align: left;
+    }
+
+    .meta-card .label {
+      font-size: 10px;
+      color: #4a9eff;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 6px;
+    }
+
+    .meta-card .value {
+      font-size: 13px;
+      color: #ccd6f0;
+      line-height: 1.4;
+    }
+
+    /* ── GENERAL SLIDE LAYOUT ── */
+    .slide-content {
+      background: #0d1120;
+      flex-direction: column;
+    }
+
+    .slide-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(74,158,255,0.2);
+    }
+
+    .slide-num {
+      background: linear-gradient(135deg, #4a9eff, #00e5a0);
+      color: #000;
+      font-weight: 800;
+      font-size: 13px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .slide-header h2 {
+      font-size: 28px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .slide-header .section-tag {
+      margin-left: auto;
+      font-size: 11px;
+      color: #4a9eff;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border: 1px solid rgba(74,158,255,0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* ── BODY ELEMENTS ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      flex: 1;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      flex: 1;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 20px 22px;
+    }
+
+    .card.accent-blue { border-color: rgba(74,158,255,0.35); background: rgba(74,158,255,0.05); }
+    .card.accent-green { border-color: rgba(0,229,160,0.35); background: rgba(0,229,160,0.05); }
+    .card.accent-purple { border-color: rgba(180,100,255,0.35); background: rgba(180,100,255,0.05); }
+    .card.accent-orange { border-color: rgba(255,160,50,0.35); background: rgba(255,160,50,0.05); }
+
+    .card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card h3 .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-blue { background: #4a9eff; }
+    .dot-green { background: #00e5a0; }
+    .dot-purple { background: #b464ff; }
+    .dot-orange { background: #ffa032; }
+
+    .card p, .card li {
+      font-size: 13px;
+      color: #b0bcd8;
+      line-height: 1.65;
+    }
+
+    .card ul { padding-left: 16px; margin-top: 10px; }
+    .card li { margin-bottom: 5px; }
+
+    .formula-box {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 16px 20px;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 15px;
+      color: #e0f0ff;
+      margin: 10px 0;
+      line-height: 1.8;
+    }
+
+    .formula-box.large { font-size: 18px; padding: 20px 24px; }
+    .formula-box.highlight { border-color: #4a9eff; background: rgba(74,158,255,0.08); }
+
+    .kw { color: #4a9eff; font-weight: 700; }
+    .kw-green { color: #00e5a0; font-weight: 700; }
+    .kw-purple { color: #b464ff; font-weight: 700; }
+    .kw-orange { color: #ffa032; font-weight: 700; }
+
+    .tag-def {
+      display: inline-block;
+      background: rgba(74,158,255,0.15);
+      border: 1px solid rgba(74,158,255,0.4);
+      color: #4a9eff;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .tag-thm {
+      display: inline-block;
+      background: rgba(0,229,160,0.12);
+      border: 1px solid rgba(0,229,160,0.4);
+      color: #00e5a0;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .tag-proof {
+      display: inline-block;
+      background: rgba(180,100,255,0.12);
+      border: 1px solid rgba(180,100,255,0.4);
+      color: #b464ff;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .table-wrap table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .table-wrap th {
+      background: rgba(74,158,255,0.1);
+      color: #4a9eff;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 1px solid rgba(74,158,255,0.2);
+    }
+
+    .table-wrap td {
+      padding: 10px 14px;
+      color: #b0bcd8;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      vertical-align: top;
+    }
+
+    .table-wrap tr:last-child td { border-bottom: none; }
+    .table-wrap tr:hover td { background: rgba(255,255,255,0.03); }
+
+    .step-list { counter-reset: step; }
+    .step-item {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 14px;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      background: linear-gradient(135deg, #4a9eff, #00e5a0);
+      color: #000;
+      font-weight: 800;
+      font-size: 11px;
+      min-width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+
+    .step-text { font-size: 13px; color: #b0bcd8; line-height: 1.6; }
+    .step-text strong { color: #e0eaff; }
+
+    .full-width { grid-column: 1 / -1; }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    .pill-blue { background: rgba(74,158,255,0.2); color: #4a9eff; border: 1px solid rgba(74,158,255,0.4); }
+    .pill-green { background: rgba(0,229,160,0.15); color: #00e5a0; border: 1px solid rgba(0,229,160,0.35); }
+
+    .arrow-right {
+      color: #4a9eff;
+      font-size: 18px;
+      margin: 0 6px;
+    }
+
+    /* ── NAVIGATION ── */
+    .nav {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(10,10,26,0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50px;
+      padding: 10px 24px;
+      z-index: 100;
+    }
+
+    .nav button {
+      background: none;
+      border: none;
+      color: #7a9acc;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .nav button:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .nav button:disabled { color: #333; cursor: default; }
+
+    .nav-counter {
+      font-size: 12px;
+      color: #5a6a88;
+      min-width: 60px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .nav-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .nav-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #2a3a55;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .nav-dot.active { background: #4a9eff; transform: scale(1.4); }
+
+    /* ── PROGRESS BAR ── */
+    .progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4a9eff, #00e5a0);
+      transition: width 0.3s ease;
+      z-index: 200;
+    }
+
+    /* ── KEYBOARD HINT ── */
+    .kbd-hint {
+      position: fixed;
+      top: 18px;
+      right: 24px;
+      font-size: 11px;
+      color: #5a6a88;
+      z-index: 100;
+    }
+
+    .section-divider {
+      width: 40px;
+      height: 3px;
+      border-radius: 2px;
+      margin: 10px 0 14px;
+      background: #4a9eff;
+    }
+
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image:
+        linear-gradient(rgba(74,158,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,158,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .slide > * { position: relative; z-index: 1; }
+
+    .inline-formula {
+      font-family: 'Courier New', monospace;
+      background: rgba(74,158,255,0.1);
+      border: 1px solid rgba(74,158,255,0.25);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #aad4ff;
+    }
+
+    .proof-chain {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #b0bcd8;
+      padding: 10px 0;
+    }
+
+    .proof-chain .eq { color: #4a9eff; margin: 0 4px; }
+
+    .complexity-badge {
+      display: inline-block;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      margin: 4px 0;
+    }
+
+    .cb-blue { background: rgba(74,158,255,0.12); border: 1px solid rgba(74,158,255,0.35); color: #4a9eff; }
+    .cb-green { background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.3); color: #00e5a0; }
+    .cb-orange { background: rgba(255,160,50,0.1); border: 1px solid rgba(255,160,50,0.3); color: #ffa032; }
+
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      padding-bottom: 16px;
+      position: relative;
+    }
+
+    .timeline-item:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 24px;
+      bottom: 0;
+      width: 1px;
+      background: rgba(74,158,255,0.2);
+    }
+
+    .timeline-dot {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 2px solid #4a9eff;
+      background: #0d1120;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .timeline-dot span { width: 8px; height: 8px; border-radius: 50%; background: #4a9eff; }
+    .timeline-content { flex: 1; }
+    .timeline-content h4 { font-size: 13px; color: #e0eaff; margin-bottom: 4px; }
+    .timeline-content p { font-size: 12px; color: #7a8aaa; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="progress" id="progress"></div>
+  <div class="kbd-hint">← → или клик для навигации</div>
+
+  <div class="presentation">
+    
+    <div class="slide slide-title active" data-slide="1">
+      <div class="uni-block">ГОУ ВПО Российско-Армянский (Славянский) Университет · Кафедра Математической Кибернетики</div>
+      <h1>QR-разложение<br>и QR-алгоритм</h1>
+      <div class="subtitle">Вычислительная линейная алгебра</div>
+      
+      <div class="meta-grid">
+        <div class="meta-card">
+          <div class="label">Автор</div>
+          <div class="value">Мкртумян Анаит Самвеловна<br>студентка 3-го курса, ПМИ</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Научный руководитель</div>
+          <div class="value">к.ф.-м.н., профессор<br>Атабекян В.С.</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Заведующий кафедрой</div>
+          <div class="value">д.ф.-м.н., профессор<br>Арамян Р.Г.</div>
+        </div>
+      </div>
+      
+      <div style="margin-top: 40px; color: #5a6a88; font-size: 12px; letter-spacing: 2px;">ЕРЕВАН · 2026</div>
+    </div>
+
+    <div class="slide slide-content" data-slide="2">
+      <div class="slide-header">
+        <div class="slide-num">2</div>
+        <h2>Структура работы</h2>
+        <div class="section-tag">Обзор</div>
+      </div>
+      <div class="three-col">
+        <div class="card accent-blue">
+          <h3><div class="dot dot-blue"></div>Теоретические основы</h3>
+          <ul>
+            <li>Унитарные и ортогональные матрицы</li>
+            <li>Матрица Хаусхолдера (отражения)</li>
+            <li>Матрица Гивенса (вращения)</li>
+          </ul>
+        </div>
+        <div class="card accent-green">
+          <h3><div class="dot dot-green"></div>QR-разложение</h3>
+          <ul>
+            <li>Теорема существования и единственности</li>
+            <li>Алгоритм Хаусхолдера</li>
+            <li>Алгоритм Гивенса</li>
+            <li>Сравнительный анализ</li>
+          </ul>
+        </div>
+        <div class="card accent-purple">
+          <h3><div class="dot dot-purple"></div>QR-алгоритм</h3>
+          <ul>
+            <li>Базовый QR-алгоритм</li>
+            <li>Связь со степенями матрицы</li>
+            <li>Сдвиги: Рэлей, Фрэнсис</li>
+            <li>Теорема сходимости</li>
+            <li>Форма Хессенберга</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card accent-blue" style="margin-top:20px;">
+        <h3>Ключевой результат:</h3>
+        <p>QR-алгоритм со сдвигами — эталонный промышленный метод вычисления собственных значений, реализованный в LAPACK, NumPy, MATLAB, SciPy.</p>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="3">
+      <div class="slide-header">
+        <div class="slide-num">3</div>
+        <h2>Мотивация и постановка задачи</h2>
+        <div class="section-tag">Введение</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue">
+          <h3>Центральное свойство</h3>
+          <p>Ортогональные преобразования изометричны — не изменяют евклидову норму:</p>
+          <div class="formula-box">‖Ux‖₂² = x*U*Ux = x*x = ‖x‖₂²</div>
+          <p>Число обусловленности не ухудшается: <span class="inline-formula">κ(QA) = κ(A)</span></p>
+        </div>
+        <div class="card accent-purple">
+          <h3>Историческая справка</h3>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot"><span></span></div>
+              <div class="timeline-content">
+                <h4>1961 — Независимые открытия</h4>
+                <p>Дж. Фрэнсис (Великобритания) и В.Н. Кублановская (СССР) предложили QR-алгоритм</p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"><span></span></div>
+              <div class="timeline-content">
+                <h4>1970–80-е — Промышленный стандарт</h4>
+                <p>Вошёл в пакеты EISPACK, затем LAPACK</p>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"><span></span></div>
+              <div class="timeline-content">
+                <h4>Сегодня</h4>
+                <p>Основа NumPy, SciPy, MATLAB, Julia — везде, где вычисляют спектр</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card accent-green full-width">
+          <h3>Где применяется QR-разложение</h3>
+          <div class="table-wrap">
+            <table>
+              <tr><th>Задача</th><th>Как используется</th></tr>
+              <tr><td>Решение СЛАУ Ax = b</td><td>A = QR ⟹ Rx = Qᵀb (обратная подстановка)</td></tr>
+              <tr><td>Метод наим. квадратов</td><td>min‖Ax−b‖₂ через тонкое QR</td></tr>
+              <tr><td>Собственные значения</td><td>QR-алгоритм → форма Шура</td></tr>
+              <tr><td>SVD-разложение</td><td>Через двустороннее биортогональное QR</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="4">
+      <div class="slide-header">
+        <div class="slide-num">4</div>
+        <h2>Унитарные и ортогональные матрицы</h2>
+        <div class="section-tag">Теоретические основы</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue">
+          <span class="tag-def">Определение 1</span>
+          <p>Матрица U ∈ ℂⁿˣⁿ называется унитарной, если:</p>
+          <div class="formula-box highlight">U*U = UU* = E</div>
+          <p>В вещественном случае U ∈ ℝⁿˣⁿ — ортогональная: <span class="inline-formula">UᵀU = UUᵀ = E</span></p>
+        </div>
+        <div class="card accent-purple">
+          <span class="tag-proof">Доказательство Утв. 1</span>
+          <p><strong>Утв. 1.</strong> Произведение унитарных матриц — унитарная матрица.</p>
+          <div class="formula-box">(UV)*(UV) = V*U*UV = V*EV = V*V = E ✓</div>
+        </div>
+        <div class="card accent-green">
+          <span class="tag-thm">Утверждение 2</span>
+          <p>Собственные значения унитарной матрицы имеют модуль |λ| = 1</p>
+          <span class="tag-proof" style="margin-top: 10px;">Доказательство</span>
+          <div class="formula-box" style="text-align: left; padding-left: 30px;">
+            Ux = λx, x ≠ 0<br>
+            ⟹ ‖Ux‖₂ = |λ| ‖x‖₂<br>
+            Но ‖Ux‖₂ = ‖x‖₂ (изометрия)<br>
+            ⟹ |λ| = 1 □
+          </div>
+        </div>
+        <div class="card accent-orange">
+          <h3>Ключевые свойства</h3>
+          <ul>
+            <li>det(U) = ±1</li>
+            <li>U⁻¹ = Uᵀ (обращение = транспонирование)</li>
+            <li>Сохраняет евклидову норму и скалярное произведение</li>
+            <li>Столбцы образуют ортонормированный базис</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="5">
+      <div class="slide-header">
+        <div class="slide-num">5</div>
+        <h2>Матрица Хаусхолдера (отражения)</h2>
+        <div class="section-tag">Теоретические основы</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue">
+          <span class="tag-def">Определение 2</span>
+          <p>Пусть v ∈ ℝⁿ, v ≠ 0. Матрица Хаусхолдера:</p>
+          <div class="formula-box highlight">H = E − 2vvᵀ / vᵀv</div>
+          <p>Геометрически: отражение ℝⁿ относительно гиперплоскости {x : vᵀx = 0}</p>
+        </div>
+        <div class="card accent-purple">
+          <span class="tag-thm">Утверждение 3</span>
+          <p>H симметрична и инволютивна: <span class="inline-formula">H = Hᵀ</span>, <span class="inline-formula">H² = E</span></p>
+          <span class="tag-proof" style="margin-top: 10px;">Доказательство H² = E</span>
+          <div class="formula-box" style="text-align: left; padding-left: 20px;">
+            H² = (E − 2vvᵀ/‖v‖²)²<br>
+            = E − 4vvᵀ/‖v‖² + 4v(vᵀv)vᵀ/‖v‖⁴<br>
+            = E □
+          </div>
+        </div>
+        <div class="card accent-green">
+          <h3>Построение вектора отражения</h3>
+          <p>Для данного x выбираем v так, чтобы Hx = αe₁, |α| = ‖x‖₂:</p>
+          <div class="formula-box">v = x + sign(x₁) ‖x‖₂ e₁</div>
+        </div>
+        <div class="card accent-orange">
+          <h3>Выбор знака — численная устойчивость</h3>
+          <p>Знак выбирается противоположным знаку x₁.</p>
+          <p>Если x₁ ≈ ‖x‖₂, при знаке «−» первая компонента <span class="inline-formula">v₁ = x₁ − ‖x‖₂ ≈ 0</span> — катастрофическая отмена. Противоположный знак гарантирует <span class="inline-formula">v₁ = x₁ + ‖x‖₂</span>, что является сложением двух чисел одного знака.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="6">
+      <div class="slide-header">
+        <div class="slide-num">6</div>
+        <h2>Матрица Гивенса (вращения)</h2>
+        <div class="section-tag">Теоретические основы</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue">
+          <span class="tag-def">Определение 3</span>
+          <p>Матрица Гивенса G(i,j,θ) совпадает с E, за исключением:</p>
+          <div class="formula-box">
+            gii = gjj = cos θ<br>
+            gij = −sin θ,  gji = sin θ
+          </div>
+          <p>Gᵀ G = E — ортогональна. Умножение слева задаёт вращение в плоскости (i,j).</p>
+        </div>
+        <div class="card accent-green">
+          <h3>Обнуление элемента xⱼ</h3>
+          <p>Хотим: (Gx)ⱼ = 0, (Gx)ᵢ = r. Вычисляем без арктангенса:</p>
+          <div class="formula-box" style="font-size: 14px;">
+            r = √(xᵢ² + xⱼ²)<br>
+            cos θ = xᵢ/r,  sin θ = xⱼ/r
+          </div>
+          <div class="formula-box" style="font-size: 14px;">
+            [c  s] [xᵢ]   [r]<br>
+            [−s c] [xⱼ] = [0]
+          </div>
+        </div>
+        <div class="card accent-purple full-width">
+          <h3>Хаусхолдер vs. Гивенс</h3>
+          <div class="table-wrap">
+            <table>
+              <tr><th>Критерий</th><th>Хаусхолдер</th><th>Гивенс</th></tr>
+              <tr><td>За один шаг</td><td>Весь столбец</td><td>Один элемент</td></tr>
+              <tr><td>Плотные матрицы</td><td>O(2mn²−⅔n³)</td><td>O(3mn²)</td></tr>
+              <tr><td>Разреженные</td><td>Создаёт fill-in</td><td>Сохраняет нули</td></tr>
+              <tr><td>Применение</td><td>Стандартный</td><td>Разреженные</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="7">
+      <div class="slide-header">
+        <div class="slide-num">7</div>
+        <h2>Теорема существования QR-разложения</h2>
+        <div class="section-tag">QR-разложение</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue full-width">
+          <span class="tag-thm">Теорема 1 (QR-разложение)</span>
+          <p>Пусть A ∈ ℝᵐˣⁿ, m ≥ n. Тогда существуют ортогональная матрица Q ∈ ℝᵐˣᵐ и верхнетреугольная матрица R ∈ ℝᵐˣⁿ такие, что:</p>
+          <div class="formula-box large highlight">A = QR</div>
+          <p>Если rank A = n, разложение единственно при условии rii > 0.</p>
+        </div>
+        <div class="card accent-purple">
+          <span class="tag-proof">Доказательство (индукция по n)</span>
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-text"><strong>База n=1:</strong> A = a₁. Полагаем q₁ = a₁/‖a₁‖₂, дополняем до базиса ℝᵐ. Тогда A = QR при R = (‖a₁‖₂, 0,…,0)ᵀ.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-text"><strong>Шаг:</strong> Пишем A = [a₁|B]. Выбираем H₁: H₁a₁ = r₁₁e₁. Тогда H₁A = (r₁₁  b̃ᵀ / 0  B̃).</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-text"><strong>Индукция:</strong> B̃ = Q̃R̃. Полагаем Q₁ = H₁ᵀ diag(1, Q̃), R = (r₁₁  b̃ᵀ / 0  R̃). Получаем A = Q₁R. □</div>
+            </div>
+          </div>
+        </div>
+        <div class="card accent-green">
+          <h3>Единственность</h3>
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-text">Допустим A = Q₁R₁ = Q₂R₂. Тогда Q₂ᵀQ₁ = R₂R₁⁻¹.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-text">Левая часть — ортогональная; правая — верхнетреугольная. Такая матрица диагональна с элементами ±1.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-text">При rii > 0: диагональ содержит только +1, то есть D = E. Следовательно Q₁ = Q₂, R₁ = R₂. □</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="8">
+      <div class="slide-header">
+        <div class="slide-num">8</div>
+        <h2>Алгоритм Хаусхолдера</h2>
+        <div class="section-tag">QR-разложение</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue">
+          <h3>Схема алгоритма (k = 1,…,n)</h3>
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-text">Извлечь подстолбец: x = A(k:m, k)</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-text">Вычислить: vₖ = x + sign(x₁)‖x‖₂e₁</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-text">Малое отражение: H̃ₖ = E − 2vₖvₖᵀ/vₖᵀvₖ</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">4</div>
+              <div class="step-text">Встраивание: Hₖ = diag(Eₖ₋₁, H̃ₖ)</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">5</div>
+              <div class="step-text">Обновить: A ← HₖA</div>
+            </div>
+          </div>
+        </div>
+        <div class="card accent-purple">
+          <h3>Результат</h3>
+          <div class="formula-box">
+            Hₙ···H₁A = R<br>
+            A = QR,  Q = H₁···Hₙ
+          </div>
+          <p>H²ₖ = E ⟹ H⁻¹ₖ = Hₖ — перенос тривиален</p>
+        </div>
+        <div class="card accent-green">
+          <h3>Вычислительная сложность</h3>
+          <div class="complexity-badge cb-green">O(2mn² − ⅔n³) флопс</div>
+          <p>При m = n: ≈ 4/3 n³ — примерно вдвое дороже LU, зато абсолютно устойчиво</p>
+        </div>
+        <div class="card accent-orange">
+          <h3>Неявное хранение Q (ключевая оптимизация)</h3>
+          <p>Q явно не формируется. Векторы vₖ записываются в нули под диагональю A.</p>
+          <div class="formula-box">Hx = x − 2v(vᵀx)/vᵀv</div>
+          <p>Экономия: вместо m×m матрицы (до 8 ТБ при m=10⁶) — n векторов</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="9">
+      <div class="slide-header">
+        <div class="slide-num">9</div>
+        <h2>Алгоритм Гивенса</h2>
+        <div class="section-tag">QR-разложение</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue">
+          <h3>Схема алгоритма</h3>
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-text">Для каждого элемента aᵢⱼ, i > j (ниже диагонали)</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-text">Вычислить: r = √(a²ⱼⱼ + a²ᵢⱼ), c = aⱼⱼ/r, s = aᵢⱼ/r</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-text">Применить вращение G(j,i,θ) к строкам j и i матрицы</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">4</div>
+              <div class="step-text">Накопить Q:  Q ← Q · G(j,i,θ)ᵀ</div>
+            </div>
+          </div>
+        </div>
+        <div class="card accent-purple">
+          <span class="tag-thm">Утверждение 4 (Результат)</span>
+          <div class="formula-box">
+            Gₙ,ₙ₋₁ ··· G₂,₁ A = R<br>
+            A = QR,  Q = (Gₙ,ₙ₋₁ ··· G₂,₁)ᵀ
+          </div>
+          <p>В отличие от H, матрица G несимметрична ⟹ обратная = транспонированная, а не сама матрица</p>
+        </div>
+        <div class="card accent-green full-width">
+          <h3>Сложность и выводы</h3>
+          <div class="table-wrap">
+            <table>
+              <tr>
+                <th>Плотная матрица</th>
+                <td><span class="inline-formula">O(3mn²)</span> ≈ 1.5× дороже Хаусхолдера</td>
+              </tr>
+              <tr>
+                <th>Преимущество разреженных</th>
+                <td>Каждое вращение изменяет только 2 строки ⟹ нет fill-in ⟹ структура нулей сохраняется</td>
+              </tr>
+              <tr>
+                <th>Практический вывод</th>
+                <td>
+                  <strong>Хаусхолдер</strong> — стандарт для плотных матриц<br>
+                  <strong>Гивенс</strong> — оптимален для разреженных, ленточных матриц, инкрементальных обновлений
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="10">
+      <div class="slide-header">
+        <div class="slide-num">10</div>
+        <h2>Базовый QR-алгоритм</h2>
+        <div class="section-tag">QR-алгоритм</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue full-width">
+          <h3>Итерационный процесс</h3>
+          <p>Полагаем A₀ = A. На каждой итерации k = 0, 1, 2, …:</p>
+          <div class="formula-box highlight">
+            Aₖ = QₖRₖ  (QR-разложение)<br>
+            ↓<br>
+            Aₖ₊₁ = RₖQₖ  (переставляем)
+          </div>
+        </div>
+        <div class="card accent-purple">
+          <span class="tag-thm">Утверждение 5: Сохранение спектра</span>
+          <p>Aₖ₊₁ подобна Aₖ — собственные значения не меняются</p>
+          <span class="tag-proof" style="margin-top: 10px;">Доказательство</span>
+          <div class="formula-box" style="text-align: left; padding-left: 20px;">
+            Aₖ = QₖRₖ ⟹ Rₖ = Qₖᵀ Aₖ<br>
+            Aₖ₊₁ = RₖQₖ = Qₖᵀ AₖQₖ  □
+          </div>
+          <p>Следствие: σ(Aₖ) = σ(A) для всех k</p>
+        </div>
+        <div class="card accent-green">
+          <span class="tag-thm">Утверждение 6: Связь со степенями A</span>
+          <p>Aᵏ = Q̂ₖR̂ₖ, где:</p>
+          <div class="formula-box">
+            Q̂ₖ = Q₁Q₂···Qₖ<br>
+            R̂ₖ = RₖRₖ₋₁···R₁
+          </div>
+          <p>QR-алгоритм — это ортогонализованный степенной метод. При k→∞ столбцы Q̂ₖ стремятся к собственным векторам A.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="11">
+      <div class="slide-header">
+        <div class="slide-num">11</div>
+        <h2>Сдвиги и ускорение сходимости</h2>
+        <div class="section-tag">QR-алгоритм</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue full-width">
+          <h3>QR-алгоритм со сдвигом μₖ</h3>
+          <div class="formula-box highlight">
+            Aₖ − μₖE = QₖRₖ<br>
+            Aₖ₊₁ = RₖQₖ + μₖE
+          </div>
+          <p>Подобие сохраняется:</p>
+          <div class="formula-box">Aₖ₊₁ = Qₖᵀ(Aₖ−μₖE)Qₖ + μₖE = Qₖᵀ AₖQₖ □</div>
+        </div>
+        <div class="card accent-green">
+          <h3>Сдвиг Рэлея</h3>
+          <p>μₖ = a⁽ᵏ⁾ₙₙ</p>
+          <p>Кубическая скорость сходимости:</p>
+          <div class="formula-box">|a⁽ᵏ⁺¹⁾ₙ,ₙ₋₁| = O(|a⁽ᵏ⁾ₙ,ₙ₋₁|³)</div>
+          <p>Число верных цифр утраивается на каждой итерации</p>
+        </div>
+        <div class="card accent-purple">
+          <h3>Двойной сдвиг Фрэнсиса</h3>
+          <p>Два сдвига μ и μ̄ за одну пару итераций для матриц с комплексно-сопряжёнными парами λ, λ̄.</p>
+          <p>Все вычисления остаются в ℝ — не требуется комплексная арифметика.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="12">
+      <div class="slide-header">
+        <div class="slide-num">12</div>
+        <h2>Теорема сходимости QR-алгоритма</h2>
+        <div class="section-tag">QR-алгоритм</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue full-width">
+          <span class="tag-thm">Теорема 2 (Сходимость QR-алгоритма)</span>
+          <p>Пусть A ∈ ℝⁿˣⁿ имеет собственные значения с попарно различными модулями:</p>
+          <div class="formula-box">|λ₁| > |λ₂| > ··· > |λₙ| > 0</div>
+          <p>Тогда Aₖ сходится к верхней треугольной форме Шура T, на диагонали которой стоят собственные значения A.</p>
+        </div>
+        <div class="card accent-purple">
+          <span class="tag-proof">Схема доказательства</span>
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-text">Из Утв.6: Aᵏ = Q̂ₖR̂ₖ. Пусть A = SΛS⁻¹, Λ = diag(λ₁,…,λₙ).</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-text">Тогда Aᵏ = SΛᵏS⁻¹. При k→∞:</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-text">|λᵢ/λᵢ₊₁|ᵏ → 0 (т.к. |λᵢ| > |λᵢ₊₁|) для всех i</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">4</div>
+              <div class="step-text">Столбцы Q̂ₖ аппроксимируют инвариантные подпространства ⟹ Aₖ = Q̂ₖᵀ AQ̂ₖ → T □</div>
+            </div>
+          </div>
+        </div>
+        <div class="card accent-green">
+          <h3>Ключевой предел</h3>
+          <div class="formula-box">|λᵢ / λᵢ₊₁|ᵏ → 0</div>
+          <p>Скорость сходимости субдиагональных элементов определяется отношением соседних собственных значений</p>
+          <h3 style="margin-top:20px;">Форма Шура</h3>
+          <div class="formula-box" style="text-align: left; padding-left: 20px;">
+            T = [λ₁  * * *]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;[0  λ₂ * *]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;[0  0  λ₃ *]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;[0  0  0  λₙ]
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="13">
+      <div class="slide-header">
+        <div class="slide-num">13</div>
+        <h2>Практические оптимизации: форма Хессенберга</h2>
+        <div class="section-tag">Оптимизация</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue">
+          <h3>Форма Хессенберга</h3>
+          <p>Матрица «почти верхнетреугольная» — под диагональю только одна субдиагональ:</p>
+          <div class="formula-box">
+            H = [* * * *]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;[* * * *]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;[0 * * *]<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;[0 0 * *]
+          </div>
+          <p>Приведение: n−2 преобразования Хаусхолдера. Стоимость: <span class="inline-formula">O(n³)</span> — один раз</p>
+          <h3 style="margin-top:20px;">Ключевое свойство</h3>
+          <p>Форма Хессенберга инвариантна при итерациях QR-алгоритма — достаточно привести один раз.</p>
+        </div>
+        <div class="card accent-green">
+          <h3>Сравнение сложности</h3>
+          <div class="table-wrap" style="margin-bottom: 20px;">
+            <table>
+              <tr><th>Подход</th><th>Стоимость K итераций</th></tr>
+              <tr><td>Без Хессенберга</td><td>K · O(n³)</td></tr>
+              <tr><td>С Хессенбергом</td><td>O(n³) + K · O(n²)</td></tr>
+            </table>
+          </div>
+          <p>При K=50, n=1000: ускорение ~50 раз</p>
+          
+          <h3 style="margin-top:20px;">Полная схема алгоритма</h3>
+          <div class="formula-box" style="font-size: 13px; text-align: left;">
+            1. A ← UᵀAU  (форма Хессенберга, O(n³))<br>
+            2. while ‖aₙ,ₙ₋₁‖ > ε:<br>
+            &nbsp;&nbsp;&nbsp;2.1 Выбрать сдвиг μₖ<br>
+            &nbsp;&nbsp;&nbsp;2.2 Aₖ−μₖE = QₖRₖ  (O(n²))<br>
+            &nbsp;&nbsp;&nbsp;2.3 Aₖ₊₁ = RₖQₖ+μₖE<br>
+            &nbsp;&nbsp;&nbsp;2.4 Дефляция при |aₙ,ₙ₋₁| < ε<br>
+            3. Читаем λᵢ с диагонали T
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="14">
+      <div class="slide-header">
+        <div class="slide-num">14</div>
+        <h2>Заключение</h2>
+        <div class="section-tag">Выводы</div>
+      </div>
+      <div class="three-col">
+        <div class="card accent-blue">
+          <h3><div class="dot dot-blue"></div>Теоретические результаты</h3>
+          <ul>
+            <li>Теорема 1: существование и единственность QR-разложения</li>
+            <li>Утв. 3–4: свойства матриц Хаусхолдера и Гивенса</li>
+            <li>Утв. 5–6: сохранение спектра и связь с Aᵏ</li>
+            <li>Теорема 2: сходимость к форме Шура</li>
+          </ul>
+        </div>
+        <div class="card accent-purple">
+          <h3><div class="dot dot-purple"></div>Алгоритмические результаты</h3>
+          <ul>
+            <li>Метод Хаусхолдера: O(2mn²−⅔n³)</li>
+            <li>Метод Гивенса: оптимален для разреженных матриц</li>
+            <li>Сдвиг Рэлея: кубическая сходимость</li>
+            <li>Сдвиг Фрэнсиса: комплексные λ в вещественной арифметике</li>
+            <li>Форма Хессенберга: O(n³)+K·O(n²)</li>
+          </ul>
+        </div>
+        <div class="card accent-green">
+          <h3><div class="dot dot-green"></div>Практическая значимость</h3>
+          <ul>
+            <li>LAPACK: dgehrd, dhseqr</li>
+            <li>NumPy: numpy.linalg.eig</li>
+            <li>MATLAB: eig(), schur()</li>
+            <li>PCA в машинном обучении</li>
+            <li>Динамические системы, квантовая механика</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card accent-orange" style="margin-top:20px; display: flex; align-items: center; gap: 20px;">
+        <div style="font-size: 48px; font-weight: 800; color: #ffa032;">60+</div>
+        <div>
+          <h3 style="margin-bottom: 4px;">лет эталонного статуса</h3>
+          <p>QR-алгоритм со сдвигами с 1961 года остаётся стандартным промышленным методом вычисления спектра матриц во всех пакетах научных вычислений.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide slide-content" data-slide="15">
+      <div class="slide-header">
+        <div class="slide-num">15</div>
+        <h2>Список литературы</h2>
+        <div class="section-tag">Источники</div>
+      </div>
+      <div class="two-col">
+        <div class="card accent-blue">
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-num">1</div>
+              <div class="step-text"><strong>Хорн Р., Джонсон Ч.</strong> Матричный анализ. — М.: Мир, 1989.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">2</div>
+              <div class="step-text"><strong>Гантмахер Ф.Р.</strong> Теория матриц. — М.: Наука, 1967.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">3</div>
+              <div class="step-text"><strong>Беклемишев Д.В.</strong> Дополнительные главы линейной алгебры. — М.: Наука, 1983.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">4</div>
+              <div class="step-text"><strong>Тыртышников Е.Е.</strong> Матричный анализ и линейная алгебра. — М.: Наука, 2004.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card accent-green">
+          <div class="step-list" style="counter-reset: step 4;">
+            <div class="step-item">
+              <div class="step-num">5</div>
+              <div class="step-text"><strong>Strang G.</strong> Linear Algebra and Its Applications. — Wellesley-Cambridge Press, 2006.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">6</div>
+              <div class="step-text"><strong>Golub G.H., Van Loan C.F.</strong> Matrix Computations. 4th ed. — Johns Hopkins University Press, 2013.</div>
+            </div>
+            <div class="step-item">
+              <div class="step-num">7</div>
+              <div class="step-text"><strong>Watkins D.S.</strong> Fundamentals of Matrix Computations. — Wiley, 2002.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav">
+    <button id="btnPrev" onclick="navigate(-1)" disabled>←</button>
+    <div class="nav-counter" id="counter">1 / 15</div>
+    <div class="nav-dots" id="navDots"></div>
+    <button id="btnNext" onclick="navigate(1)">→</button>
+  </div>
+
+  <script>
+    const TOTAL = 15;
+    let current = 1;
+
+    function getSlide(n) {
+      return document.querySelector(`.slide[data-slide="${n}"]`);
+    }
+
+    function buildDots() {
+      const dots = document.getElementById('navDots');
+      for (let i = 1; i <= TOTAL; i++) {
+        const d = document.createElement('div');
+        d.className = 'nav-dot' + (i === 1 ? ' active' : '');
+        d.onclick = () => goTo(i);
+        dots.appendChild(d);
+      }
+    }
+
+    function goTo(n) {
+      if (n < 1 || n > TOTAL) return;
+      getSlide(current).classList.remove('active');
+      document.querySelectorAll('.nav-dot')[current-1].classList.remove('active');
+      current = n;
+      getSlide(current).classList.add('active');
+      document.querySelectorAll('.nav-dot')[current-1].classList.add('active');
+      document.getElementById('counter').textContent = `${current} / ${TOTAL}`;
+      document.getElementById('btnPrev').disabled = current === 1;
+      document.getElementById('btnNext').disabled = current === TOTAL;
+      document.getElementById('progress').style.width = `${(current / TOTAL) * 100}%`;
+    }
+
+    function navigate(dir) { goTo(current + dir); }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') navigate(1);
+      if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp') navigate(-1);
+    });
+
+    buildDots();
+    document.getElementById('progress').style.width = `${(1/TOTAL)*100}%`;
+  </script>
+</body>
+</html>
