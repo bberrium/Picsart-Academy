@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OOAD Flashcards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #flashcard {
+            perspective: 1000px;
+        }
+
+        #card-inner {
+            transition: transform 0.7s;
+            transform-style: preserve-3d;
+            height: 100%;
+        }
+
+        .flipped #card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+        }
+
+        #card-back {
+            transform: rotateY(180deg);
+        }
+    </style>
+    <script>
+        const flashcards = [
+            {
+                chapter: 1,
+                term: "Complexity in Software",
+                definition: "Software is inherently complex due to problem domain complexity, development process management difficulties, flexibility of software, and problems characterizing discrete systems.",
+                details: "Brooks suggests that much of software complexity is arbitrary, not essential, stemming from communication gaps between users and developers.",
+                example: "Building a large e-commerce system involves managing user interactions, payment processing, inventory, and security - all complex domains that must work together seamlessly."
+            },
+            {
+                chapter: 1,
+                term: "Five Attributes of Complex Systems",
+                definition: "1. Hierarchic Structure 2. Relative Primitives 3. Separation of Concerns 4. Common Patterns 5. Stable Intermediate Forms",
+                details: "These attributes help us understand and manage complexity in systems ranging from computers to biological organisms.",
+                example: "A computer system has a hierarchical structure (hardware &rarr; CPU &rarr; ALU &rarr; gates), uses common patterns (NAND gates throughout), and evolves from stable intermediate forms."
+            },
+            {
+                chapter: 1,
+                term: "Hierarchic Structure",
+                definition: "Complex systems are composed of interrelated subsystems that, in turn, have their own subsystems, forming a hierarchy down to elementary components.",
+                details: "This structure is a major factor that facilitates understanding, description, and visibility of the system and its parts.",
+                example: "Plants consist of roots, stems, and leaves; roots contain branch roots, root hairs, etc.; all the way down to cells and organelles."
+            },
+            {
+                chapter: 1,
+                term: "Relative Primitives",
+                definition: "The choice of what components in a system are primitive is relatively arbitrary and is largely up to the discretion of the observer.",
+                details: "What is primitive for one observer may be at a much higher level of abstraction for another.",
+                example: "To a botanist, a cell might be a primitive component of a plant. To a molecular biologist, the cell itself is a complex system composed of organelles, proteins, and DNA."
+            },
+            {
+                chapter: 1,
+                term: "Separation of Concerns",
+                definition: "Intracomponent linkages are generally stronger than intercomponent linkages, separating high-frequency dynamics from low-frequency dynamics.",
+                details: "This principle allows us to study each part of a system in relative isolation, as the system is 'nearly decomposable'.",
+                example: "In a plant, the parts of a leaf work together closely (strong intracomponent linkages) but have little direct interaction with the elementary parts of the roots."
+            },
+            {
+                chapter: 1,
+                term: "Common Patterns",
+                definition: "Complex systems exhibit economy of expression - composed of only a few different kinds of subsystems in various combinations.",
+                details: "These patterns may involve reuse of small components (cells) or larger structures (vascular systems) found across different organisms.",
+                example: "Computer systems reuse NAND gates in both CPU and memory. Biological systems reuse cells as fundamental building blocks across organs."
+            },
+            {
+                chapter: 1,
+                term: "Stable Intermediate Forms",
+                definition: "Complex systems evolve from simple systems much more rapidly if there are stable intermediate forms.",
+                details: "A complex system that works is invariably found to have evolved from a simple system that worked. Objects that were once complex become primitive building blocks.",
+                example: "The internet evolved from simple networking protocols (ARPANET) to today's complex global network, with stable intermediate forms at each stage."
+            },
+            {
+                chapter: 1,
+                term: "Organized vs Disorganized Complexity",
+                definition: "Organized complexity has discernible structure and patterns; disorganized complexity lacks perceptible commonality among parts.",
+                details: "Discovery of common abstractions and mechanisms greatly facilitates understanding of organized complex systems. For example, an experienced pilot can quickly learn to fly a new aircraft.",
+                example: "An experienced pilot can quickly learn to fly a new aircraft due to organized complexity - common controls and systems across different aircraft."
+            },
+            {
+                chapter: 1,
+                term: "Canonical Form of Complex Systems",
+                definition: "The standard form combining class structure ('is a' hierarchy) and object structure ('part of' hierarchy) with the five attributes.",
+                details: "Most interesting systems embody multiple hierarchies simultaneously. Collectively, class and object structures form the system architecture.",
+                example: "A bicycle combines a structural hierarchy ('part of': Frame &rarr; Wheels &rarr; Hub) and a classification hierarchy ('is a': Vehicle &rarr; Bicycle &rarr; Mountain Bike &rarr; Full-Suspension model)."
+            },
+            {
+                chapter: 1,
+                term: "Class Structure vs Object Structure",
+                definition: "Class structure represents 'is a' hierarchy (generalization/specialization); object structure represents 'part of' hierarchy (aggregation).",
+                details: "Each object in object structure is a specific instance of some class. Usually many more objects than classes exist in a system.",
+                example: "Plant &rarr; Fruit &rarr; Apple (class structure). Garden &rarr; [Plant objects, GrowingPlan object] (object structure)."
+            },
+            {
+                chapter: 1,
+                term: "System Architecture",
+                definition: "The class and object structures of a system collectively define its architecture.",
+                details: "No single architecture can be deemed 'correct'. Finding balance between structure options, five attributes, and user needs is challenging.",
+                example: "Different architectures for the same system might prioritize performance, maintainability, or scalability differently."
+            },
+            {
+                chapter: 1,
+                term: "Algorithmic Decomposition",
+                definition: "Problem decomposition approach that asks 'What are the steps?' and breaks problems into sequential procedures.",
+                details: "Results in systems where procedures act on data structures. Traditional structured design approach.",
+                example: "File update system: steps like 'Get formatted update', 'Add checksum', 'Process record', 'Write to master file'."
+            },
+            {
+                chapter: 1,
+                term: "Object-Oriented Decomposition",
+                definition: "Problem decomposition approach that asks 'What are the things?' and breaks problems into collaborating objects.",
+                details: "Results in systems where objects manage their own data and are asked to perform actions. Each object is responsible for its behavior.",
+                example: "File update system: objects like MasterFile, Checksum, FileOfUpdates that collaborate to accomplish the task."
+            },
+            {
+                chapter: 1,
+                term: "Benefits of OO Decomposition",
+                definition: "Better at organizing complexity, yields smaller systems through reuse, more resilient to change, reduces risk through incremental evolution.",
+                details: "OO decomposition addresses inherent complexity by helping with separation of concerns in large state spaces.",
+                example: "A banking system with Account, Customer, Transaction objects adapts more easily to new regulations than procedural approaches."
+            },
+            {
+                chapter: 1,
+                term: "Role of Abstraction",
+                definition: "Ignoring inessential details to deal with generalized, idealized models of objects.",
+                details: "Called 'chunking' - we use chunks of information with increasingly greater semantic content to manage complexity.",
+                example: "Studying photosynthesis by focusing on chemical reactions in cells while ignoring roots and stems, using 'cell' as abstraction."
+            },
+            {
+                chapter: 1,
+                term: "Role of Hierarchy",
+                definition: "Explicitly recognizing class and object hierarchies to increase semantic content of information chunks.",
+                details: "Object structure shows collaboration patterns (mechanisms). Class structure highlights common structure and behavior.",
+                example: "Study one photosynthesizing cell instead of each individual cell, because all exhibit similar behavior via class hierarchy."
+            },
+            {
+                chapter: 1,
+                term: "Purpose of Software Design",
+                definition: "Construct a system satisfying functional specs, conforming to limitations, meeting performance needs, and respecting constraints.",
+                details: "Design must satisfy requirements on the artifact's form and respect restrictions on the design process itself (length, cost, tools).",
+                example: "Real-time control system design balances response time requirements with hardware limitations and development timeline."
+            },
+            {
+                chapter: 1,
+                term: "Design Methodology Elements",
+                definition: "Three categories: Notation (language for models), Process (construction activities), Tools (artifacts for model building).",
+                details: "Sound design method has solid theoretical foundation yet offers degrees of freedom for artistic innovation.",
+                example: "UML diagrams: class diagrams (static structure) and sequence diagrams (dynamic interactions)."
+            },
+
+            {
+                chapter: 2,
+                term: "Object Model",
+                definition: "Conceptual framework encompassing abstraction, encapsulation, modularity, hierarchy, typing, concurrency, and persistence.",
+                details: "These elements work synergistically to manage complexity in software systems. They form the summary of Chapter 2.",
+                example: "Complete OO system uses all elements: classes (abstraction), private data (encapsulation), packages (modularity), inheritance (hierarchy)."
+            },
+            {
+                chapter: 2,
+                term: "Abstraction",
+                definition: "Denotes essential characteristics distinguishing an object from all other kinds, providing crisply defined conceptual boundaries.",
+                details: "Focuses on outside view, separating essential behavior from implementation using least commitment and least astonishment principles.",
+                example: "TemperatureSensor abstraction focuses on reporting temperature and calibration, hiding digital vs analog sensing technology."
+            },
+            {
+                chapter: 2,
+                term: "Encapsulation",
+                definition: "Compartmentalizing elements of an abstraction that constitute its structure and behavior; it separates the contractual interface from its implementation.",
+                details: "Hiding is for accident prevention, not fraud prevention. The interface of a class may have **private**, **protected**, and **public** parts.",
+                example: "Heater class exposes turnOn() and turnOff() while hiding relay control, serial commands, or memory-mapped I/O details."
+            },
+            {
+                chapter: 2,
+                term: "Modularity",
+                definition: "Property of a system decomposed into cohesive and loosely coupled modules.",
+                details: "Modules serve as physical containers for classes and objects. Balance encapsulation needs with practical concerns like compilation.",
+                example: "Large system with modules for user interface, business logic, and data access with clear interfaces between them."
+            },
+            {
+                chapter: 2,
+                term: "Hierarchy",
+                definition: "A ranking or ordering of abstractions.",
+                details: "The two most important hierarchies are the **class structure** ('is a' hierarchy) and the **object structure** ('part of' hierarchy). Inheritance represents generalization/specialization.",
+                example: "FruitGrowingPlan 'is a' GrowingPlan (inheritance). Garden 'has a' GrowingPlan and Plants (aggregation)."
+            },
+            {
+                chapter: 2,
+                term: "Aggregation (Chapter 2 Overview)",
+                definition: "The 'part of' hierarchy, describing aggregation relationships and permitting the physical grouping of logically related structures.",
+                details: "Aggregation raises the issue of **ownership**. The lifetimes of the 'whole' and 'part' objects may be dependent or independent (e.g., Garden vs. GrowingPlan).",
+                example: "Replacing a plant (part) does not change the identity of the garden (whole), but destroying a Garden object destroys its intrinsically associated GrowingPlan object."
+            },
+            {
+                chapter: 2,
+                term: "Typing",
+                definition: "The enforcement of the class of an object, such that objects of different types may not be interchanged, or at the most, they may be interchanged only in very restricted ways.",
+                details: "Typing lets us express abstractions so the programming language in which we implement them can be made to enforce design decisions. Conformance is central to typing.",
+                example: "Physics simulation: dividing distance by time yields speed, not weight &mdash; strong typing enforces domain constraints."
+            },
+            {
+                chapter: 2,
+                term: "Static/Dynamic and Strong/Weak Typing",
+                definition: "**Strong and weak typing** refers to type consistency. **Static and dynamic typing** refers to the time when names are bound to types.",
+                details: "**Static typing** (early binding) means types are fixed at compilation. **Dynamic typing** (late binding) means types are not known until runtime. The concepts are entirely different."
+            },
+            {
+                chapter: 2,
+                term: "Polymorphism (Chapter 2 Overview)",
+                definition: "A condition that exists when the features of dynamic typing and inheritance interact. A single name may denote objects of many different classes that are related by some common superclass.",
+                details: "Any object denoted by this name is able to respond to some common set of operations. The opposite of polymorphism is **monomorphism**, found in strongly and statically typed languages."
+            },
+            {
+                chapter: 2,
+                term: "Object-Oriented Programming (OOP)",
+                definition: "A method of implementation in which programs are organized as cooperative collections of objects, each of which represents an instance of some class, and whose classes are all members of a hierarchy of classes united via inheritance relationships.",
+                details: "Requires objects, classes, and inheritance to be truly OO. Without inheritance, it's just abstract data types.",
+                example: "Smalltalk, Java, and C++ support OOP with language mechanisms for classes, objects, and inheritance."
+            },
+            {
+                chapter: 2,
+                term: "Object-Oriented Design (OOD)",
+                definition: "A method of design encompassing the process of object-oriented decomposition and a notation for depicting both logical and physical as well as static and dynamic models of the system under design.",
+                details: "The products of OOA serve as the models from which OOD starts; OOD products are blueprints for OOP implementation."
+            },
+            {
+                chapter: 2,
+                term: "Object-Oriented Analysis (OOA)",
+                definition: "A method of analysis that examines requirements from the perspective of the classes and objects found in the vocabulary of the problem domain.",
+                details: "OOA, OOD, and OOP are related: OOA models feed OOD, and OOD blueprints are used for OOP implementation."
+            },
+            {
+                chapter: 2,
+                term: "Concurrency",
+                definition: "Property distinguishing an active object from one that is not active.",
+                details: "Focuses on process abstraction and synchronization, whereas OOP focuses on data abstraction, encapsulation, and inheritance. An active object represents a separate thread of control.",
+                example: "ActiveTemperatureSensor runs its own thread to periodically check temperature and notify clients of changes."
+            },
+            {
+                chapter: 2,
+                term: "Persistence",
+                definition: "Property of an object through which its existence transcends **time** (continues to exist after its creator) and/or **space** (location moves from the address space in which it was created).",
+                details: "Deals with object lifetime beyond program execution and object location in distributed systems.",
+                example: "Database entities, user preferences, and application state that survive between program executions."
+            },
+
+            {
+                chapter: 3,
+                term: "Object",
+                definition: "An entity that has **state, behavior, and identity**. The structure and behavior of similar objects are defined in their common class.",
+                details: "Objects model parts of reality and exist in time and space with crisply defined boundaries. The terms instance and object are interchangeable."
+            },
+            {
+                chapter: 3,
+                term: "State",
+                definition: "The state of an object encompasses all of the (usually static) **properties** of the object plus the current (usually dynamic) **values** of each of these properties.",
+                details: "The state represents the **cumulative results of its behavior** and influences how it responds to operations. Values are 'usually dynamic'."
+            },
+            {
+                chapter: 3,
+                term: "Property",
+                definition: "An inherent or distinctive characteristic, trait, quality, or feature that contributes to making an object uniquely that object.",
+                details: "Properties are usually static (e.g., an elevator's constraint to travel up/down) but can change if the object can learn (e.g., an autonomous robot recognizing a door)."
+            },
+            {
+                chapter: 3,
+                term: "Behavior",
+                definition: "How an object acts and reacts, in terms of its state changes and message passing. It represents its outwardly visible activity.",
+                details: "Behavior is a function of an object's state and the operation performed on it, with certain operations having the side effect of altering the object’s state."
+            },
+            {
+                chapter: 3,
+                term: "Identity",
+                definition: "The property of an object which distinguishes it from all other objects.",
+                details: "Identity is preserved over the object's lifetime, even when its state changes. It is not the same as the object's name or address."
+            },
+            {
+                chapter: 3,
+                term: "Class",
+                definition: "A set of objects that share a **common structure, common behavior, and common semantics**.",
+                details: "Represents an abstraction while objects are concrete instances. Class serves as a binding contract between the abstraction and its clients."
+            },
+            {
+                chapter: 3,
+                term: "Operations (Five Kinds)",
+                definition: "An operation denotes a service a class offers to its clients. The five kinds are **Modifier**, **Selector**, **Iterator**, **Constructor**, and **Destructor**.",
+                details: "**Modifier**: alters state. **Selector**: accesses state but does not alter it. **Iterator**: accesses all parts in a well-defined order. **Constructor**: creates/initializes state. **Destructor**: frees/destroys the object. Collectively, all methods comprise the object's **Protocol**."
+            },
+            {
+                chapter: 3,
+                term: "Protocol and Role",
+                definition: "The **Protocol** is the collective set of all methods associated with an object, defining its entire envelope of allowable behavior.",
+                details: "A **Role** is a mask that an object wears, partitioning its behavior space and defining a contract between an abstraction and its clients. Roles fulfill the abstraction's responsibilities."
+            },
+            {
+                chapter: 3,
+                term: "Object Relationships",
+                definition: "Encompasses the assumptions objects make about each other, including what operations can be performed. The two kinds of interest are **Links** and **Aggregation**.",
+            },
+            {
+                chapter: 3,
+                term: "Links (Object Relationship)",
+                definition: "A physical or conceptual connection between objects through which they collaborate. It denotes a specific association for one object (client) to use the services of another (supplier).",
+                details: "Links model **peer-to-peer** or **client/supplier** relationships and permit **looser coupling** among objects."
+            },
+            {
+                chapter: 3,
+                term: "Synchronization",
+                definition: "The condition existing when one object passes a message to another across a link.",
+                details: "When an active object links to a passive one, three synchronization approaches are possible: **Sequential**, **Guarded** (clients collaborate for mutual exclusion), and **Concurrent** (supplier guarantees mutual exclusion)."
+            },
+            {
+                chapter: 3,
+                term: "Aggregation (Object Relationship)",
+                definition: "A specialized association that denotes a **whole/part hierarchy**, with the ability to navigate from the aggregate to its parts.",
+                details: "Aggregation may be **physical** (e.g., airplane parts) or **conceptual** (e.g., shareholder/shares). It encapsulates parts as secrets of the whole, leading to **tighter coupling**."
+            },
+            {
+                chapter: 3,
+                term: "Links vs. Aggregation",
+                definition: "Links model objects that work together (peer-to-peer or client/supplier) with looser coupling. Aggregation models objects that are made up of other objects (whole/part, ownership) with tighter coupling.",
+                details: "Intelligent engineering requires carefully weighing these two factors."
+            },
+            {
+                chapter: 3,
+                term: "Class Interface Division (4 Parts)",
+                definition: "The interface of a class can be divided into four parts: **Public**, **Protected**, **Private**, and **Package**.",
+                details: "**Public**: accessible to all clients. **Protected**: accessible to the class itself and its subclasses. **Private**: accessible only to the class itself. **Package**: accessible only by classes in the same package."
+            },
+            {
+                chapter: 3,
+                term: "Class Relationships (3 Kinds)",
+                definition: "The three kinds of relationships among classes are **generalization/specialization** ('is a'), **whole/part** ('part of'), and **association**.",
+                details: "**Inheritance** models generalization/specialization. **Aggregation** models whole/part. **Association** denotes a semantic dependency."
+            },
+            {
+                chapter: 3,
+                term: "Association, Semantic Dependencies & Multiplicity",
+                definition: "An **association** only denotes a **semantic dependency** between classes and does not state the direction of this dependency.",
+                details: "Unless otherwise stated, an association implies **bidirectional navigation**. Common kinds of **multiplicity** include One-to-one, One-to-many, and Many-to-many."
+            },
+            {
+                chapter: 3,
+                term: "Inheritance (Class Relationship)",
+                definition: "A relationship among classes wherein one class shares the structure and/or behavior defined in one (single) or more (multiple) other classes.",
+                details: "The class from which another inherits is its **superclass**. Subclasses inherit both the structure and the behavior of their superclasses."
+            },
+            {
+                chapter: 3,
+                term: "Polymorphism (in Classes)",
+                definition: "A concept in type theory wherein a name may denote instances of many different classes as long as they are related by some common superclass.",
+                details: "Any object denoted by this name can respond to a common set of operations, implemented differently across the hierarchy. A subclass can **extend** or **override** the parent's operation."
+            },
+            {
+                chapter: 3,
+                term: "Multiple Inheritance and Mixins",
+                definition: "A condition where a class inherits from more than one superclass, giving rise to classes called **mixins**.",
+                details: "The behavior of a mixin is usually orthogonal to the behavior of the classes with which it is combined. A class composed primarily of mixins is called an **aggregate class**."
+            },
+            {
+                chapter: 3,
+                term: "Composition (Tight Aggregation)",
+                definition: "A less direct kind of aggregation, also called **containment by reference**.",
+                details: "The lifetimes of the two objects are **not so tightly coupled** as in physical containment; instances of each class may be created and destroyed independently."
+            },
+            {
+                chapter: 3,
+                term: "Dependencies (Class Relationship)",
+                definition: "A group of relationships indicating that an element on one end, in some manner, depends on the element on the other end.",
+                details: "This alerts the designer that a change in one element could impact the other. Distinct from inheritance, aggregation, and association."
+            },
+            {
+                chapter: 3,
+                term: "Metrics for Class Design",
+                definition: "Five meaningful metrics to determine if a class or object is well designed: **Coupling**, **Cohesion**, **Sufficiency**, **Completeness**, and **Primitiveness**.",
+            },
+            {
+                chapter: 3,
+                term: "Interface and Implementation",
+                definition: "Interface provides outside view emphasizing abstraction. Implementation contains secrets of behavior.",
+                details: "Programming as contracting, with classes as binding contracts between abstractions and clients.",
+                example: "Stack interface declares push/pop operations; implementation might use array or linked list - hidden from clients."
+            }
+        ];
+
+        let currentCardIndex = 0;
+        let isFlipped = false;
+        let currentChapter = 'all';
+        let studyMode = 'all';
+        let viewMode = 'cards';
+        let filteredCards = [];
+        let reviewData = {};
+
+        const STORAGE_KEY = 'ooad-flashcard-progress';
+
+        function loadReviewData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    reviewData = JSON.parse(saved);
+                } else {
+                    flashcards.forEach((_, index) => {
+                        reviewData[index] = { status: 'unreviewed', reviewCount: 0 };
+                    });
+                }
+            } catch (e) {
+                console.error("Could not load progress, initializing data.", e);
+                flashcards.forEach((_, index) => {
+                    reviewData[index] = { status: 'unreviewed', reviewCount: 0 };
+                });
+            }
+        }
+
+        function saveReviewData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(reviewData));
+            } catch (e) {
+                console.error("Could not save progress.", e);
+            }
+        }
+
+        function filterCards() {
+            let cards = [...flashcards];
+
+            if (currentChapter !== 'all') {
+                cards = cards.filter(card => card.chapter == currentChapter);
+            }
+
+            if (studyMode !== 'all') {
+                cards = cards.filter(card => {
+                    const globalIndex = flashcards.indexOf(card);
+                    return reviewData[globalIndex]?.status === studyMode;
+                });
+            }
+            
+            filteredCards = cards;
+            currentCardIndex = 0;
+            isFlipped = false;
+            
+            const container = document.getElementById('flashcard-container');
+            const list = document.getElementById('concept-list-container');
+            
+            if (filteredCards.length === 0) {
+                const noCardsMessage = `
+                    <div class="text-center p-16 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 mx-auto mb-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h2 class="text-2xl font-bold mb-2">No Cards Match Filters</h2>
+                        <p>Try changing your chapter or study mode settings above.</p>
+                    </div>
+                `;
+                
+                if (viewMode === 'cards') {
+                    container.innerHTML = noCardsMessage;
+                    list.classList.add('hidden');
+                } else {
+                    list.innerHTML = noCardsMessage;
+                    container.classList.add('hidden');
+                }
+            } else {
+                renderContent();
+            }
+            
+            updateControls();
+            updateProgress();
+        }
+        
+        function getGlobalIndex() {
+            if (filteredCards.length === 0) return -1;
+            return flashcards.indexOf(filteredCards[currentCardIndex]);
+        }
+
+        function renderContent() {
+            const container = document.getElementById('flashcard-container');
+            const list = document.getElementById('concept-list-container');
+            const controls = document.getElementById('controls-panel');
+            
+            if (viewMode === 'cards') {
+                container.classList.remove('hidden');
+                controls.classList.remove('hidden');
+                list.classList.add('hidden');
+                renderCard();
+            } else {
+                list.classList.remove('hidden');
+                controls.classList.add('hidden');
+                container.classList.add('hidden');
+                renderList();
+            }
+        }
+        
+        function renderList() {
+            const listContainer = document.getElementById('concept-list-container');
+            let html = '';
+            
+            const cardsByChapter = filteredCards.reduce((acc, card) => {
+                acc[card.chapter] = acc[card.chapter] || [];
+                acc[card.chapter].push(card);
+                return acc;
+            }, {});
+            
+            const sortedChapters = Object.keys(cardsByChapter).sort((a, b) => a - b);
+            
+            sortedChapters.forEach(chapter => {
+                html += `
+                    <div class="mb-8 border-b border-red-700 pb-4">
+                        <h2 class="text-3xl font-bold text-red-400 mb-4">Chapter ${chapter} Concepts</h2>
+                `;
+                
+                cardsByChapter[chapter].forEach(card => {
+                    const formattedDefinition = card.definition.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    const formattedDetails = card.details ? card.details.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') : '';
+                    
+                    html += `
+                        <div class="bg-gray-700 p-4 rounded-lg shadow-md mb-4">
+                            <h3 class="text-xl font-semibold text-white mb-2">${card.term}</h3>
+                            <p class="text-gray-300 mb-2"><strong>Definition:</strong> ${formattedDefinition}</p>
+                            ${formattedDetails ? `<p class="text-sm text-gray-400"><strong>Details:</strong> ${formattedDetails}</p>` : ''}
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            });
+            
+            listContainer.innerHTML = html;
+        }
+
+
+        function updateControls() {
+            const nextBtn = document.getElementById('next-card-btn');
+            const prevBtn = document.getElementById('prev-card-btn');
+            const counter = document.getElementById('card-counter');
+            
+            if (filteredCards.length === 0) {
+                nextBtn.disabled = true;
+                prevBtn.disabled = true;
+                counter.textContent = '0 / 0';
+                document.getElementById('review-controls').classList.add('hidden');
+                return;
+            } else if (viewMode === 'cards') {
+                document.getElementById('review-controls').classList.remove('hidden');
+            }
+
+            nextBtn.disabled = currentCardIndex >= filteredCards.length - 1;
+            prevBtn.disabled = currentCardIndex <= 0;
+            counter.textContent = `${currentCardIndex + 1} / ${filteredCards.length}`;
+            
+            document.querySelectorAll('.chapter-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'text-white');
+                btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+                if (btn.dataset.chapter === currentChapter) {
+                    btn.classList.add('bg-red-600', 'text-white');
+                    btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                }
+            });
+
+            document.querySelectorAll('.mode-filter-btn').forEach(btn => {
+                btn.classList.remove('bg-red-600', 'text-white');
+                btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+                if (btn.dataset.mode === studyMode) {
+                    btn.classList.add('bg-red-600', 'text-white');
+                    btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                }
+            });
+            
+            const listBtn = document.getElementById('list-view-btn');
+            const cardBtn = document.getElementById('card-view-btn');
+            listBtn.classList.toggle('bg-red-600', viewMode === 'list');
+            listBtn.classList.toggle('text-white', viewMode === 'list');
+            listBtn.classList.toggle('bg-gray-700', viewMode !== 'list');
+            listBtn.classList.toggle('text-gray-300', viewMode !== 'list');
+
+            cardBtn.classList.toggle('bg-red-600', viewMode === 'cards');
+            cardBtn.classList.toggle('text-white', viewMode === 'cards');
+            cardBtn.classList.toggle('bg-gray-700', viewMode !== 'cards');
+            cardBtn.classList.toggle('text-gray-300', viewMode !== 'cards');
+        }
+
+        function renderCard() {
+            if (filteredCards.length === 0) return;
+            
+            const cardElement = document.getElementById('flashcard');
+            const cardInner = document.getElementById('card-inner');
+            const cardFront = document.getElementById('card-front');
+            const cardBack = document.getElementById('card-back');
+            const currentCard = filteredCards[currentCardIndex];
+
+            cardElement.classList.toggle('flipped', isFlipped);
+
+            cardFront.innerHTML = `
+                <span class="absolute top-4 right-4 bg-red-800 text-red-200 text-sm font-semibold px-3 py-1 rounded-full">
+                    Chapter ${currentCard.chapter}
+                </span>
+                <h2 class="text-4xl font-extrabold text-red-300 text-center mb-6 px-4 leading-snug">
+                    ${currentCard.term}
+                </h2>
+                <p class="text-gray-400 text-sm mt-4">Click anywhere on the card to reveal the definition.</p>
+            `;
+
+            cardBack.innerHTML = `
+                <div class="absolute top-4 right-4 bg-red-800 text-red-200 text-sm font-semibold px-3 py-1 rounded-full">
+                    Chapter ${currentCard.chapter}
+                </div>
+                <div class="px-6 py-4 w-full h-full">
+                    <h3 class="text-xl font-bold text-red-300 mb-2">Definition</h3>
+                    <p class="text-gray-200 mb-4">${currentCard.definition}</p>
+                    
+                    ${currentCard.details ? 
+                        `<h3 class="text-xl font-bold text-red-300 mb-2 mt-4">Details</h3>
+                        <p class="text-gray-300 mb-4">${currentCard.details}</p>` : ''
+                    }
+
+                    ${currentCard.example ? 
+                        `<div class="mt-4 p-4 border-l-4 border-red-500 bg-gray-800 rounded-md">
+                            <h4 class="font-semibold text-red-400">Example</h4>
+                            <p class="text-gray-300 italic text-sm">${currentCard.example}</p>
+                        </div>` : ''
+                    }
+                </div>
+            `;
+        }
+
+        function updateProgress() {
+            const total = flashcards.length;
+            if (total === 0) return;
+
+            const masteredCount = Object.values(reviewData).filter(r => r.status === 'mastered').length;
+            const progressPercent = (masteredCount / total) * 100;
+
+            const progressBarFill = document.getElementById('progress-fill');
+            const progressInfo = document.getElementById('progress-info');
+
+            progressBarFill.style.width = `${progressPercent}%`;
+            progressInfo.textContent = `${masteredCount} / ${total} mastered`;
+        }
+        
+        function toggleViewMode(mode) {
+            viewMode = mode;
+            filterCards();
+            updateControls();
+        }
+
+        function markCardStatus(status) {
+            const globalIndex = getGlobalIndex();
+            
+            if (globalIndex === -1) return;
+
+            reviewData[globalIndex] = {
+                status: status,
+                reviewCount: (reviewData[globalIndex]?.reviewCount || 0) + 1,
+            };
+
+            saveReviewData();
+            updateProgress();
+
+            if (currentCardIndex < filteredCards.length - 1) {
+                currentCardIndex++;
+                isFlipped = false;
+                renderCard();
+                updateControls();
+            } else {
+                filterCards();
+            }
+        }
+        
+        function navigateCard(direction) {
+            if (direction === 'next' && currentCardIndex < filteredCards.length - 1) {
+                currentCardIndex++;
+            } else if (direction === 'prev' && currentCardIndex > 0) {
+                currentCardIndex--;
+            }
+            isFlipped = false;
+            renderCard();
+            updateControls();
+        }
+
+        function toggleFlip() {
+            isFlipped = !isFlipped;
+            document.getElementById('flashcard').classList.toggle('flipped', isFlipped);
+        }
+
+        function initApp() {
+            loadReviewData();
+            filterCards();
+
+            document.getElementById('flashcard').addEventListener('click', toggleFlip);
+            document.getElementById('next-card-btn').addEventListener('click', () => navigateCard('next'));
+            document.getElementById('prev-card-btn').addEventListener('click', () => navigateCard('prev'));
+            
+            document.getElementById('card-view-btn').addEventListener('click', () => toggleViewMode('cards'));
+            document.getElementById('list-view-btn').addEventListener('click', () => toggleViewMode('list'));
+
+            document.getElementById('mark-difficult').addEventListener('click', () => markCardStatus('difficult'));
+            document.getElementById('mark-review').addEventListener('click', () => markCardStatus('needs-review'));
+            document.getElementById('mark-mastered').addEventListener('click', () => markCardStatus('mastered'));
+
+            document.querySelectorAll('.chapter-filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    currentChapter = e.target.dataset.chapter;
+                    filterCards();
+                });
+            });
+
+            document.querySelectorAll('.mode-filter-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    studyMode = e.target.dataset.mode;
+                    filterCards();
+                });
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (viewMode === 'cards') {
+                    if (e.key === 'ArrowLeft') navigateCard('prev');
+                    else if (e.key === 'ArrowRight') navigateCard('next');
+                    else if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        toggleFlip();
+                    }
+                    else if (e.key === '1') markCardStatus('difficult');
+                    else if (e.key === '2') markCardStatus('needs-review');
+                    else if (e.key === '3') markCardStatus('mastered');
+                }
+            });
+
+        }
+
+        window.onload = initApp;
+    </script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 sm:p-8 font-sans">
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-8 p-6 bg-gray-800 rounded-xl shadow-2xl">
+            <p class="text-4xl font-extrabold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-yellow-300">
+                Master Object-Oriented Analysis & Design Concepts
+            </p>
+        </header>
+
+        <div class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+            
+            <div class="mb-6 border-b border-gray-700 pb-4">
+                <h2 class="text-sm font-semibold text-gray-400 mb-2">VIEW MODE</h2>
+                <div class="flex flex-wrap gap-3">
+                    <button id="card-view-btn" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 6a1 1 0 011-1h10a1 1 0 011 1v10a1 1 0 01-1 1H5a1 1 0 01-1-1V6zM5 13a1 1 0 000 2h10a1 1 0 100-2H5z"/></svg>
+                        Flashcards
+                    </button>
+                    <button id="list-view-btn" class="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1 -mt-0.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM9 15a1 1 0 011-1h6a1 1 0 110 2h-6a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+                        Concept List
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h2 class="text-sm font-semibold text-gray-400 mb-2">FILTER BY CHAPTER</h2>
+                <div class="flex flex-wrap gap-3">
+                    <button class="chapter-filter-btn bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-chapter="all">
+                        All Chapters
+                    </button>
+                    <button class="chapter-filter-btn bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-chapter="1">
+                        Chapter 1
+                    </button>
+                    <button class="chapter-filter-btn bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-chapter="2">
+                        Chapter 2
+                    </button>
+                    <button class="chapter-filter-btn bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-chapter="3">
+                        Chapter 3
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <h2 class="text-sm font-semibold text-gray-400 mb-2">STUDY MODE</h2>
+                <div class="flex flex-wrap gap-3">
+                    <button class="mode-filter-btn bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-mode="all">
+                        All Cards
+                    </button>
+                    <button class="mode-filter-btn bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-mode="unreviewed">
+                        Not Reviewed
+                    </button>
+                    <button class="mode-filter-btn bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-mode="difficult">
+                        Difficult
+                    </button>
+                    <button class="mode-filter-btn bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-mode="needs-review">
+                        Needs Review
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-sm font-medium text-gray-400 mb-1">
+                    <span>Progress</span>
+                    <span id="progress-info">0 / 0 mastered</span>
+                </div>
+                <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div id="progress-fill" class="h-full bg-green-500 transition-all duration-500 ease-in-out" style="width: 0%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="flashcard-container">
+            <div id="flashcard" class="h-[400px] cursor-pointer" aria-live="polite">
+                <div id="card-inner" class="bg-gray-700 rounded-2xl shadow-xl hover:shadow-2xl transition-shadow duration-300 border border-red-800">
+                    <div id="card-front" class="card-face p-8">
+                    </div>
+                    <div id="card-back" class="card-face bg-gray-800 p-4 sm:p-8 border border-red-700 rounded-2xl">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="concept-list-container" class="hidden">
+        </div>
+
+        <div id="controls-panel" class="mt-8 p-6 bg-gray-800 rounded-xl shadow-lg">
+            <div class="flex justify-between items-center mb-6">
+                <button id="prev-card-btn" class="flex items-center space-x-2 text-red-400 hover:text-red-300 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                    <span class="font-semibold">Previous</span>
+                </button>
+                
+                <span id="card-counter" class="text-2xl font-bold text-red-300">0 / 0</span>
+
+                <button id="next-card-btn" class="flex items-center space-x-2 text-red-400 hover:text-red-300 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors duration-200">
+                    <span class="font-semibold">Next</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                </button>
+            </div>
+
+            <div id="review-controls" class="border-t border-gray-700 pt-6">
+                <h3 class="text-center text-sm font-semibold text-gray-400 mb-4">Rate Your Knowledge (Keyboard 1, 2, 3)</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    <button id="mark-difficult" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-red-900 hover:bg-red-800 rounded-xl font-bold transition-transform transform hover:scale-105 shadow-md">
+                        <span class="text-2xl">😰</span>
+                        <span class="text-sm sm:text-base mt-1">Difficult</span>
+                    </button>
+                    <button id="mark-review" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-yellow-700 hover:bg-yellow-600 rounded-xl font-bold transition-transform transform hover:scale-105 shadow-md">
+                        <span class="text-2xl">🤔</span>
+                        <span class="text-sm sm:text-base mt-1">Review</span>
+                    </button>
+                    <button id="mark-mastered" class="flex flex-col items-center justify-center p-3 sm:p-4 bg-green-700 hover:bg-green-600 rounded-xl font-bold transition-transform transform hover:scale-105 shadow-md">
+                        <span class="text-2xl">✨</span>
+                        <span class="text-sm sm:text-base mt-1">Mastered</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
