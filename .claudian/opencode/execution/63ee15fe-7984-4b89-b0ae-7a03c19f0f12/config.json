@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "claudian-execution-passive": {
+      "description": "Claudian passive execution agent.",
+      "mode": "primary",
+      "permission": {
+        "*": "deny",
+        "external_directory": "deny"
+      },
+      "prompt": "{file:/home/blueberry/Picsart-Academy/.claudian/opencode/execution/63ee15fe-7984-4b89-b0ae-7a03c19f0f12/system.md}"
+    }
+  },
+  "default_agent": "claudian-execution-passive"
+}

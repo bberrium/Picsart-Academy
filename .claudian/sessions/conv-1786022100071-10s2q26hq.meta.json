@@ -1,0 +1,25 @@
+{
+  "id": "conv-1786022100071-10s2q26hq",
+  "providerId": "opencode",
+  "title": "Explain capabilities",
+  "titleGenerationStatus": "success",
+  "createdAt": 1786022100096,
+  "lastActivityAt": 1786101387935,
+  "sessionId": "ses_028c976ceffeWNOLlGj62ZGUCp",
+  "selectedModel": "opencode:opencode/nemotron-3-ultra-free",
+  "providerState": {
+    "databasePath": "/home/blueberry/.var/app/md.obsidian.Obsidian/data/opencode/opencode.db",
+    "nativeConversationContextEstablished": true
+  },
+  "currentNote": "Phase 3/DL/markdowns/13.07 practice (Advanced CV).md",
+  "usage": {
+    "cacheCreationInputTokens": 0,
+    "cacheReadInputTokens": 0,
+    "contextTokens": 57257,
+    "contextWindow": 1000000,
+    "contextWindowIsAuthoritative": true,
+    "inputTokens": 0,
+    "model": "opencode/nemotron-3-ultra-free",
+    "percentage": 6
+  }
+}
