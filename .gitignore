@@ -2,3 +2,7 @@
 .obsidian/
 *.db
 .ipynb_checkpoints/
+.claudian/
+.makemd/
+.space/
+.trash/
